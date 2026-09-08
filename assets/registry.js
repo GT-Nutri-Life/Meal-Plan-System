@@ -180,6 +180,9 @@
     {
       id: 'about-dietitian',
       name: 'About the Dietitian',
+      // The practice's public face: clients and search engines must reach it
+      // without an account, so the shared sign-in gate skips this one.
+      isPublic: true,
       system: 'About Dietitian',
       source: 'about-dietitian',
       category: 'practice',
@@ -191,11 +194,130 @@
     }
   ];
 
+  /* ------------------------------------------------------------------ *
+   * Cross-references between subsystems.
+   *
+   * Each tool declares which fields of the shared clinical record it can
+   * produce and which it can consume (see assets/gt-context.js for the
+   * canonical paths). The portal draws the map from this, and the switcher
+   * uses it to suggest where the data in hand can go next.
+   * ------------------------------------------------------------------ */
+
+  var IO = {
+    'bmi-assessment': {
+      consumes: ['patient.age', 'patient.sex', 'measure.heightCm', 'measure.weightKg', 'measure.waistCm'],
+      produces: ['patient.age', 'patient.sex', 'measure.heightCm', 'measure.weightKg', 'measure.waistCm',
+                 'measure.bmi', 'measure.bmiCategory', 'energy.bmr', 'energy.tdee', 'energy.activity']
+    },
+    'dietary-nutrition-assessment': {
+      consumes: ['patient.name', 'patient.age', 'patient.sex', 'patient.id', 'patient.ward',
+                 'measure.heightCm', 'measure.weightKg', 'energy.target', 'energy.tdee',
+                 'macros.choPct', 'macros.proPct', 'macros.fatPct', 'dietitian.name'],
+      produces: ['patient.name', 'patient.age', 'patient.sex', 'patient.id', 'patient.ward',
+                 'measure.heightCm', 'measure.weightKg', 'energy.target',
+                 'macros.choPct', 'macros.proPct', 'macros.fatPct', 'dietitian.name']
+    },
+    'meal-plan-generator': {
+      consumes: ['patient.name', 'patient.age', 'patient.sex', 'patient.phone', 'patient.email',
+                 'patient.address', 'measure.heightCm', 'measure.weightKg', 'measure.targetWeightKg',
+                 'energy.target', 'energy.tdee', 'plan.calorieTarget', 'plan.startDate',
+                 'dietitian.name', 'dietitian.credentials', 'dietitian.phone', 'dietitian.email'],
+      produces: ['patient.name', 'patient.age', 'patient.sex', 'patient.phone', 'patient.email',
+                 'patient.address', 'measure.heightCm', 'measure.weightKg', 'measure.targetWeightKg',
+                 'measure.bmi', 'plan.calorieTarget', 'plan.startDate',
+                 'dietitian.name', 'dietitian.credentials', 'dietitian.phone', 'dietitian.email']
+    },
+    'diet-plan-generator': {
+      consumes: ['patient.name', 'patient.age', 'patient.dob', 'patient.sex', 'patient.email',
+                 'patient.phone', 'measure.heightCm', 'measure.weightKg'],
+      produces: ['patient.name', 'patient.age', 'patient.dob', 'patient.sex', 'patient.email',
+                 'patient.phone', 'measure.heightCm', 'measure.weightKg', 'energy.activity']
+    },
+    'diet-plan-calendar-generator': {
+      consumes: ['patient.name', 'patient.email', 'patient.phone', 'plan.calorieTarget',
+                 'energy.target', 'energy.tdee', 'plan.startDate',
+                 'macros.choPct', 'macros.proPct', 'macros.fatPct'],
+      produces: ['patient.name', 'patient.email', 'patient.phone', 'plan.calorieTarget',
+                 'plan.startDate', 'macros.choPct', 'macros.proPct', 'macros.fatPct']
+    },
+    'icu': {
+      consumes: ['patient.id', 'patient.age', 'patient.sex', 'measure.heightCm', 'measure.weightKg'],
+      produces: ['patient.id', 'patient.age', 'patient.sex', 'measure.heightCm', 'measure.weightKg']
+    },
+    'dpg-7-day-menu': {
+      consumes: ['patient.name', 'plan.startDate'],
+      produces: ['patient.name', 'plan.startDate']
+    },
+    'dpcg-7-day-menu': {
+      consumes: ['patient.name', 'plan.startDate'],
+      produces: ['patient.name', 'plan.startDate']
+    }
+    /* Baby Growth & Feeding is intentionally absent: its subject is an infant
+       with its own identity and measurements, so carrying an adult record into
+       it would be a clinical error rather than a convenience. About the
+       Dietitian is a public page and holds no clinical fields. */
+  };
+
+  // main.html is the same generator with a .docx export, so it shares the map.
+  IO['meal-plan-generator-docx'] = IO['meal-plan-generator'];
+
+  TOOLS.forEach(function (t) {
+    var io = IO[t.id] || {};
+    t.consumes = io.consumes || [];
+    t.produces = io.produces || [];
+    t.wired = !!(io.consumes || io.produces);
+  });
+
+  /*
+   * The clinical journey, as named edges. `carries` lists the fields that
+   * actually move, so the portal's map states what each arrow means rather
+   * than implying a vague association.
+   */
+  var FLOW = [
+    { from: 'bmi-assessment', to: 'dietary-nutrition-assessment',
+      label: 'Daily energy needs become the prescription',
+      carries: ['energy.tdee', 'measure.heightCm', 'measure.weightKg', 'patient.age', 'patient.sex'] },
+    { from: 'bmi-assessment', to: 'meal-plan-generator',
+      label: 'Anthropometry and calorie target',
+      carries: ['measure.heightCm', 'measure.weightKg', 'measure.bmi', 'energy.tdee', 'patient.age', 'patient.sex'] },
+    { from: 'bmi-assessment', to: 'icu',
+      label: 'Measurements for critical-care dosing',
+      carries: ['measure.heightCm', 'measure.weightKg', 'patient.age', 'patient.sex'] },
+    { from: 'dietary-nutrition-assessment', to: 'meal-plan-generator',
+      label: 'Prescribed energy and macronutrient split',
+      carries: ['energy.target', 'macros.choPct', 'macros.proPct', 'macros.fatPct'] },
+    { from: 'dietary-nutrition-assessment', to: 'diet-plan-calendar-generator',
+      label: 'Energy and macros to schedule against',
+      carries: ['energy.target', 'macros.choPct', 'macros.proPct', 'macros.fatPct'] },
+    { from: 'diet-plan-generator', to: 'bmi-assessment',
+      label: 'Intake measurements to assess',
+      carries: ['measure.heightCm', 'measure.weightKg', 'patient.age', 'patient.sex'] },
+    { from: 'diet-plan-generator', to: 'meal-plan-generator',
+      label: 'Client details and preferences',
+      carries: ['patient.name', 'patient.age', 'patient.sex', 'patient.email', 'patient.phone'] },
+    { from: 'meal-plan-generator', to: 'diet-plan-calendar-generator',
+      label: 'The finished plan, ready to schedule',
+      carries: ['patient.name', 'plan.calorieTarget', 'plan.startDate'] },
+    { from: 'meal-plan-generator', to: 'dpg-7-day-menu',
+      label: 'Client and start date for the weekly menu',
+      carries: ['patient.name', 'plan.startDate'] },
+    { from: 'diet-plan-calendar-generator', to: 'dpcg-7-day-menu',
+      label: 'Client and start date for the option-based menu',
+      carries: ['patient.name', 'plan.startDate'] }
+  ];
+
   root.GTRegistry = {
     categories: CATEGORIES,
     sources: SOURCES,
     icons: ICONS,
     tools: TOOLS,
+    flow: FLOW,
+
+    /** Edges leaving a tool. */
+    flowFrom: function (id) { return FLOW.filter(function (e) { return e.from === id; }); },
+
+    /** Edges arriving at a tool. */
+    flowTo: function (id) { return FLOW.filter(function (e) { return e.to === id; }); },
 
     /** Tools belonging to a category id, in registry order. */
     byCategory: function (id) {

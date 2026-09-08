@@ -61,7 +61,7 @@ body{
 }
 a{color:inherit;text-decoration:none}
 button{border:0;background:none;font:inherit;color:inherit;cursor:pointer}
-ul{list-style:none}
+ul,ol{list-style:none}
 :focus-visible{outline:2px solid var(--ac);outline-offset:3px;border-radius:var(--rs)}
 ::selection{background:var(--ac);color:var(--inv)}
 svg{display:block;flex:none}
@@ -183,6 +183,56 @@ h1 em{font-style:normal;color:var(--ac)}
 .none{padding:56px 20px;text-align:center;color:var(--text3);font-size:14.5px}
 .none b{display:block;font-size:17px;color:var(--text);margin-bottom:7px;font-family:var(--fd)}
 
+/* ---------------- current record bar ---------------- */
+#recwrap{padding:4px 0 0}
+.recbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 18px;
+  background:var(--bg-card);border:1px solid var(--ac-bdr);border-radius:var(--rm);box-shadow:var(--sh-s)}
+.recmain{min-width:0}
+.reclab{font-family:var(--fm);font-size:10px;font-weight:500;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ac)}
+.recsum{font-size:15px;font-weight:600;letter-spacing:-.01em;margin-top:2px}
+.recchips{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
+.chip{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;background:var(--bg-soft);
+  border:1px solid var(--bdr);border-radius:var(--rf);font-size:11.5px;color:var(--text2);white-space:nowrap}
+.chip b{font-family:var(--fm);font-size:11px;font-weight:500;color:var(--ac)}
+.recclear{padding:7px 14px;border:1px solid var(--bdr);border-radius:var(--rf);
+  font-size:12.5px;font-weight:600;color:var(--text3);transition:color .18s,border-color .18s}
+.recclear:hover{color:var(--ac);border-color:var(--ac)}
+
+/* ---------------- connection map ---------------- */
+#flow{padding:8px 0 76px}
+.flownote{font-size:14px;color:var(--text2);line-height:1.75;max-width:660px;margin-bottom:26px}
+
+.rail{display:grid;gap:10px;grid-template-columns:1fr;margin-bottom:34px;list-style:none}
+@media(min-width:900px){.rail{grid-template-columns:repeat(5,1fr);gap:0}}
+.rail li{position:relative;padding:16px 18px;background:var(--bg-card);border:1px solid var(--bdr);
+  border-radius:var(--rm);box-shadow:var(--sh-s)}
+@media(min-width:900px){
+  .rail li{border-radius:0;border-left-width:0}
+  .rail li:first-child{border-radius:var(--rm) 0 0 var(--rm);border-left-width:1px}
+  .rail li:last-child{border-radius:0 var(--rm) var(--rm) 0}
+  /* the chevron that joins one stage to the next */
+  .rail li:not(:last-child)::after{content:'';position:absolute;right:-7px;top:50%;z-index:2;
+    width:12px;height:12px;margin-top:-6px;background:var(--bg-card);
+    border-top:1px solid var(--bdr);border-right:1px solid var(--bdr);transform:rotate(45deg)}
+}
+.stepn{font-family:var(--fm);font-size:10.5px;font-weight:500;letter-spacing:.14em;color:var(--ac)}
+.rail h3{font-size:14.5px;font-weight:600;letter-spacing:-.01em;margin-top:7px;line-height:1.35}
+.rail p{font-size:12px;color:var(--text3);line-height:1.55;margin-top:5px}
+
+.edges{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:800px){.edges{grid-template-columns:repeat(2,1fr)}}
+.edge{padding:16px 18px;background:var(--bg-card);border:1px solid var(--bdr);
+  border-radius:var(--rm);box-shadow:var(--sh-s);transition:border-color .22s}
+.edge:hover{border-color:var(--ac-bdr)}
+.epair{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:13.5px;font-weight:600}
+.epair .to{color:var(--ac)}
+.epair svg{width:15px;height:15px;color:var(--text3);flex:none}
+.elabel{font-size:12.5px;color:var(--text2);margin-top:6px;line-height:1.55}
+.efields{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.efield{padding:2.5px 8px;background:var(--ac-bg);border:1px solid var(--ac-bdr);border-radius:var(--rf);
+  font-family:var(--fm);font-size:10.5px;color:var(--text2)}
+
 /* ---------------- footer ---------------- */
 footer{padding:40px 0 56px;border-top:1px solid var(--bdr);background:var(--bg-soft)}
 .fgrid{display:grid;gap:28px;grid-template-columns:1fr}
@@ -252,9 +302,42 @@ footer{padding:40px 0 56px;border-top:1px solid var(--bdr);background:var(--bg-s
   </div>
 </section>
 
+<section id="recwrap" hidden>
+  <div class="wrap">
+    <div class="recbar">
+      <div class="recmain">
+        <p class="reclab">Current record</p>
+        <p class="recsum" id="recsum"></p>
+      </div>
+      <div class="recchips" id="recchips"></div>
+      <button class="recclear" id="recclear" type="button">Clear record</button>
+    </div>
+  </div>
+</section>
+
 <main id="cat">
   <div class="wrap" id="main"></div>
 </main>
+
+<section id="flow">
+  <div class="wrap">
+    <div class="ghead">
+      <h2>How the systems connect</h2>
+      <p>What each tool hands to the next, and the field names behind it.</p>
+    </div>
+
+    <p class="flownote">
+      Open any tool and work as usual. What you enter and what it calculates is
+      lifted into a shared clinical record; the next tool offers to fill itself
+      in from it. Nothing is sent anywhere until you are signed in, and then only
+      to your own row in the practice database.
+    </p>
+
+    <ol class="rail" id="rail"></ol>
+
+    <div class="edges" id="edges"></div>
+  </div>
+</section>
 
 <noscript>
   <div class="wrap" style="padding:28px 22px 60px">
@@ -302,6 +385,8 @@ footer{padding:40px 0 56px;border-top:1px solid var(--bdr);background:var(--bg-s
 </footer>
 
 <script src="assets/registry.js"></script>
+<script src="assets/gt-context.js"></script>
+<script src="assets/gt-auth.js"></script>
 <script>
 (function () {
   'use strict';
@@ -409,6 +494,95 @@ footer{padding:40px 0 56px;border-top:1px solid var(--bdr);background:var(--bg-s
 
   render('');
   input.addEventListener('input', function () { render(input.value); });
+
+  /* ---------- shared sign-in ------------------------------------------- */
+  // The portal is a clinical surface, so it is gated like the tools it opens.
+  if (window.GTAuth) {
+    window.GTAuth.init({ gated: true });
+    window.GTAuth.onChange(function (user) {
+      if (user && window.GTContext) {
+        window.GTContext.syncFromCloud().then(function () { paintRecord(); });
+      }
+    });
+  }
+
+  /* ---------- current clinical record ---------------------------------- */
+  var CTX = window.GTContext || null;
+
+  function paintRecord() {
+    var wrap = document.getElementById('recwrap');
+    if (!CTX) { wrap.hidden = true; return; }
+    var fields = CTX.fields();
+    wrap.hidden = fields.length === 0;
+    if (!fields.length) return;
+
+    document.getElementById('recsum').textContent =
+      CTX.summary() || (fields.length + ' fields carried');
+
+    // Show the clinically interesting values first; the rest stay in the record.
+    var show = ['measure.heightCm', 'measure.weightKg', 'measure.bmi', 'energy.bmr',
+                'energy.tdee', 'energy.target', 'plan.calorieTarget'];
+    document.getElementById('recchips').innerHTML = fields
+      .filter(function (f) { return show.indexOf(f.path) !== -1; })
+      .map(function (f) {
+        return '<span class="chip">' + esc(f.label) + ' <b>' + esc(f.value) + '</b></span>';
+      }).join('');
+  }
+
+  document.getElementById('recclear').addEventListener('click', function () {
+    if (CTX) { CTX.clear(); paintRecord(); }
+  });
+  if (CTX) CTX.onChange(paintRecord);
+  paintRecord();
+
+  /* ---------- how the systems connect ----------------------------------- */
+
+  // The canonical journey. Each stage names the tools that sit in it.
+  var RAIL = [
+    { name: 'Intake',       tools: ['diet-plan-generator'],
+      note: 'Client details, history and preferences.' },
+    { name: 'Assessment',   tools: ['bmi-assessment'],
+      note: 'Anthropometry, BMI, BMR and daily energy needs.' },
+    { name: 'Prescription', tools: ['dietary-nutrition-assessment'],
+      note: 'Energy allowance converted into exchanges and macros.' },
+    { name: 'Plan',         tools: ['meal-plan-generator', 'meal-plan-generator-docx'],
+      note: 'The client-ready plan, as PDF or editable Word.' },
+    { name: 'Schedule',     tools: ['diet-plan-calendar-generator', 'dpg-7-day-menu'],
+      note: 'Weekly menus and calendar reminders.' }
+  ];
+
+  document.getElementById('rail').innerHTML = RAIL.map(function (st, i) {
+    var names = st.tools.map(function (id) {
+      var t = REG.get(id);
+      return t ? t.name : id;
+    });
+    return '<li>' +
+      '<span class="stepn">Step ' + (i + 1) + '</span>' +
+      '<h3>' + esc(st.name) + '</h3>' +
+      '<p>' + esc(names.join(' · ')) + '</p>' +
+      '<p>' + esc(st.note) + '</p>' +
+    '</li>';
+  }).join('');
+
+  var EARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg>';
+
+  document.getElementById('edges').innerHTML = REG.flow.map(function (e) {
+    var from = REG.get(e.from), to = REG.get(e.to);
+    if (!from || !to) return '';
+    var labels = (e.carries || []).map(function (path) {
+      return (CTX && CTX.PATHS[path]) ? CTX.PATHS[path] : path;
+    });
+    return '<div class="edge">' +
+      '<p class="epair"><span>' + esc(from.name) + '</span>' + EARROW +
+        '<span class="to">' + esc(to.name) + '</span></p>' +
+      '<p class="elabel">' + esc(e.label) + '</p>' +
+      '<div class="efields">' + labels.map(function (l) {
+        return '<span class="efield">' + esc(l) + '</span>';
+      }).join('') + '</div>' +
+    '</div>';
+  }).join('');
 
   /* ---------- keyboard ------------------------------------------------- */
   document.addEventListener('keydown', function (e) {

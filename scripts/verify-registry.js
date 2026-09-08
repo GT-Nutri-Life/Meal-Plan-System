@@ -68,10 +68,67 @@ for (const f of bundled) {
   if (!registered.has(f)) errors.push(`orphaned page (bundled but not in the registry): ${f}`);
 }
 
+// The switcher pulls these in at runtime; a missing file would degrade the
+// portal silently rather than loudly.
+for (const asset of ['assets/registry.js', 'assets/gt-context.js',
+                     'assets/gt-auth.js', 'assets/gt-switcher.js']) {
+  if (!fs.existsSync(path.join(ROOT, asset))) errors.push(`missing asset: ${asset}`);
+}
+
+// Every tool that declares a data flow must have an adapter that can actually
+// move it, and every adapter must belong to a real tool.
+// gt-context.js is browser code; give it just enough of a window to load so
+// its adapter table and field list can be checked without a browser.
+global.window.addEventListener = function () {};
+global.window.localStorage = {
+  getItem: function () { return null; },
+  setItem: function () {},
+  removeItem: function () {}
+};
+global.document = { getElementById: function () { return null; },
+                    querySelector: function () { return null; },
+                    addEventListener: function () {} };
+global.window.GTContext = undefined;
+require(path.join(ROOT, 'assets', 'gt-context.js'));
+const CTX = global.window.GTContext;
+
+if (!CTX) {
+  errors.push('gt-context.js did not define GTContext');
+} else {
+  for (const t of REG.tools) {
+    if (t.wired && !CTX.adapters[t.id]) {
+      errors.push(`tool "${t.id}" declares produces/consumes but has no adapter in gt-context.js`);
+    }
+  }
+  for (const id of Object.keys(CTX.adapters)) {
+    if (!REG.get(id)) errors.push(`gt-context.js has an adapter for unknown tool "${id}"`);
+  }
+  // Every field named in a flow edge must exist in the canonical record.
+  for (const e of REG.flow) {
+    for (const f of (e.carries || [])) {
+      if (!CTX.PATHS[f]) errors.push(`flow ${e.from} -> ${e.to} carries unknown field "${f}"`);
+    }
+  }
+  // Same for the produces/consumes declarations.
+  for (const t of REG.tools) {
+    for (const f of t.produces.concat(t.consumes)) {
+      if (!CTX.PATHS[f]) errors.push(`tool "${t.id}" references unknown field "${f}"`);
+    }
+  }
+}
+
+// Flow endpoints must be real tools.
+for (const e of REG.flow) {
+  if (!REG.get(e.from)) errors.push(`flow edge from unknown tool "${e.from}"`);
+  if (!REG.get(e.to))   errors.push(`flow edge to unknown tool "${e.to}"`);
+}
+
 if (errors.length) {
   console.error('Registry check FAILED:\n' + errors.map((e) => '  - ' + e).join('\n'));
   process.exit(1);
 }
 
 console.log(`Registry OK — ${REG.tools.length} tools, ${bundled.length} bundled pages, ` +
-            `${Object.keys(REG.sources).length} source systems.`);
+            `${Object.keys(REG.sources).length} source systems, ` +
+            `${REG.flow.length} documented connections, ` +
+            `${REG.tools.filter((t) => t.wired).length} data-wired tools.`);
