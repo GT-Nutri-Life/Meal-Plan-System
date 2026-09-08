@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GT Meal Plan System — clinical nutrition portal</title>
+<meta name="description" content="Unified portal for the GT Nutri Life clinical nutrition tools: BMI and dietary assessment, meal and diet plan generation, weekly menus, calendar sync, and paediatric and critical care planning.">
+<meta name="author" content="Gayathri Thakshila Dissanayaka">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#2D7A5F" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1A14" media="(prefers-color-scheme: dark)">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="GT Meal Plan System">
+<meta property="og:description" content="One entry point to every GT Nutri Life clinical nutrition subsystem.">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+/* ---------------------------------------------------------------
+   Palette and type inherited from the About-Dietitian site, so the
+   portal reads as the same practice rather than a separate product.
+   --------------------------------------------------------------- */
+:root{
+  --bg:#FAFBF9; --bg-card:#FFFFFF; --bg-soft:#F2F6F3;
+  --text:#1B2A22; --text2:#3D5A4C; --text3:#5F8474; --inv:#FAFBF9;
+  --ac:#2D7A5F; --ac2:#3A9E7A;
+  --ac-bg:rgba(45,122,95,.06); --ac-bdr:rgba(45,122,95,.14);
+  --bdr:rgba(45,122,95,.10);
+  --sh-s:0 1px 3px rgba(27,42,34,.04);
+  --sh-m:0 4px 16px rgba(27,42,34,.06);
+  --sh-l:0 16px 44px rgba(27,42,34,.10);
+  --rs:8px; --rm:14px; --rl:20px; --rxl:28px; --rf:9999px;
+  --ease:cubic-bezier(.16,1,.3,1);
+  --fd:'Playfair Display',Georgia,serif;
+  --fb:'Outfit',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --fm:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --nh:68px;
+}
+html[data-theme="dark"]{
+  --bg:#0F1A14; --bg-card:#1A2B22; --bg-soft:#16261E;
+  --text:#E8F0EB; --text2:#B8D1C3; --text3:#89AE9B; --inv:#0F1A14;
+  --ac:#4AE09A; --ac2:#3CC48A;
+  --ac-bg:rgba(74,224,154,.06); --ac-bdr:rgba(74,224,154,.18);
+  --bdr:rgba(74,224,154,.09);
+  --sh-s:0 1px 3px rgba(0,0,0,.24);
+  --sh-m:0 4px 16px rgba(0,0,0,.30);
+  --sh-l:0 16px 44px rgba(0,0,0,.42);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--nh) + 16px);-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--fb); background:var(--bg); color:var(--text);
+  line-height:1.65; overflow-x:hidden; -webkit-font-smoothing:antialiased;
+  transition:background .35s var(--ease), color .35s var(--ease);
+}
+a{color:inherit;text-decoration:none}
+button{border:0;background:none;font:inherit;color:inherit;cursor:pointer}
+ul{list-style:none}
+:focus-visible{outline:2px solid var(--ac);outline-offset:3px;border-radius:var(--rs)}
+::selection{background:var(--ac);color:var(--inv)}
+svg{display:block;flex:none}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+@media(min-width:768px){.wrap{padding:0 40px}}
+
+.skip{position:fixed;top:-100%;left:16px;z-index:2000;padding:12px 22px;
+  background:var(--ac);color:var(--inv);font-weight:600;font-size:14px;
+  border-radius:0 0 var(--rs) var(--rs);transition:top .15s}
+.skip:focus{top:0}
+
+/* ---------------- header ---------------- */
+#top{position:sticky;top:0;z-index:900;height:var(--nh);display:flex;align-items:center;
+  background:color-mix(in srgb,var(--bg) 86%,transparent);
+  backdrop-filter:blur(16px) saturate(180%);-webkit-backdrop-filter:blur(16px) saturate(180%);
+  border-bottom:1px solid var(--bdr)}
+.tbar{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%}
+.brand{display:flex;align-items:center;gap:11px;min-width:0}
+.mark{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:10px;
+  background:var(--ac);color:var(--inv);font-family:var(--fd);font-size:15px;font-weight:700;letter-spacing:-.02em}
+.bname{font-family:var(--fd);font-size:17px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+.bname em{font-style:normal;color:var(--ac)}
+.tact{display:flex;align-items:center;gap:6px}
+.icobtn{display:grid;place-items:center;width:38px;height:38px;border-radius:var(--rf);
+  color:var(--text3);transition:background .18s,color .18s}
+.icobtn:hover{background:var(--ac-bg);color:var(--text)}
+.ghost{display:none;align-items:center;gap:7px;padding:8px 15px;border:1px solid var(--ac-bdr);
+  border-radius:var(--rf);font-size:13px;font-weight:500;color:var(--text2);transition:border-color .18s,color .18s,background .18s}
+.ghost:hover{border-color:var(--ac);color:var(--ac);background:var(--ac-bg)}
+@media(min-width:640px){.ghost{display:inline-flex}}
+
+/* ---------------- hero ---------------- */
+#hero{padding:64px 0 34px;position:relative;overflow:hidden}
+@media(min-width:768px){#hero{padding:92px 0 42px}}
+#hero::before{content:'';position:absolute;top:-220px;left:50%;transform:translateX(-50%);
+  width:820px;height:520px;pointer-events:none;
+  background:radial-gradient(ellipse at center,var(--ac-bg),transparent 68%)}
+.hero-in{position:relative;max-width:760px}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--fm);font-size:11.5px;
+  font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--ac)}
+.eyebrow::before{content:'';width:22px;height:1px;background:var(--ac)}
+h1{font-family:var(--fd);font-size:clamp(2.1rem,5.6vw,3.6rem);font-weight:700;
+  line-height:1.09;letter-spacing:-.025em;margin-top:16px}
+h1 em{font-style:normal;color:var(--ac)}
+.lede{font-size:clamp(15px,1.7vw,17.5px);color:var(--text2);line-height:1.75;margin-top:18px;max-width:620px}
+
+.stats{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.stat{display:flex;align-items:baseline;gap:8px;padding:9px 16px;background:var(--bg-card);
+  border:1px solid var(--bdr);border-radius:var(--rf);box-shadow:var(--sh-s)}
+.stat b{font-family:var(--fm);font-size:15px;font-weight:500;color:var(--ac)}
+.stat span{font-size:12.5px;color:var(--text3);white-space:nowrap}
+
+/* ---------------- search ---------------- */
+#find{position:sticky;top:var(--nh);z-index:800;padding:14px 0 10px;
+  background:color-mix(in srgb,var(--bg) 92%,transparent);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.sbox{display:flex;align-items:center;gap:11px;padding:0 16px;background:var(--bg-card);
+  border:1px solid var(--bdr);border-radius:var(--rm);box-shadow:var(--sh-s);
+  color:var(--text3);transition:border-color .18s,box-shadow .18s}
+.sbox:focus-within{border-color:var(--ac);box-shadow:0 0 0 3px var(--ac-bg)}
+.sbox input{flex:1;min-width:0;padding:14px 0;border:0;background:transparent;color:var(--text);
+  font:400 15px/1.4 var(--fb);outline:none}
+.sbox input::placeholder{color:var(--text3)}
+.sbox input::-webkit-search-cancel-button{-webkit-appearance:none}
+.kbd{display:none;padding:3px 8px;border:1px solid var(--bdr);border-radius:6px;
+  font-family:var(--fm);font-size:11px;color:var(--text3);white-space:nowrap}
+@media(min-width:640px){.kbd{display:block}}
+.count{margin:9px 3px 0;font-size:12.5px;color:var(--text3);min-height:19px}
+
+/* ---------------- catalogue ---------------- */
+#cat{padding:6px 0 88px}
+.grp{margin-top:44px}
+.grp:first-child{margin-top:8px}
+.ghead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+  padding-bottom:13px;border-bottom:1px solid var(--bdr);margin-bottom:22px}
+.ghead h2{font-family:var(--fd);font-size:24px;font-weight:700;letter-spacing:-.015em}
+.ghead p{font-size:13.5px;color:var(--text3)}
+
+.cards{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:660px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1040px){.cards{grid-template-columns:repeat(3,1fr)}}
+
+.card{position:relative;display:flex;flex-direction:column;padding:22px;
+  background:var(--bg-card);border:1px solid var(--bdr);border-radius:var(--rl);
+  box-shadow:var(--sh-s);overflow:hidden;
+  transition:transform .28s var(--ease),box-shadow .28s var(--ease),border-color .28s var(--ease)}
+.card::after{content:'';position:absolute;inset:0;border-radius:var(--rl);pointer-events:none;
+  background:linear-gradient(150deg,var(--ac-bg),transparent 55%);opacity:0;transition:opacity .28s}
+.card:hover{transform:translateY(-4px);box-shadow:var(--sh-l);border-color:var(--ac-bdr)}
+.card:hover::after{opacity:1}
+.card:focus-within{border-color:var(--ac);box-shadow:0 0 0 3px var(--ac-bg)}
+
+.chead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.cico{display:grid;place-items:center;width:44px;height:44px;flex:none;border-radius:12px;
+  background:var(--ac-bg);border:1px solid var(--ac-bdr);color:var(--ac);
+  transition:background .28s,color .28s}
+.cico svg{width:22px;height:22px}
+.card:hover .cico{background:var(--ac);color:var(--inv)}
+.flag{padding:3px 9px;border-radius:var(--rf);background:var(--ac);color:var(--inv);
+  font-family:var(--fm);font-size:9.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase}
+
+.cname{font-size:17px;font-weight:600;letter-spacing:-.01em;margin-top:15px;line-height:1.3}
+/* The whole card is the click target; the link text stays the accessible name. */
+.cname a::before{content:'';position:absolute;inset:0;z-index:1;border-radius:var(--rl)}
+.csum{font-size:13.5px;color:var(--text2);line-height:1.62;margin-top:7px}
+.cdet{font-size:12.5px;color:var(--text3);line-height:1.6;margin-top:10px}
+
+.cfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  margin-top:auto;padding-top:16px}
+.src{display:inline-flex;align-items:center;gap:6px;font-family:var(--fm);font-size:10.5px;
+  color:var(--text3);min-width:0}
+.src svg{width:13px;height:13px}
+.src span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.go{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:600;color:var(--ac)}
+.go svg{width:15px;height:15px;transition:transform .24s var(--ease)}
+.card:hover .go svg{transform:translateX(3px)}
+
+.none{padding:56px 20px;text-align:center;color:var(--text3);font-size:14.5px}
+.none b{display:block;font-size:17px;color:var(--text);margin-bottom:7px;font-family:var(--fd)}
+
+/* ---------------- footer ---------------- */
+footer{padding:40px 0 56px;border-top:1px solid var(--bdr);background:var(--bg-soft)}
+.fgrid{display:grid;gap:28px;grid-template-columns:1fr}
+@media(min-width:760px){.fgrid{grid-template-columns:1.3fr 1fr}}
+.fnote{font-size:13px;color:var(--text3);line-height:1.75;max-width:460px}
+.fnote strong{color:var(--text2);font-weight:600}
+.ftitle{font-family:var(--fm);font-size:10.5px;font-weight:500;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--text3);margin-bottom:12px}
+.flist li{margin-bottom:7px}
+.flist a{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--text2);
+  transition:color .18s}
+.flist a:hover{color:var(--ac)}
+.flist svg{width:13px;height:13px;color:var(--text3)}
+.fbot{margin-top:32px;padding-top:20px;border-top:1px solid var(--bdr);
+  display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;
+  font-size:12px;color:var(--text3)}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the system catalogue</a>
+
+<header id="top">
+  <div class="wrap tbar">
+    <div class="brand">
+      <span class="mark" aria-hidden="true">GT</span>
+      <span class="bname">GT <em>Meal Plan System</em></span>
+    </div>
+    <div class="tact">
+      <a class="ghost" href="apps/about-dietitian/index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+        About the dietitian
+      </a>
+      <button class="icobtn" id="theme" type="button" aria-label="Switch to dark theme">
+        <svg id="ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<section id="hero">
+  <div class="wrap hero-in">
+    <p class="eyebrow">GT Nutri Life</p>
+    <h1>Every clinical tool,<br><em>one entry point.</em></h1>
+    <p class="lede">
+      The practice's assessment calculators, plan generators, weekly menu builders and
+      specialist protocols, gathered into a single portal. Open any subsystem from here —
+      and once you are inside one, the switcher in the corner moves you straight to the next.
+    </p>
+    <div class="stats" id="stats"></div>
+  </div>
+</section>
+
+<section id="find">
+  <div class="wrap">
+    <div class="sbox">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="19" height="19" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.5-4.5"/></svg>
+      <input id="q" type="search" placeholder="Search by name, task or condition — try “diabetes”, “ics”, “infant”…"
+             aria-label="Search the system catalogue" aria-controls="main" autocomplete="off" spellcheck="false">
+      <span class="kbd">Ctrl K</span>
+    </div>
+    <p class="count" id="count" role="status" aria-live="polite"></p>
+  </div>
+</section>
+
+<main id="cat">
+  <div class="wrap" id="main"></div>
+</main>
+
+<noscript>
+  <div class="wrap" style="padding:28px 22px 60px">
+    <p style="color:var(--text2);margin-bottom:16px">
+      The searchable catalogue needs JavaScript. Every subsystem is still reachable directly:
+    </p>
+    <ul style="display:grid;gap:9px">
+      <li><a style="color:var(--ac);font-weight:600" href="apps/bmi-assessment/index.html">BMI Assessment</a></li>
+      <li><a style="color:var(--ac);font-weight:600" href="apps/dietary-nutrition-assessment/index.html">Dietary Nutrition Assessment</a></li>
+      <li><a style="color:var(--ac);font-weight:600" href="apps/meal-plan-generator/index.html">Meal Plan Generator</a></li>
+      <li><a style="color:var(--ac);font-weight:600" href="apps/meal-plan-generator/main.html">Meal Plan Generator — Word export</a></li>
+      <li><a style="color:var(--ac);font-weight:600" href="apps/diet-plan-generator/index.html">Diet Plan Generator</a></li>
+      <li><a style="color:var(--ac);font-weight:600" href="apps/diet-plan-calendar-generator/index.html">Diet Plan Calendar Generator</a></li>
+      <li><a style="color:var(--ac);font-weight:600" href="apps/diet-plan-generator/7-day-menu.html">7-Day Diet Menu Planner</a></li>
+      <li><a style="color:var(--ac);font-weight:600" href="apps/diet-plan-calendar-generator/7day-diet-menu.html">7-Day Menu — multiple options</a></li>
+      <li><a style="color:var(--ac);font-weight:600" href="apps/meal-plan-generator/babies.html">Baby Growth &amp; Feeding Plan</a></li>
+      <li><a style="color:var(--ac);font-weight:600" href="apps/meal-plan-generator/icu.html">ICU NutriPlan</a></li>
+      <li><a style="color:var(--ac);font-weight:600" href="apps/about-dietitian/index.html">About the Dietitian</a></li>
+    </ul>
+  </div>
+</noscript>
+
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div>
+        <p class="ftitle">About this portal</p>
+        <p class="fnote">
+          <strong>GT Meal Plan System</strong> bundles each subsystem's own pages, so everything
+          runs from one deployment with no cross-site hops. The upstream repositories below stay
+          the source of truth — <strong>scripts/sync-apps.sh</strong> refreshes the bundled copies
+          and <strong>scripts/inject-nav.sh</strong> re-attaches the switcher.
+        </p>
+      </div>
+      <div>
+        <p class="ftitle">Source repositories</p>
+        <ul class="flist" id="srcs"></ul>
+      </div>
+    </div>
+    <div class="fbot">
+      <span>Clinical nutrition tools by Gayathri Thakshila Dissanayaka — Dietitian &amp; Nutritionist.</span>
+      <span>Press <strong>Ctrl K</strong> anywhere to search.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/registry.js"></script>
+<script>
+(function () {
+  'use strict';
+  var REG = window.GTRegistry;
+  var mount = document.getElementById('main');
+  var count = document.getElementById('count');
+  var input = document.getElementById('q');
+
+  /* ---------- theme ------------------------------------------------- */
+  var SUN  = '<circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M2 12h2.4M19.6 12H22M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/>';
+  var MOON = '<path d="M20.5 14.6A8.6 8.6 0 1 1 9.4 3.5a6.9 6.9 0 0 0 11.1 11.1z"/>';
+  var html = document.documentElement;
+  var tbtn = document.getElementById('theme');
+  var ticon = document.getElementById('ticon');
+
+  function setTheme(t, save) {
+    html.setAttribute('data-theme', t);
+    ticon.innerHTML = t === 'dark' ? SUN : MOON;
+    tbtn.setAttribute('aria-label', t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    if (save) { try { localStorage.setItem('gt-theme', t); } catch (e) {} }
+  }
+
+  var saved = null;
+  try { saved = localStorage.getItem('gt-theme'); } catch (e) {}
+  setTheme(saved || (window.matchMedia &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'), false);
+
+  tbtn.addEventListener('click', function () {
+    setTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
+  });
+
+  /* ---------- helpers ------------------------------------------------ */
+  function icon(paths, size) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+           'stroke-linecap="round" stroke-linejoin="round"' +
+           (size ? ' width="' + size + '" height="' + size + '"' : '') +
+           ' aria-hidden="true">' + paths + '</svg>';
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  var ARROW = '<path d="M5 12h13"/><path d="M13 6l6 6-6 6"/>';
+  var REPO  = '<path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6A4.6 4.6 0 0 0 18.7 6a4.3 4.3 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12 12 0 0 0-6.2 0C6.5 2.5 5.4 2.8 5.4 2.8A4.3 4.3 0 0 0 5.3 6a4.6 4.6 0 0 0-1.3 3.5c0 4.6 2.7 5.7 5.5 6-.4.4-.6.9-.5 1.5V21"/>';
+
+  /* ---------- stats --------------------------------------------------- */
+  var systems = {};
+  REG.tools.forEach(function (t) { systems[t.source] = 1; });
+  document.getElementById('stats').innerHTML =
+    [[REG.tools.length, 'tools bundled'],
+     [Object.keys(systems).length, 'source systems'],
+     [REG.categories.length, 'workflow stages']]
+    .map(function (s) {
+      return '<span class="stat"><b>' + s[0] + '</b><span>' + s[1] + '</span></span>';
+    }).join('');
+
+  /* ---------- source repository list ---------------------------------- */
+  document.getElementById('srcs').innerHTML = Object.keys(REG.sources).map(function (k) {
+    return '<li><a href="https://github.com/' + esc(REG.sources[k]) + '" target="_blank" rel="noopener noreferrer">' +
+           icon(REPO) + esc(REG.sources[k]) + '</a></li>';
+  }).join('');
+
+  /* ---------- catalogue ------------------------------------------------ */
+  function card(t) {
+    return '<article class="card">' +
+      '<div class="chead">' +
+        '<span class="cico">' + icon(REG.icons[t.icon] || '') + '</span>' +
+        (t.primary ? '<span class="flag">Flagship</span>' : '') +
+      '</div>' +
+      '<h3 class="cname"><a href="' + esc(t.path) + '">' + esc(t.name) + '</a></h3>' +
+      '<p class="csum">' + esc(t.summary) + '</p>' +
+      '<p class="cdet">' + esc(t.detail) + '</p>' +
+      '<div class="cfoot">' +
+        '<span class="src">' + icon(REPO) + '<span>' + esc(t.system) + '</span></span>' +
+        '<span class="go">Open' + icon(ARROW) + '</span>' +
+      '</div>' +
+    '</article>';
+  }
+
+  function render(query) {
+    var matches = REG.search(query);
+    var q = String(query || '').trim();
+
+    if (!matches.length) {
+      mount.innerHTML = '<p class="none"><b>Nothing matches “' + esc(q) + '”.</b>' +
+        'Try a condition, a task, or a file type — for example “diabetes”, “pdf” or “calendar”.</p>';
+      count.textContent = 'No systems match “' + q + '”.';
+      return;
+    }
+
+    mount.innerHTML = REG.categories.map(function (cat) {
+      var inCat = matches.filter(function (t) { return t.category === cat.id; });
+      if (!inCat.length) return '';
+      return '<section class="grp">' +
+        '<div class="ghead"><h2>' + esc(cat.name) + '</h2><p>' + esc(cat.blurb) + '</p></div>' +
+        '<div class="cards">' + inCat.map(card).join('') + '</div>' +
+      '</section>';
+    }).join('');
+
+    count.textContent = q
+      ? matches.length + (matches.length === 1 ? ' system matches “' : ' systems match “') + q + '”.'
+      : '';
+  }
+
+  render('');
+  input.addEventListener('input', function () { render(input.value); });
+
+  /* ---------- keyboard ------------------------------------------------- */
+  document.addEventListener('keydown', function (e) {
+    if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+      e.preventDefault(); input.focus(); input.select();
+    } else if (e.key === 'Escape' && document.activeElement === input && input.value) {
+      input.value = ''; render('');
+    }
+  });
+})();
+</script>
+</body>
+</html>

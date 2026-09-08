@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GT Nutri Life - Information Gathering Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        .tab-active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .custom-radio:checked + label {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .loader {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-8 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-bold">GT Nutri Life ❤️</h1>
+                  <h2 class="text-2xl md:text-4xl font-bold"> Information Gathering Form</h2>
+                    <p class="text-purple-100 mt-1">by Gayathri Dissanayake (Professional Dietitian)</p>
+                </div>
+                <div class="hidden md:block">
+                    <p class="text-sm text-purple-100">Years of Experience</p>
+                    <p class="text-xs text-purple-200">Evidence-Based Nutrition</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Tab Navigation -->
+        <div class="bg-white rounded-lg shadow-md p-2 mb-6 flex flex-col sm:flex-row gap-2">
+            <button onclick="switchTab('bmi')" id="bmi-tab" class="tab-active flex-1 py-3 px-6 rounded-lg font-semibold transition-all duration-300">
+                BMI Calculator
+            </button>
+            <button onclick="switchTab('diet')" id="diet-tab" class="flex-1 py-3 px-6 rounded-lg font-semibold transition-all duration-300 bg-gray-100 text-gray-700 hover:bg-gray-200">
+                Diet Plan Generator
+            </button>
+            <a href="7-day-menu.html" class="flex-1 py-3 px-6 rounded-lg font-semibold transition-all duration-300 bg-gray-100 text-gray-700 hover:bg-gray-200 text-center">
+                7 Day Menu Planner
+            </a>
+        </div>
+
+        <!-- BMI Calculator Section -->
+        <div id="bmi-section" class="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Body Mass Index Calculator</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Height Unit</label>
+                    <select id="height-unit" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" onchange="toggleHeightInputs()">
+                        <option value="cm">Centimeters (cm)</option>
+                        <option value="ft">Feet & Inches (ft/in)</option>
+                    </select>
+                </div>
+                <div id="cm-input" class="">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Height (cm)</label>
+                    <input type="number" step="0.1" id="height-cm" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Enter height in cm">
+                </div>
+                <div id="ft-input" class="hidden grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Height (ft)</label>
+                        <input type="number" id="height-ft" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Feet">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Height (in)</label>
+                        <input type="number" step="0.1" id="height-in" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Inches">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Weight (kg)</label>
+                    <input type="number" step="0.1" id="weight" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Enter weight in kg">
+                </div>
+            </div>
+
+            <button onclick="calculateBMI()" class="w-full mt-6 gradient-bg text-white py-4 rounded-lg font-semibold text-lg hover:opacity-90 transition-opacity">
+                Calculate BMI
+            </button>
+
+            <div id="bmi-result" class="mt-6 hidden">
+                <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6">
+                    <div class="text-center">
+                        <p class="text-gray-600 font-medium mb-2">Your BMI</p>
+                        <p id="bmi-value" class="text-5xl font-bold text-purple-600 mb-2">0</p>
+                        <p id="bmi-category" class="text-xl font-semibold text-gray-700 mb-4">Normal</p>
+                        <p id="bmi-description" class="text-gray-600"></p>
+                    </div>
+                    <div class="mt-6 bg-white rounded-lg p-4">
+                        <h3 class="font-semibold text-gray-800 mb-3">BMI Reference Chart</h3>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between"><span>Underweight:</span><span class="font-semibold">Below 18.5</span></div>
+                            <div class="flex justify-between"><span>Normal weight:</span><span class="font-semibold">18.5 - 24.9</span></div>
+                            <div class="flex justify-between"><span>Overweight:</span><span class="font-semibold">25 - 29.9</span></div>
+                            <div class="flex justify-between"><span>Obesity:</span><span class="font-semibold">30 or above</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Diet Plan Generator Section -->
+        <div id="diet-section" class="hidden">
+            <form id="diet-form" class="space-y-6">
+                <!-- Personal Information -->
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <span class="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">1</span>
+                        Personal Information
+                    </h2>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
+                            <input type="text" name="fullName" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Enter full name">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Date of Birth</label>
+                            <input type="date" name="dob" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Age *</label>
+                            <input type="number" name="age" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Enter age">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Gender *</label>
+                            <select name="gender" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all">
+                                <option value="">Select gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Contact Number</label>
+                            <input type="tel" name="contact" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Enter contact number">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                            <input type="email" name="email" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Enter email address">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Occupation</label>
+                            <input type="text" name="occupation" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Enter occupation">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Country/Region</label>
+                            <input type="text" name="country" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Enter country or region">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Anthropometric Data -->
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <span class="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">2</span>
+                        Anthropometric Data
+                    </h2>
+                    
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Current Weight (kg) *</label>
+                            <input type="number" step="0.1" name="currentWeight" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 70.5">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Weight 6 Months Ago (kg)</label>
+                            <input type="number" step="0.1" name="weight6MonthsAgo" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Optional">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Weight 1 Year Ago (kg)</label>
+                            <input type="number" step="0.1" name="weight1YearAgo" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Optional">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Height (cm) *</label>
+                            <input type="number" step="0.1" name="height" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 170">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Target Weight (kg)</label>
+                            <input type="number" step="0.1" name="targetWeight" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 65">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Waist Circumference (cm)</label>
+                            <input type="number" step="0.1" name="waist" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Optional">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Hip Circumference (cm)</label>
+                            <input type="number" step="0.1" name="hip" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Optional">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Body Fat % (if known)</label>
+                            <input type="number" step="0.1" name="bodyFat" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Optional">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clinical Data -->
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <span class="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">3</span>
+                        Clinical Data
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Current Medical Status (Select all that apply)</label>
+                            <div class="grid md:grid-cols-3 gap-3">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="diabetes" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Diabetes</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="hypertension" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Hypertension</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="thyroidIssues" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Thyroid Issues</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="pcos" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">PCOS</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="kidneyDisease" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Kidney Disease</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="gastrointestinalIssues" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Gastrointestinal Issues</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="anemia" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Anemia</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="fattyLiver" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Fatty Liver</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="highTriglycerides" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">High Triglycerides</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="overweight" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Overweight or Central Obesity</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="cancer" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Cancer</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="stroke" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Stroke</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="mentalHealth" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Mental Health Issues (e.g., Depression, Anxiety)</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="currentMedicalStatus" value="none" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">None</span>
+                                </label>
+                            </div>
+                            <div class="mt-3">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Other Current Medical Conditions</label>
+                                <input type="text" name="otherCurrentMedical" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Specify other conditions">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Digestive Symptoms (Select all that apply)</label>
+                            <div class="grid md:grid-cols-3 gap-3">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="digestiveSymptoms" value="bloating" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Bloating</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="digestiveSymptoms" value="constipation" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Constipation</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="digestiveSymptoms" value="diarrhea" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Diarrhea</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="digestiveSymptoms" value="acidReflux" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Acid Reflux</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="digestiveSymptoms" value="none" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">None</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Past Medical History</label>
+                            <textarea name="pastMedicalHistory" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., Previous surgeries, chronic illnesses (asthma, gastric ulcers, thyroid issues, etc.), hospital admissions"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Family Medical History (Select all that apply)</label>
+                            <div class="grid md:grid-cols-3 gap-3">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="familyMedicalHistory" value="type2Diabetes" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Type 2 Diabetes</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="familyMedicalHistory" value="hypertension" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Hypertension</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="familyMedicalHistory" value="heartDisease" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Heart Disease</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="familyMedicalHistory" value="highCholesterol" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">High Cholesterol</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="familyMedicalHistory" value="osteoporosis" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Osteoporosis</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="familyMedicalHistory" value="obesity" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Obesity</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="familyMedicalHistory" value="thyroidDisorder" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Thyroid Disorder</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="familyMedicalHistory" value="cancer" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Cancer</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="familyMedicalHistory" value="stroke" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Stroke</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Allergies & Intolerances</label>
+                            <textarea name="allergies" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., lactose intolerant, nut allergy, gluten sensitivity"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Current Medications</label>
+                            <textarea name="medications" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="List any medications you're currently taking"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Current Supplements</label>
+                            <textarea name="supplements" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="List any supplements or vitamins you're currently taking"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Women's Health (Optional) -->
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <span class="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">3.5</span>
+                        Women's Health (Optional, for female clients)
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Reproductive Health Status (Select all that apply)</label>
+                            <div class="grid md:grid-cols-3 gap-3">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="womensHealth" value="pregnant" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Pregnant</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="womensHealth" value="breastfeeding" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Breastfeeding</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="womensHealth" value="menopausal" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Menopausal</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="womensHealth" value="menstrualIrregularities" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Menstrual Irregularities</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="womensHealth" value="none" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">None/Not Applicable</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Biochemical Data -->
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <span class="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">4</span>
+                        Biochemical Data (Optional)
+                    </h2>
+                    
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+                        <p class="text-sm text-blue-700">If you have recent lab results, please provide them below. This helps in creating a more accurate and personalized diet plan.</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Fasting Blood Sugar (mg/dL)</label>
+                            <input type="number" name="bloodSugar" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 90">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">HbA1c (%)</label>
+                            <input type="number" step="0.1" name="hba1c" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 5.5">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Total Cholesterol (mg/dL)</label>
+                            <input type="number" name="totalCholesterol" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 180">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">LDL Cholesterol (mg/dL)</label>
+                            <input type="number" name="ldl" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 100">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">HDL Cholesterol (mg/dL)</label>
+                            <input type="number" name="hdl" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 50">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Triglycerides (mg/dL)</label>
+                            <input type="number" name="triglycerides" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 120">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Blood Pressure (Systolic)</label>
+                            <input type="number" name="bpSystolic" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 120">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Blood Pressure (Diastolic)</label>
+                            <input type="number" name="bpDiastolic" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 80">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Vitamin D (ng/mL)</label>
+                            <input type="number" step="0.1" name="vitaminD" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 30">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Vitamin B12 (pg/mL)</label>
+                            <input type="number" name="vitaminB12" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 400">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Hemoglobin (g/dL)</label>
+                            <input type="number" step="0.1" name="hemoglobin" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 13.5">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">TSH (mIU/L)</label>
+                            <input type="number" step="0.01" name="tsh" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 2.5">
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Other Lab Results</label>
+                        <textarea name="otherLabs" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Include any other relevant lab results"></textarea>
+                    </div>
+                </div>
+
+                <!-- Dietary Assessment -->
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <span class="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">5</span>
+                        Dietary Assessment
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Dietary Preferences (Select all that apply)</label>
+                            <div class="grid md:grid-cols-3 gap-3">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="dietaryPreferences" value="vegetarian" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Vegetarian</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="dietaryPreferences" value="nonVegetarian" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Non-Vegetarian</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="dietaryPreferences" value="vegan" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Vegan</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="dietaryPreferences" value="eggetarian" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Eggetarian</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="dietaryPreferences" value="pescatarian" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Pescatarian</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="dietaryPreferences" value="glutenFree" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Gluten-Free</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="dietaryPreferences" value="lactoseFree" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Lactose-Free</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="dietaryPreferences" value="noPork" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">No Pork</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="dietaryPreferences" value="noBeef" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">No Beef</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Meal Pattern (Dietary Recall) - Please include portion sizes and quantities where possible</label>
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2">Bed Tea</label>
+                                    <textarea name="bedTea" rows="2" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Describe your bed tea routine, e.g., 1 cup black tea with 1 tsp sugar"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2">Breakfast</label>
+                                    <textarea name="breakfast" rows="2" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Describe your typical breakfast, e.g., 2 eggs, 1 slice toast, 1/2 avocado"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2">Mid-Morning Snacks</label>
+                                    <textarea name="midMorningSnacks" rows="2" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Describe your mid-morning snacks, e.g., 1 apple, handful of nuts"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2">Lunch</label>
+                                    <textarea name="lunch" rows="2" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Describe your typical lunch, e.g., grilled chicken salad with 100g chicken, veggies"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2">Evening Snack</label>
+                                    <textarea name="eveningSnack" rows="2" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Describe your evening snacks, e.g., yogurt with berries"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2">Dinner</label>
+                                    <textarea name="dinner" rows="2" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Describe your typical dinner, e.g., fish, rice, vegetables"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2">Late Night Eating</label>
+                                    <textarea name="lateNightEating" rows="2" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Describe any late-night eating habits, e.g., chocolate bar"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Specific Food Cravings or Eating Habits (Select all that apply)</label>
+                            <div class="grid md:grid-cols-3 gap-3">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="foodCravings" value="sweetCravings" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Sweet Cravings</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="foodCravings" value="saltySpicyCravings" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Salty or Spicy Cravings</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="foodCravings" value="lateNightEating" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Late Night Eating</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="foodCravings" value="frequentSnacking" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Frequent Snacking</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="foodCravings" value="frequentTeaCoffee" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Frequent Tea/Coffee</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="foodCravings" value="noSpecificCravings" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">No Specific Cravings</span>
+                                </label>
+                            </div>
+                            <div class="mt-3">
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Other Food Cravings or Habits</label>
+                                <input type="text" name="otherCravings" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Specify other cravings or habits">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Cultural/Religious Dietary Restrictions</label>
+                            <div class="grid md:grid-cols-3 gap-3">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="restrictions" value="halal" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Halal</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="restrictions" value="kosher" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Kosher</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="restrictions" value="jain" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Jain</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Food Dislikes</label>
+                            <textarea name="dislikes" rows="2" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="List foods you don't like or want to avoid"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Favorite Foods</label>
+                            <textarea name="favorites" rows="2" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="List your favorite foods"></textarea>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Meals Per Day</label>
+                                <select name="mealsPerDay" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all">
+                                    <option value="3">3 meals</option>
+                                    <option value="4">4 meals</option>
+                                    <option value="5">5 meals</option>
+                                    <option value="6">6 meals</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Snacking Frequency</label>
+                                <select name="snacking" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all">
+                                    <option value="none">None</option>
+                                    <option value="occasional">Occasionally</option>
+                                    <option value="moderate">Moderate</option>
+                                    <option value="frequent">Frequent</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Typical Meal Timing</label>
+                            <textarea name="mealTiming" rows="2" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., Breakfast: 8 AM, Lunch: 1 PM, Dinner: 8 PM"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lifestyle & Activity -->
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <span class="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">6</span>
+                        Lifestyle & Activity Level
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Activity Level *</label>
+                            <div class="grid md:grid-cols-2 gap-3">
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="activityLevel" value="sedentary" required class="custom-radio absolute opacity-0">
+                                    <div class="border-2 border-gray-200 rounded-lg p-4 transition-all hover:border-purple-300">
+                                        <p class="font-semibold text-gray-800">Sedentary</p>
+                                        <p class="text-sm text-gray-600">Little or no exercise</p>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="activityLevel" value="light" class="custom-radio absolute opacity-0">
+                                    <div class="border-2 border-gray-200 rounded-lg p-4 transition-all hover:border-purple-300">
+                                        <p class="font-semibold text-gray-800">Lightly Active</p>
+                                        <p class="text-sm text-gray-600">Exercise 1-3 days/week</p>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="activityLevel" value="moderate" class="custom-radio absolute opacity-0">
+                                    <div class="border-2 border-gray-200 rounded-lg p-4 transition-all hover:border-purple-300">
+                                        <p class="font-semibold text-gray-800">Moderately Active</p>
+                                        <p class="text-sm text-gray-600">Exercise 3-5 days/week</p>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="activityLevel" value="veryActive" class="custom-radio absolute opacity-0">
+                                    <div class="border-2 border-gray-200 rounded-lg p-4 transition-all hover:border-purple-300">
+                                        <p class="font-semibold text-gray-800">Very Active</p>
+                                        <p class="text-sm text-gray-600">Exercise 6-7 days/week</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Sleep Duration (hours/night)</label>
+                                <input type="number" step="0.5" name="sleep" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 7">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Water Intake (liters/day)</label>
+                                <input type="number" step="0.1" name="water" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., 2">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Exercise Routine</label>
+                            <textarea name="exercise" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Describe your current exercise routine, including type, frequency, and duration"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Lifestyle Habits (Select all that apply)</label>
+                            <div class="grid md:grid-cols-3 gap-3">
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="habits" value="smoking" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Smoking</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="habits" value="alcohol" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">Alcohol Consumption</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" name="habits" value="stress" class="w-4 h-4 text-purple-600 rounded">
+                                    <span class="text-gray-700">High Stress</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Stress Management Techniques</label>
+                            <textarea name="stressManagement" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Describe how you manage stress, e.g., meditation, yoga"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Behavioral and Environmental Factors -->
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <span class="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">6.5</span>
+                        Behavioral and Environmental Factors
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Grocery Shopping Habits</label>
+                            <textarea name="groceryHabits" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Who does the shopping? How often? Approximate budget?"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Meal Preparation</label>
+                            <textarea name="mealPrep" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Who prepares meals? Time available for prep? Kitchen appliances available?"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Barriers to Healthy Eating</label>
+                            <textarea name="barriers" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., time constraints, cost, lack of knowledge"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Support System</label>
+                            <textarea name="supportSystem" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Family or friends support for healthy changes?"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Goals & Objectives -->
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        <span class="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">7</span>
+                        Goals & Objectives
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">Primary Goal *</label>
+                            <div class="grid md:grid-cols-2 gap-3">
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="primaryGoal" value="weightLoss" required class="custom-radio absolute opacity-0">
+                                    <div class="border-2 border-gray-200 rounded-lg p-4 transition-all hover:border-purple-300">
+                                        <p class="font-semibold text-gray-800">Weight Loss</p>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="primaryGoal" value="weightGain" class="custom-radio absolute opacity-0">
+                                    <div class="border-2 border-gray-200 rounded-lg p-4 transition-all hover:border-purple-300">
+                                        <p class="font-semibold text-gray-800">Weight Gain</p>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="primaryGoal" value="muscleGain" class="custom-radio absolute opacity-0">
+                                    <div class="border-2 border-gray-200 rounded-lg p-4 transition-all hover:border-purple-300">
+                                        <p class="font-semibold text-gray-800">Muscle Gain</p>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="primaryGoal" value="maintenance" class="custom-radio absolute opacity-0">
+                                    <div class="border-2 border-gray-200 rounded-lg p-4 transition-all hover:border-purple-300">
+                                        <p class="font-semibold text-gray-800">Weight Maintenance</p>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="primaryGoal" value="diseaseManagement" class="custom-radio absolute opacity-0">
+                                    <div class="border-2 border-gray-200 rounded-lg p-4 transition-all hover:border-purple-300">
+                                        <p class="font-semibold text-gray-800">Disease Management</p>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer">
+                                    <input type="radio" name="primaryGoal" value="generalHealth" class="custom-radio absolute opacity-0">
+                                    <div class="border-2 border-gray-200 rounded-lg p-4 transition-all hover:border-purple-300">
+                                        <p class="font-semibold text-gray-800">General Health</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Timeline to Achieve Goal</label>
+                                <select name="timeline" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all">
+                                    <option value="">Select timeline</option>
+                                    <option value="1month">1 Month</option>
+                                    <option value="3months">3 Months</option>
+                                    <option value="6months">6 Months</option>
+                                    <option value="1year">1 Year</option>
+                                    <option value="longterm">Long-term (1+ years)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Readiness to Change (1-10)</label>
+                                <select name="readiness" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all">
+                                    <option value="">Select level</option>
+                                    <option value="1">1 (Not ready)</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10 (Very ready)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Previous Diet Attempts</label>
+                            <input type="text" name="previousDiets" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., Keto, Intermittent fasting">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Specific Health Concerns or Focus Areas</label>
+                            <textarea name="healthConcerns" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., Improve energy levels, better digestion, reduce inflammation"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Additional Notes or Requirements</label>
+                            <textarea name="additionalNotes" rows="3" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Any other information that might help create your personalized diet plan"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">How Did You Hear About Us?</label>
+                            <input type="text" name="referralSource" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="e.g., Friend, Social Media, Search">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Consent -->
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" name="consent" required class="w-4 h-4 text-purple-600 rounded">
+                        <span class="text-gray-700">I agree to the privacy policy and consent to the use of my data for creating a personalized diet plan.</span>
+                    </label>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <button type="submit" class="w-full gradient-bg text-white py-4 rounded-lg font-semibold text-lg hover:opacity-90 transition-opacity">
+                        Generate Personalized Diet Plan
+                    </button>
+                    <p class="text-center text-gray-500 text-sm mt-4">All information is kept confidential and used only for diet plan generation</p>
+                </div>
+            </form>
+
+            <!-- Results Section -->
+            <div id="diet-result" class="hidden mt-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <div class="text-center mb-6">
+                    <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                        <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Diet Plan Submission Successful!</h3>
+                    <p class="text-gray-600">Your comprehensive information has been recorded. Here's a summary:</p>
+                </div>
+
+                <div id="diet-summary" class="space-y-4">
+                    <!-- Summary will be populated here -->
+                </div>
+
+                <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 mt-6">
+                    <h4 class="font-semibold text-gray-800 mb-3">Next Steps:</h4>
+                    <ul class="space-y-2 text-gray-700">
+                        <li class="flex items-start">
+                            <span class="bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-3 mt-0.5">1</span>
+                            <span>Your personalized diet plan will be created based on your profile</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-3 mt-0.5">2</span>
+                            <span>You'll receive a detailed meal plan with nutritional breakdowns</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-purple-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs mr-3 mt-0.5">3</span>
+                            <span>Follow-up consultations will be scheduled to monitor progress</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <button onclick="resetForm()" class="w-full mt-6 border-2 border-purple-600 text-purple-600 py-3 rounded-lg font-semibold hover:bg-purple-50 transition-colors">
+                    Create Another Diet Plan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-300">&copy; Developed with ❤️ by Ashen Wijesingha. All rights reserved.</p>
+            <p class="text-gray-400 text-sm mt-2">Professional nutrition guidance for optimal health</p>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize EmailJS with your public key
+        (function(){
+            emailjs.init("yabBp2Uv197Oom58-");
+        })();
+
+        // Tab Switching
+        function switchTab(tab) {
+            const bmiSection = document.getElementById('bmi-section');
+            const dietSection = document.getElementById('diet-section');
+            const bmiTab = document.getElementById('bmi-tab');
+            const dietTab = document.getElementById('diet-tab');
+
+            if (tab === 'bmi') {
+                bmiSection.classList.remove('hidden');
+                dietSection.classList.add('hidden');
+                bmiTab.classList.add('tab-active');
+                bmiTab.classList.remove('bg-gray-100', 'text-gray-700');
+                dietTab.classList.remove('tab-active');
+                dietTab.classList.add('bg-gray-100', 'text-gray-700');
+            } else {
+                bmiSection.classList.add('hidden');
+                dietSection.classList.remove('hidden');
+                dietTab.classList.add('tab-active');
+                dietTab.classList.remove('bg-gray-100', 'text-gray-700');
+                bmiTab.classList.remove('tab-active');
+                bmiTab.classList.add('bg-gray-100', 'text-gray-700');
+            }
+        }
+
+        // Toggle Height Inputs
+        function toggleHeightInputs() {
+            const unit = document.getElementById('height-unit').value;
+            const cmInput = document.getElementById('cm-input');
+            const ftInput = document.getElementById('ft-input');
+
+            if (unit === 'cm') {
+                cmInput.classList.remove('hidden');
+                ftInput.classList.add('hidden');
+                document.getElementById('height-ft').value = '';
+                document.getElementById('height-in').value = '';
+            } else {
+                cmInput.classList.add('hidden');
+                ftInput.classList.remove('hidden');
+                document.getElementById('height-cm').value = '';
+            }
+        }
+
+        // BMI Calculator
+        function calculateBMI() {
+            const unit = document.getElementById('height-unit').value;
+            let height;
+            
+            if (unit === 'cm') {
+                height = parseFloat(document.getElementById('height-cm').value);
+            } else {
+                const feet = parseFloat(document.getElementById('height-ft').value) || 0;
+                const inches = parseFloat(document.getElementById('height-in').value) || 0;
+                height = (feet * 12 + inches) * 2.54; // Convert feet and inches to cm
+            }
+            
+            const weight = parseFloat(document.getElementById('weight').value);
+
+            if (!height || !weight || height <= 0 || weight <= 0) {
+                alert('Please enter valid height and weight values');
+                return;
+            }
+
+            const heightInMeters = height / 100;
+            const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(1);
+
+            let category = '';
+            let description = '';
+            let color = '';
+
+            if (bmi < 18.5) {
+                category = 'Underweight';
+                description = 'You may need to gain weight. Consult with a healthcare professional for a personalized plan.';
+                color = 'text-blue-600';
+            } else if (bmi >= 18.5 && bmi < 25) {
+                category = 'Normal Weight';
+                description = 'You have a healthy weight. Maintain it with balanced nutrition and regular exercise.';
+                color = 'text-green-600';
+            } else if (bmi >= 25 && bmi < 30) {
+                category = 'Overweight';
+                description = 'You may benefit from weight management. A balanced diet and exercise can help.';
+                color = 'text-orange-600';
+            } else {
+                category = 'Obesity';
+                description = 'Your health may be at risk. Consult a healthcare professional for guidance.';
+                color = 'text-red-600';
+            }
+
+            document.getElementById('bmi-value').textContent = bmi;
+            document.getElementById('bmi-value').className = `text-5xl font-bold mb-2 ${color}`;
+            document.getElementById('bmi-category').textContent = category;
+            document.getElementById('bmi-category').className = `text-xl font-semibold mb-4 ${color}`;
+            document.getElementById('bmi-description').textContent = description;
+            document.getElementById('bmi-result').classList.remove('hidden');
+        }
+
+        // Diet Form Submission with EmailJS
+        document.getElementById('diet-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const data = {};
+
+            // Collect all form data
+            for (let [key, value] of formData.entries()) {
+                if (data[key]) {
+                    if (Array.isArray(data[key])) {
+                        data[key].push(value);
+                    } else {
+                        data[key] = [data[key], value];
+                    }
+                } else {
+                    data[key] = value;
+                }
+            }
+
+            // Calculate BMI if weight and height are provided
+            let bmi = 'N/A';
+            if (data.currentWeight && data.height) {
+                const heightM = data.height / 100;
+                bmi = (data.currentWeight / (heightM * heightM)).toFixed(1);
+            }
+
+            // Prepare email template parameters
+            const templateParams = {
+                fullName: data.fullName || 'N/A',
+                dob: data.dob || 'N/A',
+                age: data.age || 'N/A',
+                gender: data.gender || 'N/A',
+                contact: data.contact || 'N/A',
+                email: data.email || 'N/A',
+                occupation: data.occupation || 'N/A',
+                country: data.country || 'N/A',
+                currentWeight: data.currentWeight || 'N/A',
+                weight6MonthsAgo: data.weight6MonthsAgo || 'N/A',
+                weight1YearAgo: data.weight1YearAgo || 'N/A',
+                height: data.height || 'N/A',
+                targetWeight: data.targetWeight || 'N/A',
+                waist: data.waist || 'N/A',
+                hip: data.hip || 'N/A',
+                bodyFat: data.bodyFat || 'N/A',
+                bmi: bmi,
+                currentMedicalStatus: Array.isArray(data.currentMedicalStatus) ? data.currentMedicalStatus.join(', ') : data.currentMedicalStatus || 'N/A',
+                digestiveSymptoms: Array.isArray(data.digestiveSymptoms) ? data.digestiveSymptoms.join(', ') : data.digestiveSymptoms || 'N/A',
+                otherCurrentMedical: data.otherCurrentMedical || 'N/A',
+                pastMedicalHistory: data.pastMedicalHistory || 'N/A',
+                familyMedicalHistory: Array.isArray(data.familyMedicalHistory) ? data.familyMedicalHistory.join(', ') : data.familyMedicalHistory || 'N/A',
+                allergies: data.allergies || 'N/A',
+                medications: data.medications || 'N/A',
+                supplements: data.supplements || 'N/A',
+                womensHealth: Array.isArray(data.womensHealth) ? data.womensHealth.join(', ') : data.womensHealth || 'N/A',
+                bloodSugar: data.bloodSugar || 'N/A',
+                hba1c: data.hba1c || 'N/A',
+                totalCholesterol: data.totalCholesterol || 'N/A',
+                ldl: data.ldl || 'N/A',
+                hdl: data.hdl || 'N/A',
+                triglycerides: data.triglycerides || 'N/A',
+                bpSystolic: data.bpSystolic || 'N/A',
+                bpDiastolic: data.bpDiastolic || 'N/A',
+                vitaminD: data.vitaminD || 'N/A',
+                vitaminB12: data.vitaminB12 || 'N/A',
+                hemoglobin: data.hemoglobin || 'N/A',
+                tsh: data.tsh || 'N/A',
+                otherLabs: data.otherLabs || 'N/A',
+                dietaryPreferences: Array.isArray(data.dietaryPreferences) ? data.dietaryPreferences.join(', ') : data.dietaryPreferences || 'N/A',
+                bedTea: data.bedTea || 'N/A',
+                breakfast: data.breakfast || 'N/A',
+                midMorningSnacks: data.midMorningSnacks || 'N/A',
+                lunch: data.lunch || 'N/A',
+                eveningSnack: data.eveningSnack || 'N/A',
+                dinner: data.dinner || 'N/A',
+                lateNightEating: data.lateNightEating || 'N/A',
+                foodCravings: Array.isArray(data.foodCravings) ? data.foodCravings.join(', ') : data.foodCravings || 'N/A',
+                otherCravings: data.otherCravings || 'N/A',
+                restrictions: Array.isArray(data.restrictions) ? data.restrictions.join(', ') : data.restrictions || 'N/A',
+                dislikes: data.dislikes || 'N/A',
+                favorites: data.favorites || 'N/A',
+                mealsPerDay: data.mealsPerDay || 'N/A',
+                snacking: data.snacking || 'N/A',
+                mealTiming: data.mealTiming || 'N/A',
+                activityLevel: data.activityLevel || 'N/A',
+                sleep: data.sleep || 'N/A',
+                water: data.water || 'N/A',
+                exercise: data.exercise || 'N/A',
+                habits: Array.isArray(data.habits) ? data.habits.join(', ') : data.habits || 'N/A',
+                stressManagement: data.stressManagement || 'N/A',
+                groceryHabits: data.groceryHabits || 'N/A',
+                mealPrep: data.mealPrep || 'N/A',
+                barriers: data.barriers || 'N/A',
+                supportSystem: data.supportSystem || 'N/A',
+                primaryGoal: data.primaryGoal ? data.primaryGoal.replace(/([A-Z])/g, ' $1').trim() : 'N/A',
+                timeline: data.timeline || 'N/A',
+                readiness: data.readiness || 'N/A',
+                previousDiets: data.previousDiets || 'N/A',
+                healthConcerns: data.healthConcerns || 'N/A',
+                additionalNotes: data.additionalNotes || 'N/A',
+                referralSource: data.referralSource || 'N/A',
+                consent: data.consent ? 'Yes' : 'No'
+            };
+
+            // Send email using EmailJS
+            emailjs.send('service_y52gqbi', 'template_xt8aode', templateParams)
+                .then(function(response) {
+                    console.log('SUCCESS!', response.status, response.text);
+                    // Generate summary for display
+                    let summary = '';
+                    
+                    summary += `<div class="bg-purple-50 rounded-lg p-4 mb-4">
+                        <h4 class="font-semibold text-purple-900 mb-2">Personal Information</h4>
+                        <p class="text-gray-700"><strong>Name:</strong> ${data.fullName || 'N/A'}</p>
+                        <p class="text-gray-700"><strong>DOB:</strong> ${data.dob || 'N/A'}</p>
+                        <p class="text-gray-700"><strong>Age:</strong> ${data.age || 'N/A'} years</p>
+                        <p class="text-gray-700"><strong>Gender:</strong> ${data.gender || 'N/A'}</p>
+                        <p class="text-gray-700"><strong>Country:</strong> ${data.country || 'N/A'}</p>
+                    </div>`;
+
+                    summary += `<div class="bg-blue-50 rounded-lg p-4 mb-4">
+                        <h4 class="font-semibold text-blue-900 mb-2">Anthropometric Data</h4>
+                        <p class="text-gray-700"><strong>Current Weight:</strong> ${data.currentWeight || 'N/A'} kg</p>
+                        <p class="text-gray-700"><strong>Height:</strong> ${data.height || 'N/A'} cm</p>
+                        <p class="text-gray-700"><strong>BMI:</strong> ${bmi}</p>
+                        ${data.targetWeight ? `<p class="text-gray-700"><strong>Target Weight:</strong> ${data.targetWeight} kg</p>` : ''}
+                    </div>`;
+
+                    summary += `<div class="bg-green-50 rounded-lg p-4 mb-4">
+                        <h4 class="font-semibold text-green-900 mb-2">Clinical Data</h4>
+                        <p class="text-gray-700"><strong>Current Medical Status:</strong> ${Array.isArray(data.currentMedicalStatus) ? data.currentMedicalStatus.join(', ') : data.currentMedicalStatus || 'N/A'}</p>
+                        <p class="text-gray-700"><strong>Digestive Symptoms:</strong> ${Array.isArray(data.digestiveSymptoms) ? data.digestiveSymptoms.join(', ') : data.digestiveSymptoms || 'N/A'}</p>
+                        <p class="text-gray-700"><strong>Past Medical History:</strong> ${data.pastMedicalHistory || 'N/A'}</p>
+                        <p class="text-gray-700"><strong>Supplements:</strong> ${data.supplements || 'N/A'}</p>
+                    </div>`;
+
+                    summary += `<div class="bg-yellow-50 rounded-lg p-4 mb-4">
+                        <h4 class="font-semibold text-yellow-900 mb-2">Dietary Assessment</h4>
+                        <p class="text-gray-700"><strong>Dietary Preferences:</strong> ${Array.isArray(data.dietaryPreferences) ? data.dietaryPreferences.join(', ') : data.dietaryPreferences || 'N/A'}</p>
+                        <p class="text-gray-700"><strong>Food Cravings:</strong> ${Array.isArray(data.foodCravings) ? data.foodCravings.join(', ') : data.foodCravings || 'N/A'}</p>
+                    </div>`;
+
+                    summary += `<div class="bg-purple-50 rounded-lg p-4 mb-4">
+                        <h4 class="font-semibold text-purple-900 mb-2">Goals & Lifestyle</h4>
+                        <p class="text-gray-700"><strong>Primary Goal:</strong> ${data.primaryGoal ? data.primaryGoal.replace(/([A-Z])/g, ' $1').trim() : 'N/A'}</p>
+                        <p class="text-gray-700"><strong>Activity Level:</strong> ${data.activityLevel || 'N/A'}</p>
+                        <p class="text-gray-700"><strong>Readiness to Change:</strong> ${data.readiness || 'N/A'}</p>
+                    </div>`;
+
+                    document.getElementById('diet-summary').innerHTML = summary;
+                    document.getElementById('diet-result').classList.remove('hidden');
+                    document.getElementById('diet-result').scrollIntoView({ behavior: 'smooth' });
+                    alert('Your diet plan details have been successfully sent!');
+                }, function(error) {
+                    console.log('FAILED...', error);
+                    alert('Failed to send diet plan details. Please try again.');
+                });
+        });
+
+        // Reset Form
+        function resetForm() {
+            document.getElementById('diet-form').reset();
+            document.getElementById('diet-result').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Custom radio button styling
+        document.querySelectorAll('.custom-radio').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const name = this.name;
+                document.querySelectorAll(`input[name="${name}"] + div`).forEach(label => {
+                    label.style.background = 'white';
+                    label.style.color = '';
+                    label.style.borderColor = '';
+                });
+                if (this.checked) {
+                    const label = this.nextElementSibling;
+                    label.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                    label.style.color = 'white';
+                    label.style.borderColor = '#667eea';
+                }
+            });
+        });
+    </script>
+<script src="../../assets/gt-switcher.js" defer></script>
+</body>
+</html>

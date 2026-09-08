@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Growth &amp; Feeding Plan Generator | For Babies Under 2</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍼</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0EA5A5;
+            --primary-dark: #0B8686;
+            --light: #E6FBF9;
+            --background: #F3F7F8;
+            --accent: #F472B6;
+            --error-red: #EF4444;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--background); }
+        h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; }
+        .form-step { display: none; }
+        .form-step.active { display: block !important; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .meal-template { cursor: pointer; transition: all 0.3s ease; }
+        .meal-template:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(14,165,165,0.2); }
+        .checkbox-custom {
+            --checkbox-size: 22px;
+            appearance: none; width: var(--checkbox-size); height: var(--checkbox-size);
+            min-width: var(--checkbox-size); min-height: var(--checkbox-size); flex: 0 0 var(--checkbox-size);
+            border: 2px solid #94A3B8; background: #FFFFFF; border-radius: 4px; cursor: pointer;
+            position: relative; display: inline-flex; align-items: center; justify-content: center;
+            vertical-align: middle; box-shadow: 0 1px 2px rgba(2,6,23,0.08);
+        }
+        .checkbox-custom:checked { background: var(--primary); border-color: var(--primary); }
+        .checkbox-custom:checked::after { content: '✓'; position: absolute; color: white; font-size: 14px; font-weight: 700; top: 0px; left: 4px; }
+        .error-border { border-color: var(--error-red) !important; }
+        .plate-canvas { width: min(240px, 72vw); height: auto; border: 6px solid #ffffff; box-shadow: 0 8px 24px rgba(15,23,42,0.12); }
+        textarea { min-height: 8.5rem; resize: vertical; }
+        .meal-schedule-textarea { min-height: 9.5rem; }
+        .meal-time-input { border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.15rem 0.35rem; font-size: 0.85rem; font-weight: 500; background: white; color: #374151; cursor: text; outline: none; transition: border-color 0.2s; }
+        .meal-time-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(14,165,165,0.15); }
+        .guidance-textarea { min-height: 9.5rem; }
+        .address-textarea { min-height: 7.5rem; }
+        @media (max-width: 768px) {
+            .meal-time-title { font-size: 0.95rem; line-height: 1.25rem; }
+            .meal-time-input { font-size: 0.75rem; padding: 0.1rem 0.2rem; }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <header class="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-6 md:py-8 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="text-4xl md:text-6xl">🍼</div>
+                    <div>
+                        <h1 class="text-2xl md:text-4xl font-bold">Baby Growth &amp; Feeding Plan Generator</h1>
+                        <p class="text-teal-100 text-sm md:text-lg">For babies under 24 months</p>
+                        <p class="text-teal-200 text-sm mt-1">Weight-for-length percentiles · Age-appropriate feeding plan</p>
+                    </div>
+                </div>
+                <a href="index.html" class="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 rounded-full px-5 py-2.5 text-sm font-semibold transition ring-1 ring-white/20 whitespace-nowrap">
+                    <i class="fas fa-user"></i> Switch to Adult / Child (2+) Plan
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Progress Steps -->
+        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6">
+            <div class="md:hidden">
+                <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+                    <span id="mobileStepText">Step 1 of 5</span>
+                    <span id="progressPercent">20%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
+                    <div id="progressBar" class="h-full bg-teal-600 transition-all duration-300" style="width: 20%;"></div>
+                </div>
+            </div>
+            <div class="hidden md:flex justify-between items-center gap-3">
+                <button type="button" onclick="goToStep(1, true)" class="step-trigger flex-1 min-w-[120px] text-center" id="step1-trigger">
+                    <div class="w-14 h-14 bg-teal-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold text-lg" id="step1-icon"><i class="fas fa-baby"></i></div>
+                    <span class="text-sm font-semibold text-teal-600" id="step1-label">Baby Info</span>
+                </button>
+                <button type="button" onclick="goToStep(2, true)" class="step-trigger flex-1 min-w-[120px] text-center" id="step2-trigger">
+                    <div class="w-14 h-14 bg-gray-300 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold text-lg" id="step2-icon"><i class="fas fa-weight"></i></div>
+                    <span class="text-sm text-gray-500 font-medium" id="step2-label">Growth Check</span>
+                </button>
+                <button type="button" onclick="goToStep(3, true)" class="step-trigger flex-1 min-w-[120px] text-center" id="step3-trigger">
+                    <div class="w-14 h-14 bg-gray-300 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold text-lg" id="step3-icon"><i class="fas fa-utensils"></i></div>
+                    <span class="text-sm text-gray-500 font-medium" id="step3-label">Feeding Plan</span>
+                </button>
+                <button type="button" onclick="goToStep(4, true)" class="step-trigger flex-1 min-w-[120px] text-center" id="step4-trigger">
+                    <div class="w-14 h-14 bg-gray-300 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold text-lg" id="step4-icon"><i class="fas fa-shield-heart"></i></div>
+                    <span class="text-sm text-gray-500 font-medium" id="step4-label">Guidelines</span>
+                </button>
+                <button type="button" onclick="goToStep(5, true)" class="step-trigger flex-1 min-w-[120px] text-center" id="step5-trigger">
+                    <div class="w-14 h-14 bg-gray-300 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold text-lg" id="step5-icon"><i class="fas fa-file-pdf"></i></div>
+                    <span class="text-sm text-gray-500 font-medium" id="step5-label">Generate PDF</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <form id="babyPlanForm" novalidate class="xl:col-span-8">
+
+            <!-- Step 1: Baby Information -->
+            <div class="form-step active" id="step1">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3"><i class="fas fa-baby text-teal-600"></i> Baby Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Baby's Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="babyName" autocomplete="name" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" placeholder="Enter baby's name" required>
+                            <span class="text-red-500 text-sm hidden" id="nameError">Please enter a valid name</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Date of Birth <span class="text-red-500">*</span></label>
+                            <input type="date" id="babyDOB" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" required oninput="onAgeInputsChanged()">
+                            <span class="text-red-500 text-sm hidden" id="dobError">Please enter a valid date of birth</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Sex <span class="text-red-500">*</span></label>
+                            <select id="babySex" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" required onchange="onAgeInputsChanged()">
+                                <option value="">Select sex</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                            <span class="text-red-500 text-sm hidden" id="sexError">Please select sex</span>
+                            <span class="text-xs text-gray-500 mt-1 block">WHO growth charts differ by sex.</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Assessment Date <span class="text-red-500">*</span></label>
+                            <input type="date" id="planDate" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" required oninput="onAgeInputsChanged()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Age at Assessment</label>
+                            <input type="text" id="ageDisplay" class="w-full px-4 py-3 border-2 border-gray-200 bg-gray-50 rounded-lg text-gray-700 font-semibold" readonly value="—">
+                            <span class="text-xs text-gray-500 mt-1 block">Calculated automatically from date of birth.</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Next Follow-up Date</label>
+                            <input type="date" id="nextFollowupDate" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Phone</label>
+                            <input type="tel" id="guardianPhone" autocomplete="tel" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" placeholder="+94 XX XXX XXXX">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Parent/Guardian Email</label>
+                            <input type="email" id="guardianEmail" autocomplete="email" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" placeholder="email@example.com">
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Address</label>
+                        <textarea id="guardianAddress" class="address-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="3" placeholder="Enter full address (optional)"></textarea>
+                    </div>
+                    <div id="ageWarning" class="mt-6 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm hidden">
+                        <i class="fas fa-triangle-exclamation mr-1"></i> This tool is designed for children <strong>under 24 months</strong>, using WHO weight-for-length standards. For children 2 years and older, please use the standard Meal Plan Generator (BMI-for-age is used from age 2).
+                    </div>
+                    <div class="flex justify-end mt-8">
+                        <button type="button" onclick="validateAndNext(1)" class="bg-teal-600 hover:bg-teal-700 text-white px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg hover:shadow-xl">Next Step <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Growth Check (Weight-for-Length) -->
+            <div class="form-step" id="step2">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-3 flex items-center gap-3"><i class="fas fa-chart-line text-teal-600"></i> Growth Check — Weight-for-Length</h2>
+                    <p class="text-sm text-gray-600 mb-6">For babies under 2 years, BMI is not used. Instead, we plot <strong>weight-for-length</strong> against WHO Child Growth Standard percentile curves — the method recommended by the AAP and CDC to screen for under- or over-nutrition in infants.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Weight (kg) <span class="text-red-500">*</span></label>
+                            <input type="number" id="babyWeight" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" placeholder="e.g., 7.8" min="1" max="25" step="0.01" required oninput="calculateGrowthPercentile()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Length / Height (cm) <span class="text-red-500">*</span></label>
+                            <input type="number" id="babyLength" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" placeholder="e.g., 68" min="40" max="105" step="0.1" required oninput="calculateGrowthPercentile()">
+                            <span class="text-xs text-gray-500 mt-1 block">Recumbent length is standard under 24 months.</span>
+                        </div>
+                    </div>
+
+                    <div id="percentileDisplay" class="mb-6 p-6 md:p-8 bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl border-2 border-teal-200 shadow-md" style="display:none;">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                            <div class="text-center">
+                                <div class="text-6xl font-bold text-teal-600 mb-2" id="percentileValue">--</div>
+                                <div class="text-lg font-semibold text-gray-700">Estimated Weight-for-Length Percentile</div>
+                                <div class="mt-3"><span id="percentileBadge" class="px-4 py-1.5 rounded-full text-sm font-semibold"></span></div>
+                            </div>
+                            <div class="bg-white rounded-lg p-4 text-sm text-gray-700" id="percentileNote">—</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border-2 border-gray-200 rounded-xl p-4 md:p-6 mb-4">
+                        <canvas id="growthChart" height="280"></canvas>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-6"><i class="fas fa-circle-info mr-1"></i>Curves are an approximation of WHO Child Growth Standards (weight-for-length, 3rd/15th/50th/85th/97th percentiles) for informational and screening purposes only. They are not a substitute for the official WHO/CDC chart or a clinical assessment by a healthcare provider.</p>
+
+                    <div class="flex justify-between mt-8">
+                        <button type="button" onclick="goToStep(1)" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition"><i class="fas fa-arrow-left"></i> Previous</button>
+                        <button type="button" onclick="validateAndNext(2)" class="bg-teal-600 hover:bg-teal-700 text-white px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg hover:shadow-xl">Next Step <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Feeding Plan Configuration -->
+            <div class="form-step" id="step3">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3"><i class="fas fa-utensils text-teal-600"></i> Feeding Plan Configuration</h2>
+
+                    <div class="mb-8">
+                        <label class="block text-lg font-bold text-gray-700 mb-2">Feeding Stage <span class="text-red-500">*</span></label>
+                        <p class="text-sm text-gray-500 mb-4">Auto-suggested from age — adjust if needed.</p>
+                        <select id="feedingStage" class="w-full md:w-96 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" onchange="updateFeedingStageGuide()">
+                            <option value="exclusiveMilk">0–6 months — Exclusive breastmilk/formula</option>
+                            <option value="startingSolids">6–8 months — Starting solids</option>
+                            <option value="establishedSolids">8–12 months — Established solids</option>
+                            <option value="toddlerFoods">12–24 months — Toddler table foods</option>
+                        </select>
+                        <div id="feedingStageGuide" class="mt-4 p-4 bg-teal-50 border border-teal-200 rounded-lg text-sm text-gray-700"></div>
+                    </div>
+
+                    <div class="mb-8">
+                        <label class="block text-lg font-bold text-gray-700 mb-4">Feeding Type</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition"><input type="checkbox" id="feedBreast" class="checkbox-custom mr-3" checked><span class="font-semibold">🤱 Breastfed</span></label>
+                            <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition"><input type="checkbox" id="feedFormula" class="checkbox-custom mr-3"><span class="font-semibold">🍼 Formula-fed</span></label>
+                            <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition"><input type="checkbox" id="feedMixed" class="checkbox-custom mr-3"><span class="font-semibold">🤝 Mixed feeding</span></label>
+                            <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition"><input type="checkbox" id="feedAllergyWatch" class="checkbox-custom mr-3"><span class="font-semibold">⚠️ Known/suspected allergy — watch closely</span></label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Approx. Daily Milk Volume (ml)</label>
+                            <input type="number" id="dailyMilkVolume" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" placeholder="Auto-estimated from weight" min="200" max="1500">
+                            <span class="text-gray-500 text-xs mt-1 block">Rough guide only — 150 ml/kg/day for formula-fed infants under 6 months; follow feeding cues.</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Plan Duration (days)</label>
+                            <input type="number" id="planDuration" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" placeholder="e.g., 7" value="7" min="1" max="30">
+                        </div>
+                    </div>
+
+                    <!-- Toddler Plate (12-24m) -->
+                    <div class="mb-8 p-5 md:p-6 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-white to-teal-50">
+                        <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">🍽️ Toddler Plate Guide <span class="text-sm font-normal text-gray-500">(for ~12–24 months on table foods)</span></h3>
+                        <p class="text-sm text-gray-600 mb-5">Rough visual guide for balancing a toddler's plate. Total must equal 100%.</p>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Fruits &amp; Vegetables (%)</label>
+                                    <input type="number" id="plateFruitVeg" min="0" max="100" value="50" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" oninput="updateToddlerPlateChart()">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Grains &amp; Starches (%)</label>
+                                    <input type="number" id="plateGrains" min="0" max="100" value="25" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" oninput="updateToddlerPlateChart()">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-2">Protein &amp; Dairy (%)</label>
+                                    <input type="number" id="plateProtein" min="0" max="100" value="25" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" oninput="updateToddlerPlateChart()">
+                                </div>
+                                <div class="bg-white border rounded-lg p-3">
+                                    <p class="text-sm text-gray-700">Total: <span id="plateTotal" class="font-bold text-teal-700">100%</span></p>
+                                    <p id="plateTotalError" class="text-sm text-red-600 mt-1 hidden">Plate total must equal 100%.</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-center gap-3">
+                                <canvas id="toddlerPlateCanvas" width="260" height="260" class="plate-canvas max-w-full bg-white rounded-full"></canvas>
+                                <p class="text-xs text-gray-500 text-center max-w-[280px]">Not applicable before solids/table foods are established — leave as a visual reference for younger stages.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">📝 Daily Feeding Schedule</h3>
+                    <div class="space-y-4">
+                        <!-- Early Morning Feed -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('earlyMorningSection')" class="w-full px-6 py-4 bg-gradient-to-r from-yellow-50 to-orange-50 hover:from-yellow-100 hover:to-orange-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-base">🌅 Early Morning Feed</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="earlyMorningStartTime" value="06:30" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="earlyMorningEndTime" value="07:00" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="earlyMorningIcon"></i>
+                            </div>
+                            <div id="earlyMorningSection" class="p-6 bg-white" style="display: none;">
+                                <div id="earlyMorningOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0">
+                                        <div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('earlyMorning', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold hidden remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div>
+                                        <textarea id="earlyMorningA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="e.g., Breastmilk / Formula - 150-180ml"></textarea>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('earlyMorning')" class="mt-4 text-teal-600 hover:text-teal-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                        <!-- Breakfast -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('breakfastSection')" class="w-full px-6 py-4 bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-xl">☕ Breakfast</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="breakfastStartTime" value="08:00" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="breakfastEndTime" value="08:30" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="breakfastIcon"></i>
+                            </div>
+                            <div id="breakfastSection" class="p-6 bg-white" style="display: none;">
+                                <div id="breakfastOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('breakfast', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="breakfastA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="4" maxlength="600" placeholder="e.g., Iron-fortified rice cereal mixed with breastmilk/formula - 2-3 tbsp&#10;Mashed banana - 1-2 tbsp"></textarea></div>
+                                    <div class="snack-option" data-option-index="1"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option B</label><button type="button" onclick="removeSnackOption('breakfast', 1)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="breakfastB" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="4" maxlength="600" placeholder="e.g., Mashed avocado - 2 tbsp&#10;Soft scrambled egg - 1 tbsp (once introduced)"></textarea></div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('breakfast')" class="mt-4 text-teal-600 hover:text-teal-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                        <!-- Mid-Morning -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('midMorningSection')" class="w-full px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-lg">🍎 Mid-Morning Feed/Snack</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="midMorningStartTime" value="10:00" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="midMorningEndTime" value="10:30" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="midMorningIcon"></i>
+                            </div>
+                            <div id="midMorningSection" class="p-6 bg-white" style="display: none;">
+                                <div id="midMorningOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('midMorning', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold hidden remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="midMorningA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="e.g., Breastmilk/Formula - 120-150ml, or soft fruit pieces once on finger foods"></textarea></div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('midMorning')" class="mt-4 text-teal-600 hover:text-teal-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                        <!-- Lunch -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('lunchSection')" class="w-full px-6 py-4 bg-gradient-to-r from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-xl">🍽️ Lunch</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="lunchStartTime" value="12:00" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="lunchEndTime" value="12:30" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="lunchIcon"></i>
+                            </div>
+                            <div id="lunchSection" class="p-6 bg-white" style="display: none;">
+                                <div id="lunchOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('lunch', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="lunchA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="4" maxlength="600" placeholder="e.g., Mashed sweet potato &amp; lentils - 3-4 tbsp&#10;Soft-cooked pureed chicken/fish - 1-2 tbsp"></textarea></div>
+                                    <div class="snack-option" data-option-index="1"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option B</label><button type="button" onclick="removeSnackOption('lunch', 1)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="lunchB" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="4" maxlength="600" placeholder="e.g., Soft rice &amp; dhal - 1/3 cup&#10;Steamed diced vegetables (finger-food size)"></textarea></div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('lunch')" class="mt-4 text-teal-600 hover:text-teal-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                        <!-- Afternoon Snack -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('eveningSnackSection')" class="w-full px-6 py-4 bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-lg">🍪 Afternoon Snack</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="eveningSnackStartTime" value="15:00" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="eveningSnackEndTime" value="15:30" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="eveningSnackIcon"></i>
+                            </div>
+                            <div id="eveningSnackSection" class="p-6 bg-white" style="display: none;">
+                                <div id="eveningSnackOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('eveningSnack', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold hidden remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="eveningSnackA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="e.g., Plain yogurt - 2-3 tbsp, or soft fruit pieces"></textarea></div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('eveningSnack')" class="mt-4 text-teal-600 hover:text-teal-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                        <!-- Before Dinner -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('beforeDinnerSection')" class="w-full px-6 py-4 bg-gradient-to-r from-teal-50 to-green-50 hover:from-teal-100 hover:to-green-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-lg">🥣 Pre-Dinner Feed</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="beforeDinnerStartTime" value="17:30" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="beforeDinnerEndTime" value="18:00" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="beforeDinnerIcon"></i>
+                            </div>
+                            <div id="beforeDinnerSection" class="p-6 bg-white" style="display: none;">
+                                <div id="beforeDinnerOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('beforeDinner', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold hidden remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="beforeDinnerA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="2" placeholder="e.g., Breastmilk/Formula - 90-120ml"></textarea></div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('beforeDinner')" class="mt-4 text-teal-600 hover:text-teal-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                        <!-- Dinner / Bedtime -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('dinnerSection')" class="w-full px-6 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-xl">🌙 Dinner / Bedtime Feed</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="dinnerStartTime" value="19:00" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="dinnerEndTime" value="19:30" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="dinnerIcon"></i>
+                            </div>
+                            <div id="dinnerSection" class="p-6 bg-white" style="display: none;">
+                                <div id="dinnerOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('dinner', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="dinnerA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="4" maxlength="600" placeholder="e.g., Soft mashed vegetables &amp; rice - 3-4 tbsp&#10;Breastmilk/Formula before bed - 150-180ml"></textarea></div>
+                                    <div class="snack-option" data-option-index="1"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option B</label><button type="button" onclick="removeSnackOption('dinner', 1)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="dinnerB" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="4" maxlength="600" placeholder="Add second dinner option if needed..."></textarea></div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('dinner')" class="mt-4 text-teal-600 hover:text-teal-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-8">
+                        <button type="button" onclick="goToStep(2)" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition"><i class="fas fa-arrow-left"></i> Previous</button>
+                        <button type="button" onclick="validateAndNext(3)" class="bg-teal-600 hover:bg-teal-700 text-white px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg hover:shadow-xl">Next Step <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Guidelines -->
+            <div class="form-step" id="step4">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3"><i class="fas fa-shield-heart text-teal-600"></i> Feeding Safety &amp; Guidelines</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">💧 Water Intake Guidance</label>
+                            <input type="text" id="waterIntake" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" value="Sips of water with meals once solids start (6+ months); breastmilk/formula remains primary fluid">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">🥄 Texture Progression</label>
+                            <input type="text" id="textureProgression" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" value="Smooth purees → mashed/lumpy → soft finger foods → chopped table foods">
+                        </div>
+                    </div>
+                    <div class="mb-8">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">🥜 Allergen Introduction Notes</label>
+                        <textarea id="allergenNotes" class="guidance-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="3">Introduce common allergens (egg, peanut, dairy, wheat, soy, tree nuts, fish) one at a time from around 6 months, a few days apart, watching for reactions. Discuss timing with your pediatrician, especially if there is a family history of allergy or eczema.</textarea>
+                    </div>
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">✅ Things to Consider</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-teal-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline1" checked><span class="text-sm">Continue breastmilk/formula as the main source of nutrition through 12 months</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-teal-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline2" checked><span class="text-sm">Introduce iron-rich foods (meat, lentils, fortified cereal) from around 6 months</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-teal-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline3" checked><span class="text-sm">No honey before 12 months (risk of infant botulism)</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-teal-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline4" checked><span class="text-sm">Avoid cow's milk as a main drink before 12 months (small amounts in cooking are fine)</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-teal-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline5" checked><span class="text-sm">No added salt or sugar in baby's food</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-teal-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline6" checked><span class="text-sm">Cut food to reduce choking risk — avoid whole nuts, whole grapes, hard raw vegetables, popcorn</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-teal-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline7" checked><span class="text-sm">Always supervise baby while eating; feed sitting upright</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-teal-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline8" checked><span class="text-sm">Follow baby's hunger and fullness cues (responsive feeding) — don't force finishing a portion</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-teal-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline9" checked><span class="text-sm">Offer a variety of textures and flavors; repeated exposure helps acceptance</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-teal-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline10" checked><span class="text-sm">Track weight/length regularly and discuss growth trends at check-ups</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-teal-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline11" checked><span class="text-sm">Consult a pediatrician before starting solids if baby was premature or has a medical condition</span></label>
+                        </div>
+                    </div>
+                    <div class="mb-8">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">🚫 Foods to Strictly Avoid</label>
+                        <textarea id="foodsToAvoid" class="guidance-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="4">Honey (under 12 months), whole nuts and seeds, whole grapes/cherry tomatoes (unless quartered), hard raw vegetables, popcorn, added salt, added sugar, unpasteurized dairy/juice, cow's milk as a main drink (under 12 months), choking-hazard shaped foods.</textarea>
+                    </div>
+                    <div class="mb-8">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">📝 Special Instructions or Notes</label>
+                        <textarea id="specialInstructions" class="guidance-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="4" placeholder="Any additional instructions, allergies, reflux, medical conditions, or special considerations..."></textarea>
+                    </div>
+                    <div class="flex justify-between mt-8">
+                        <button type="button" onclick="goToStep(3)" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition"><i class="fas fa-arrow-left"></i> Previous</button>
+                        <button type="button" onclick="validateAndNext(4)" class="bg-teal-600 hover:bg-teal-700 text-white px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg hover:shadow-xl">Next Step <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Generate PDF -->
+            <div class="form-step" id="step5">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3"><i class="fas fa-file-pdf text-teal-600"></i> Provider Details &amp; PDF Generation</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Provider / Preparer Name</label><input type="text" id="providerName" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" placeholder="e.g., Your name or clinic"></div>
+                        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Credentials</label><input type="text" id="credentials" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" placeholder="e.g., Pediatric Dietitian"></div>
+                        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Contact Phone</label><input type="tel" id="providerPhone" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" placeholder="+94 XX XXX XXXX"></div>
+                        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Contact Email</label><input type="email" id="providerEmail" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" placeholder="contact@email.com"></div>
+                    </div>
+                    <div class="mb-8">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Practice/Clinic Address</label>
+                        <textarea id="providerAddress" class="address-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="2" placeholder="Enter clinic/practice address (optional)"></textarea>
+                    </div>
+
+                    <!-- Font Size -->
+                    <div class="mb-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
+                        <h3 class="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2"><i class="fas fa-text-height"></i> PDF Font Size</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Heading Font Size</label>
+                                <div class="flex items-center gap-3">
+                                    <input type="range" id="headingFontSize" min="11" max="18" value="14" class="flex-1" oninput="updateFontSizeDisplay()">
+                                    <span id="headingSizeDisplay" class="font-bold text-purple-700 w-12">14pt</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Content Font Size</label>
+                                <div class="flex items-center gap-3">
+                                    <input type="range" id="contentFontSize" min="8" max="14" value="10" class="flex-1" oninput="updateFontSizeDisplay()">
+                                    <span id="contentSizeDisplay" class="font-bold text-purple-700 w-12">10pt</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Language Selection -->
+                    <div class="mb-8 p-6 bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border-2 border-green-200">
+                        <h3 class="text-xl font-bold text-green-800 mb-4 flex items-center gap-2"><i class="fas fa-language"></i> PDF Language</h3>
+                        <div class="flex flex-wrap gap-4">
+                            <label data-lang-card="en" onclick="updateLangSelection('en')" class="flex items-center gap-3 cursor-pointer p-4 bg-white rounded-lg border-2 transition" style="border-color:#16a34a;background:#f0fdf4;">
+                                <input type="radio" name="pdfLanguage" id="pdfLangEn" value="en" checked class="w-5 h-5 accent-green-600" onchange="updateLangSelection('en')">
+                                <div><span class="block font-semibold text-gray-800">🇬🇧 English</span></div>
+                            </label>
+                            <label data-lang-card="si" onclick="updateLangSelection('si')" class="flex items-center gap-3 cursor-pointer p-4 bg-white rounded-lg border-2 border-green-200 transition">
+                                <input type="radio" name="pdfLanguage" id="pdfLangSi" value="si" class="w-5 h-5 accent-green-600" onchange="updateLangSelection('si')">
+                                <div><span class="block font-semibold text-gray-800">🇱🇰 සිංහල</span></div>
+                            </label>
+                            <label data-lang-card="ta" onclick="updateLangSelection('ta')" class="flex items-center gap-3 cursor-pointer p-4 bg-white rounded-lg border-2 border-green-200 transition">
+                                <input type="radio" name="pdfLanguage" id="pdfLangTa" value="ta" class="w-5 h-5 accent-green-600" onchange="updateLangSelection('ta')">
+                                <div><span class="block font-semibold text-gray-800">🇱🇰 தமிழ்</span></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- PDF Options -->
+                    <div class="bg-white border-2 border-teal-200 rounded-xl p-5 mb-6 shadow-sm">
+                        <label for="includeMealTable" class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="includeMealTable" class="checkbox-custom">
+                            <span><span class="block text-base font-semibold text-gray-800">Include feeding plan as a table in PDF</span><span class="block text-sm text-gray-600">Leave unchecked to include the daily schedule format instead.</span></span>
+                        </label>
+                    </div>
+                    <div class="bg-white border-2 border-teal-200 rounded-xl p-5 mb-6 shadow-sm">
+                        <label for="includeGrowthChart" class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="includeGrowthChart" class="checkbox-custom" checked>
+                            <span><span class="block text-base font-semibold text-gray-800">Include Growth Chart in PDF</span><span class="block text-sm text-gray-600">Adds the weight-for-length percentile chart from Step 2.</span></span>
+                        </label>
+                    </div>
+                    <div class="bg-white border-2 border-teal-200 rounded-xl p-5 mb-6 shadow-sm">
+                        <label for="includeToddlerPlate" class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="includeToddlerPlate" class="checkbox-custom">
+                            <span><span class="block text-base font-semibold text-gray-800">Include Toddler Plate Chart in PDF</span><span class="block text-sm text-gray-600">Adds the plate-ratio chart (relevant for ~12–24 months).</span></span>
+                        </label>
+                    </div>
+                    <div class="bg-white border-2 border-indigo-200 rounded-xl p-5 mb-6 shadow-sm">
+                        <label for="includeProviderHeader" class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="includeProviderHeader" class="checkbox-custom" checked>
+                            <span><span class="block text-base font-semibold text-gray-800">Include Provider Header on Every Page</span><span class="block text-sm text-gray-600">Disable for a clean, content-only layout.</span></span>
+                        </label>
+                    </div>
+
+                    <div class="flex justify-between mt-8 flex-wrap gap-4">
+                        <button type="button" onclick="goToStep(4)" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition"><i class="fas fa-arrow-left"></i> Previous</button>
+                        <div class="flex gap-4 flex-wrap">
+                            <button type="button" onclick="exportTemplate()" class="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg hover:shadow-xl"><i class="fas fa-download"></i> Export Template</button>
+                            <button type="button" onclick="importTemplate()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg hover:shadow-xl"><i class="fas fa-upload"></i> Import Template</button>
+                            <button type="button" onclick="generatePDF()" id="generatePdfBtn" class="bg-green-600 hover:bg-green-700 text-white px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-xl hover:shadow-2xl text-lg"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <aside class="hidden xl:block xl:col-span-4">
+            <div class="bg-white rounded-xl shadow-lg p-6 sticky top-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Current Summary</h3>
+                <div id="summaryPanel" class="space-y-2 text-sm text-gray-700">
+                    <p><strong>Name:</strong> <span data-summary="babyName">—</span></p>
+                    <p><strong>Age/Sex:</strong> <span data-summary="ageSex">—</span></p>
+                    <p><strong>Date:</strong> <span data-summary="planDate">—</span></p>
+                    <p><strong>Weight-for-Length %ile:</strong> <span data-summary="percentile">—</span></p>
+                    <p><strong>Feeding Stage:</strong> <span data-summary="stage">—</span></p>
+                </div>
+            </div>
+        </aside>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-xl shadow-2xl p-6 mt-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-bolt text-yellow-500"></i> Quick Actions</h3>
+            <div class="flex flex-wrap gap-3">
+                <button type="button" onclick="saveData()" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-save"></i> Save Progress</button>
+                <button type="button" onclick="loadSavedData()" class="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-folder-open"></i> Load Saved Data</button>
+                <button type="button" onclick="clearForm()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-trash-alt"></i> Clear Form</button>
+                <button type="button" onclick="printPreview()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-print"></i> Print Preview</button>
+                <button type="button" onclick="exportTemplate()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-download"></i> Export Template</button>
+                <button type="button" onclick="importTemplate()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-upload"></i> Import Template</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gradient-to-r from-gray-800 to-gray-900 text-white mt-16 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-lg font-semibold">&copy; 2026 Baby Growth &amp; Feeding Plan Generator</p>
+            <p class="text-gray-400 mt-2">Uses WHO weight-for-length standards for children under 24 months</p>
+            <p class="text-sm text-gray-500 mt-3">Informational tool only — not a substitute for professional pediatric advice.</p>
+        </div>
+    </footer>
+
+    <input type="file" id="templateImportInput" accept=".json" style="display: none;" onchange="handleTemplateImport(event)">
+
+<script>
+    document.getElementById('planDate').valueAsDate = new Date();
+    let currentStep = 1;
+    let autoSaveTimer;
+    let canShowDraftToast = false;
+    let growthChartInstance = null;
+
+    const PDF_PAGE_W  = 794;
+    const PDF_PAGE_H  = 1123;
+    const PDF_HDR_H   = 144;
+    const PDF_FTR_H   = 53;
+
+    // ─── Approximate WHO weight-for-length percentile reference data (kg) ───────
+    // 3rd / 15th / 50th / 85th / 97th percentiles by length (cm), sampled every 5cm.
+    // Approximation of WHO Child Growth Standards for informational/screening use.
+    const whoWeightForLength = {
+        Male: [
+            { l:45, p3:2.0, p15:2.2, p50:2.5, p85:2.8, p97:3.1 },
+            { l:50, p3:2.7, p15:3.0, p50:3.3, p85:3.7, p97:4.1 },
+            { l:55, p3:3.6, p15:3.9, p50:4.3, p85:4.8, p97:5.3 },
+            { l:60, p3:4.7, p15:5.1, p50:5.6, p85:6.2, p97:6.9 },
+            { l:65, p3:5.9, p15:6.4, p50:7.0, p85:7.7, p97:8.5 },
+            { l:70, p3:7.0, p15:7.5, p50:8.2, p85:9.0, p97:9.9 },
+            { l:75, p3:7.9, p15:8.5, p50:9.3, p85:10.2, p97:11.2 },
+            { l:80, p3:8.8, p15:9.4, p50:10.3, p85:11.3, p97:12.4 },
+            { l:85, p3:9.6, p15:10.3, p50:11.2, p85:12.3, p97:13.5 },
+            { l:90, p3:10.4, p15:11.1, p50:12.1, p85:13.3, p97:14.6 },
+            { l:95, p3:11.1, p15:11.9, p50:13.0, p85:14.3, p97:15.7 },
+            { l:100, p3:11.9, p15:12.8, p50:14.0, p85:15.4, p97:17.0 }
+        ],
+        Female: [
+            { l:45, p3:1.9, p15:2.1, p50:2.4, p85:2.7, p97:3.0 },
+            { l:50, p3:2.5, p15:2.8, p50:3.2, p85:3.6, p97:4.0 },
+            { l:55, p3:3.3, p15:3.6, p50:4.1, p85:4.6, p97:5.1 },
+            { l:60, p3:4.3, p15:4.7, p50:5.2, p85:5.9, p97:6.6 },
+            { l:65, p3:5.4, p15:5.9, p50:6.5, p85:7.3, p97:8.2 },
+            { l:70, p3:6.4, p15:6.9, p50:7.6, p85:8.5, p97:9.5 },
+            { l:75, p3:7.3, p15:7.9, p50:8.7, p85:9.7, p97:10.8 },
+            { l:80, p3:8.1, p15:8.7, p50:9.6, p85:10.7, p97:11.9 },
+            { l:85, p3:8.9, p15:9.6, p50:10.5, p85:11.7, p97:13.0 },
+            { l:90, p3:9.7, p15:10.4, p50:11.4, p85:12.7, p97:14.1 },
+            { l:95, p3:10.4, p15:11.2, p50:12.3, p85:13.7, p97:15.2 },
+            { l:100, p3:11.1, p15:12.0, p50:13.2, p85:14.7, p97:16.4 }
+        ]
+    };
+
+    function interpolateWFLRow(sexKey, length) {
+        const data = whoWeightForLength[sexKey] || whoWeightForLength.Male;
+        const L = Math.max(data[0].l, Math.min(length, data[data.length - 1].l));
+        let i = 0; while (i < data.length - 2 && data[i + 1].l < L) i++;
+        const a = data[i], b = data[i + 1];
+        const frac = (L - a.l) / ((b.l - a.l) || 1);
+        const lerp = k => a[k] + (b[k] - a[k]) * frac;
+        return { p3: lerp('p3'), p15: lerp('p15'), p50: lerp('p50'), p85: lerp('p85'), p97: lerp('p97') };
+    }
+
+    function estimatePercentile(row, weight) {
+        const pts = [[3, row.p3], [15, row.p15], [50, row.p50], [85, row.p85], [97, row.p97]];
+        if (weight <= pts[0][1]) { const ratio = pts[0][1] > 0 ? weight / pts[0][1] : 0; return Math.max(0.1, Math.min(3, 3 * ratio)); }
+        if (weight >= pts[4][1]) { const over = (weight - pts[4][1]) / (pts[4][1] || 1); return Math.min(99.9, 97 + over * 100); }
+        for (let i = 0; i < pts.length - 1; i++) {
+            const [p1, w1] = pts[i], [p2, w2] = pts[i + 1];
+            if (weight >= w1 && weight <= w2) { const f = (weight - w1) / ((w2 - w1) || 1); return p1 + (p2 - p1) * f; }
+        }
+        return 50;
+    }
+
+    function classifyPercentile(p) {
+        if (p < 2) return { label: 'Low weight-for-length', note: 'Below the typical range — possible undernutrition. Please discuss with your pediatrician.', cls: 'bg-blue-100 text-blue-800' };
+        if (p < 15) return { label: 'Below Average', note: 'On the lower side of the typical range. Worth monitoring the growth trend at future visits.', cls: 'bg-cyan-100 text-cyan-800' };
+        if (p <= 85) return { label: 'Healthy Weight-for-Length', note: 'Weight-for-length is within the typical range for age and sex.', cls: 'bg-green-100 text-green-800' };
+        if (p <= 97) return { label: 'Above Average', note: 'On the higher side of the typical range. Worth monitoring the growth trend at future visits.', cls: 'bg-orange-100 text-orange-800' };
+        return { label: 'High weight-for-length', note: 'Above the typical range — possible risk of overweight. Please discuss with your pediatrician.', cls: 'bg-red-100 text-red-800' };
+    }
+
+    // ─── Age calculation ─────────────────────────────────────────────────────────
+    function computeAgeMonths(dobStr, refStr) {
+        const dob = new Date(dobStr), ref = new Date(refStr || new Date());
+        if (isNaN(dob.getTime()) || isNaN(ref.getTime())) return null;
+        let months = (ref.getFullYear() - dob.getFullYear()) * 12 + (ref.getMonth() - dob.getMonth());
+        if (ref.getDate() < dob.getDate()) months -= 1;
+        const days = Math.round((ref - dob) / 86400000);
+        return { months: Math.max(0, months), days: Math.max(0, days) };
+    }
+
+    function formatAge(ageObj) {
+        if (!ageObj) return '—';
+        if (ageObj.days < 60) return ageObj.days + ' day' + (ageObj.days === 1 ? '' : 's');
+        const y = Math.floor(ageObj.months / 12), m = ageObj.months % 12;
+        return (y > 0 ? y + ' yr ' : '') + m + ' mo';
+    }
+
+    function suggestFeedingStage(months) {
+        if (months < 6) return 'exclusiveMilk';
+        if (months < 8) return 'startingSolids';
+        if (months < 12) return 'establishedSolids';
+        return 'toddlerFoods';
+    }
+
+    function onAgeInputsChanged() {
+        const dob = document.getElementById('babyDOB').value, ref = document.getElementById('planDate').value;
+        const ageObj = dob ? computeAgeMonths(dob, ref) : null;
+        document.getElementById('ageDisplay').value = ageObj ? formatAge(ageObj) : '—';
+        const warn = document.getElementById('ageWarning');
+        if (ageObj && ageObj.months >= 24) warn.classList.remove('hidden'); else warn.classList.add('hidden');
+        if (ageObj) {
+            const stageSel = document.getElementById('feedingStage');
+            if (stageSel && !stageSel.dataset.userSet) { stageSel.value = suggestFeedingStage(ageObj.months); updateFeedingStageGuide(); }
+        }
+        calculateGrowthPercentile();
+    }
+    document.getElementById('feedingStage')?.addEventListener('change', function () { this.dataset.userSet = '1'; });
+
+    // ─── Growth chart + percentile ──────────────────────────────────────────────
+    function calculateGrowthPercentile() {
+        const weight = parseFloat(document.getElementById('babyWeight').value);
+        const length = parseFloat(document.getElementById('babyLength').value);
+        const sex = document.getElementById('babySex').value;
+        const disp = document.getElementById('percentileDisplay');
+        if (!sex || !Number.isFinite(weight) || !Number.isFinite(length) || weight <= 0 || length <= 0) {
+            disp.style.display = 'none';
+            drawGrowthChart(sex || 'Male', null, null);
+            return;
+        }
+        const row = interpolateWFLRow(sex, length);
+        const pct = estimatePercentile(row, weight);
+        const cat = classifyPercentile(pct);
+        document.getElementById('percentileValue').textContent = (pct < 1 ? '<1' : Math.round(pct)) + (pct >= 99 ? '+' : '');
+        document.getElementById('percentileBadge').textContent = cat.label;
+        document.getElementById('percentileBadge').className = 'px-4 py-1.5 rounded-full text-sm font-semibold ' + cat.cls;
+        document.getElementById('percentileNote').textContent = cat.note;
+        disp.style.display = 'block';
+        drawGrowthChart(sex, length, weight);
+    }
+
+    function drawGrowthChart(sex, length, weight) {
+        const canvas = document.getElementById('growthChart');
+        if (!canvas) return;
+        if (!window.Chart) {
+            // Library failed to load — show a visible message instead of a silent blank box,
+            // and retry shortly in case the script was still finishing its network request.
+            const wrap = canvas.parentElement;
+            if (wrap && !document.getElementById('growthChartFallback')) {
+                const msg = document.createElement('div');
+                msg.id = 'growthChartFallback';
+                msg.className = 'text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-4 text-center';
+                msg.innerHTML = '<i class="fas fa-triangle-exclamation mr-1"></i> Chart library is still loading — the growth curve will appear automatically in a moment. If it doesn\'t, check your internet connection and reload the page.';
+                wrap.insertBefore(msg, canvas);
+            }
+            if (!window.__growthChartRetryCount) window.__growthChartRetryCount = 0;
+            if (window.__growthChartRetryCount < 20) {
+                window.__growthChartRetryCount++;
+                setTimeout(() => drawGrowthChart(sex, length, weight), 300);
+            }
+            return;
+        }
+        const fallbackMsg = document.getElementById('growthChartFallback');
+        if (fallbackMsg) fallbackMsg.remove();
+        const data = whoWeightForLength[sex] || whoWeightForLength.Male;
+        // All datasets — curves and the baby's own point — use the same {x,y} coordinate
+        // format plotted on a shared linear x-axis, so nothing can desync between them.
+        const mkDs = (key, label, color, dash) => ({
+            label,
+            data: data.map(d => ({ x: d.l, y: d[key] })),
+            type: 'line',
+            borderColor: color, backgroundColor: color,
+            borderWidth: key === 'p50' ? 2.5 : 1.5, borderDash: dash || [],
+            pointRadius: 0, tension: 0.35, fill: false
+        });
+        const datasets = [
+            mkDs('p3', '3rd', '#94a3b8', [4, 3]),
+            mkDs('p15', '15th', '#38bdf8', [2, 2]),
+            mkDs('p50', '50th (median)', '#0EA5A5', []),
+            mkDs('p85', '85th', '#f59e0b', [2, 2]),
+            mkDs('p97', '97th', '#ef4444', [4, 3])
+        ];
+        if (Number.isFinite(length) && Number.isFinite(weight)) {
+            datasets.push({
+                label: 'Baby (' + length + 'cm, ' + weight + 'kg)',
+                data: [{ x: length, y: weight }],
+                type: 'scatter', showLine: false,
+                pointRadius: 7, pointHoverRadius: 8,
+                backgroundColor: '#F472B6', borderColor: '#be185d', borderWidth: 2
+            });
+        }
+        if (growthChartInstance) growthChartInstance.destroy();
+        growthChartInstance = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: { datasets },
+            options: {
+                responsive: true, maintainAspectRatio: false, animation: false,
+                scales: {
+                    x: { type: 'linear', title: { display: true, text: 'Length (cm)' }, min: 45, max: 100 },
+                    y: { type: 'linear', title: { display: true, text: 'Weight (kg)' }, min: 1, suggestedMax: 18 }
+                },
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 14, font: { size: 11 } } } }
+            }
+        });
+        canvas.parentElement.style.height = '300px';
+    }
+
+    function updateFeedingStageGuide() {
+        const guides = {
+            exclusiveMilk: '👶 <strong>0–6 months:</strong> Breastmilk or formula only. No water, juice, or solids needed. Feed on demand, roughly every 2–4 hours.',
+            startingSolids: '🥄 <strong>6–8 months:</strong> Continue milk as the main nutrition source. Introduce single-ingredient purees, starting with iron-rich foods, 1–2 times/day, building to 2–3 times/day.',
+            establishedSolids: '🍽️ <strong>8–12 months:</strong> 3 meals + 1–2 snacks alongside milk feeds. Move toward mashed/lumpy textures and soft finger foods.',
+            toddlerFoods: '🧒 <strong>12–24 months:</strong> 3 family-style meals + 2 snacks/day. Whole milk or continued breastfeeding, chopped table foods, self-feeding encouraged.'
+        };
+        const stage = document.getElementById('feedingStage').value;
+        document.getElementById('feedingStageGuide').innerHTML = guides[stage] || '';
+    }
+
+    // ─── Toddler plate chart ─────────────────────────────────────────────────────
+    function getPlatePercentages() {
+        const fv = parseInt(document.getElementById('plateFruitVeg').value, 10) || 0;
+        const gr = parseInt(document.getElementById('plateGrains').value, 10) || 0;
+        const pr = parseInt(document.getElementById('plateProtein').value, 10) || 0;
+        return { fv, gr, pr, total: fv + gr + pr };
+    }
+
+    function updateToddlerPlateChart() {
+        const canvas = document.getElementById('toddlerPlateCanvas'); if (!canvas) return;
+        const ctx = canvas.getContext('2d'), { fv, gr, pr, total } = getPlatePercentages();
+        const tl = document.getElementById('plateTotal'), el = document.getElementById('plateTotalError');
+        if (tl) { tl.textContent = total + '%'; tl.className = 'font-bold ' + (total === 100 ? 'text-green-700' : 'text-red-700'); }
+        if (el) el.classList.toggle('hidden', total === 100);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const cx = canvas.width / 2, cy = canvas.height / 2, r = Math.min(canvas.width, canvas.height) * 0.44, hr = r * 0.5;
+        const colors = ['#6EE7B7', '#FDE68A', '#93C5FD'], values = [fv, gr, pr];
+        let start = -Math.PI / 2;
+        values.forEach((value, i) => {
+            const angle = total > 0 ? (value / total) * Math.PI * 2 : 0;
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, start, start + angle); ctx.closePath(); ctx.fillStyle = colors[i]; ctx.fill();
+            if (value > 0) { const la = start + angle / 2; ctx.fillStyle = '#0F172A'; ctx.font = 'bold 12px Inter, Arial'; ctx.textAlign = 'center'; ctx.fillText(value + '%', cx + Math.cos(la) * (r * 0.72), cy + Math.sin(la) * (r * 0.72)); }
+            start += angle;
+        });
+        ctx.beginPath(); ctx.arc(cx, cy, hr, 0, Math.PI * 2); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+        ctx.fillStyle = '#1F2937'; ctx.font = 'bold 12px Inter, Arial'; ctx.textAlign = 'center'; ctx.fillText('TODDLER', cx, cy - 5); ctx.fillText('PLATE', cx, cy + 13);
+        let lc = document.getElementById('toddlerPlateLegend');
+        if (!lc) { lc = document.createElement('div'); lc.id = 'toddlerPlateLegend'; lc.className = 'w-full grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs'; canvas.parentElement.appendChild(lc); }
+        const legend = ['Fruits & Vegetables', 'Grains & Starches', 'Protein & Dairy'];
+        lc.innerHTML = legend.map((label, i) => '<div class="flex items-center gap-2 justify-center px-2 py-1 rounded bg-white border border-gray-200"><span class="inline-block w-3 h-3 rounded-full" style="background:' + colors[i] + '"></span><span class="text-gray-700">' + label + '</span></div>').join('');
+    }
+
+    function updateFontSizeDisplay() {
+        const h = document.getElementById('headingFontSize').value, c = document.getElementById('contentFontSize').value;
+        document.getElementById('headingSizeDisplay').textContent = h + 'pt';
+        document.getElementById('contentSizeDisplay').textContent = c + 'pt';
+    }
+
+    // ─── Steps / navigation ──────────────────────────────────────────────────────
+    function showStepSummary() {
+        const set = (key, value) => { const el = document.querySelector('[data-summary="' + key + '"]'); if (el) el.textContent = value || '—'; };
+        set('babyName', document.getElementById('babyName')?.value?.trim() || '—');
+        const ageObj = document.getElementById('babyDOB')?.value ? computeAgeMonths(document.getElementById('babyDOB').value, document.getElementById('planDate').value) : null;
+        const sex = document.getElementById('babySex')?.value;
+        set('ageSex', ageObj ? formatAge(ageObj) + (sex ? ' / ' + sex : '') : '—');
+        set('planDate', document.getElementById('planDate')?.value || '—');
+        const pv = document.getElementById('percentileValue')?.textContent;
+        set('percentile', (pv && pv !== '--') ? pv + 'th %ile' : '—');
+        const stageMap = { exclusiveMilk: '0–6mo Milk Only', startingSolids: '6–8mo Starting Solids', establishedSolids: '8–12mo Solids', toddlerFoods: '12–24mo Table Foods' };
+        set('stage', stageMap[document.getElementById('feedingStage')?.value] || '—');
+    }
+
+    function openInitialMealSection() {
+        const s = document.getElementById('breakfastSection');
+        if (s && s.style.display !== 'block') toggleSection('breakfastSection');
+    }
+
+    function goToStep(stepNumber, clicked) {
+        if (clicked && stepNumber > currentStep) return;
+        document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
+        document.getElementById('step' + stepNumber).classList.add('active');
+        updateProgressIndicators(stepNumber);
+        currentStep = stepNumber;
+        showStepSummary();
+        if (stepNumber === 2) setTimeout(() => drawGrowthChart(document.getElementById('babySex').value || 'Male', parseFloat(document.getElementById('babyLength').value) || null, parseFloat(document.getElementById('babyWeight').value) || null), 50);
+        if (stepNumber === 3) { openInitialMealSection(); updateToddlerPlateChart(); }
+        const activeCard = document.querySelector('#step' + stepNumber + ' .bg-white');
+        if (activeCard) activeCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function updateProgressIndicators(activeStep) {
+        for (let i = 1; i <= 5; i++) {
+            const icon = document.getElementById('step' + i + '-icon'), label = document.getElementById('step' + i + '-label');
+            if (icon && label) {
+                if (i <= activeStep) { icon.classList.remove('bg-gray-300'); icon.classList.add('bg-teal-600'); label.classList.remove('text-gray-500'); label.classList.add('text-teal-600', 'font-semibold'); }
+                else { icon.classList.remove('bg-teal-600'); icon.classList.add('bg-gray-300'); label.classList.remove('text-teal-600', 'font-semibold'); label.classList.add('text-gray-500'); }
+            }
+        }
+        const progress = Math.round((activeStep / 5) * 100);
+        const pb = document.getElementById('progressBar'), pp = document.getElementById('progressPercent'), ms = document.getElementById('mobileStepText');
+        if (pb) pb.style.width = progress + '%';
+        if (pp) pp.textContent = progress + '%';
+        if (ms) ms.textContent = 'Step ' + activeStep + ' of 5';
+    }
+
+    function showValidationError(input, errorId) { input.classList.add('error-border'); if (errorId) { const e = document.getElementById(errorId); if (e) e.classList.remove('hidden'); } }
+    function markFieldValid(input) { input.classList.remove('error-border'); input.classList.add('border-green-500'); }
+
+    function validateAndNext(step) {
+        let isValid = true;
+        if (step === 1) {
+            const name = document.getElementById('babyName'), dob = document.getElementById('babyDOB'), sex = document.getElementById('babySex');
+            if (!name.value.trim()) { showValidationError(name, 'nameError'); isValid = false; }
+            if (!dob.value) { showValidationError(dob, 'dobError'); isValid = false; }
+            if (!sex.value) { showValidationError(sex, 'sexError'); isValid = false; }
+        }
+        if (step === 2) {
+            const weight = document.getElementById('babyWeight'), length = document.getElementById('babyLength');
+            if (!weight.value || weight.value <= 0) { showValidationError(weight, null); isValid = false; }
+            if (!length.value || length.value <= 0) { showValidationError(length, null); isValid = false; }
+            if (isValid) calculateGrowthPercentile();
+        }
+        if (step === 3) {
+            const planDuration = document.getElementById('planDuration');
+            const snackIds = ['earlyMorning','breakfast','midMorning','lunch','eveningSnack','beforeDinner','dinner'].flatMap(k => getSnackOptionIds(k));
+            const hasMealContent = snackIds.some(id => { const el = document.getElementById(id); return el && el.value.trim().length > 0; });
+            if (!planDuration.value || planDuration.value < 1 || planDuration.value > 30) { showValidationError(planDuration, null); isValid = false; }
+            if (getPlatePercentages().total !== 100) { isValid = false; Swal.fire({ icon: 'warning', title: 'Toddler plate total must be 100%', text: 'Please adjust the plate percentages so the total equals exactly 100%.', confirmButtonColor: '#0EA5A5' }); }
+            if (!hasMealContent) { isValid = false; Swal.fire({ icon: 'warning', title: 'Add at least one feed entry', text: 'Please provide content for at least one feeding section before continuing.', confirmButtonColor: '#0EA5A5' }); }
+        }
+        if (isValid) goToStep(step + 1);
+        else Swal.fire({ icon: 'warning', title: 'Validation Error', text: 'Please fill in all required fields correctly', confirmButtonColor: '#0EA5A5' });
+    }
+
+    function toggleSection(sectionId) {
+        const section = document.getElementById(sectionId), icon = document.getElementById(sectionId.replace('Section', 'Icon'));
+        const isOpen = section.style.display === 'block';
+        section.style.display = isOpen ? 'none' : 'block';
+        if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+
+    function showDraftSavedToast() {
+        if (!canShowDraftToast) return;
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-4 left-4 bg-teal-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm';
+        toast.textContent = 'Draft saved ✓';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 1800);
+    }
+
+    function autoSaveDraft() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => { localStorage.setItem('babyPlanDraft', JSON.stringify(collectFormData())); showStepSummary(); showDraftSavedToast(); }, 400);
+    }
+
+    // ─── Snack option management (reused pattern) ───────────────────────────────
+    const optionLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const defaultMealTimes = { earlyMorning: { start: '06:30', end: '07:00' }, breakfast: { start: '08:00', end: '08:30' }, midMorning: { start: '10:00', end: '10:30' }, lunch: { start: '12:00', end: '12:30' }, eveningSnack: { start: '15:00', end: '15:30' }, beforeDinner: { start: '17:30', end: '18:00' }, dinner: { start: '19:00', end: '19:30' } };
+    const mealNames = { earlyMorning: 'Early Morning Feed', breakfast: 'Breakfast', midMorning: 'Mid-Morning Feed/Snack', lunch: 'Lunch', eveningSnack: 'Afternoon Snack', beforeDinner: 'Pre-Dinner Feed', dinner: 'Dinner / Bedtime Feed' };
+
+    function formatTimeTo12h(time24) {
+        if (!time24) return ''; const parts = time24.split(':'); if (parts.length < 2) return time24;
+        const hours = parseInt(parts[0], 10), minutes = parseInt(parts[1], 10); if (isNaN(hours) || isNaN(minutes)) return time24;
+        return (hours % 12 || 12) + ':' + String(minutes).padStart(2, '0') + ' ' + (hours >= 12 ? 'PM' : 'AM');
+    }
+
+    function collectMealTimes() { const t = {}; Object.keys(defaultMealTimes).forEach(key => { const s = document.getElementById(key + 'StartTime'), e = document.getElementById(key + 'EndTime'); t[key] = { start: s ? s.value : defaultMealTimes[key].start, end: e ? e.value : defaultMealTimes[key].end }; }); return t; }
+    function getSnackOptionIds(mealKey) { const c = document.getElementById(mealKey + 'Options'); if (!c) return []; return Array.from(c.querySelectorAll('textarea')).map(ta => ta.id); }
+    function collectSnackOptions(mealKey) { return getSnackOptionIds(mealKey).map(id => { const el = document.getElementById(id); return el ? el.value : ''; }); }
+
+    function addSnackOption(mealKey) {
+        const container = document.getElementById(mealKey + 'Options'); if (!container) return;
+        const existing = container.querySelectorAll('.snack-option'); if (existing.length >= 10) return;
+        const newIndex = existing.length, label = optionLabels[newIndex] || String(newIndex + 1), tid = mealKey + label;
+        const div = document.createElement('div'); div.className = 'snack-option'; div.setAttribute('data-option-index', newIndex);
+        div.innerHTML = '<div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option ' + label + '</label><button type="button" onclick="removeSnackOption(\'' + mealKey + '\', ' + newIndex + ')" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="' + tid + '" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="Add feed/food details..."></textarea>';
+        container.appendChild(div); updateSnackRemoveButtons(mealKey); initTextareaEnhancements();
+        const ta = document.getElementById(tid); if (ta) { ta.addEventListener('input', autoSaveDraft); ta.addEventListener('change', autoSaveDraft); }
+    }
+
+    function removeSnackOption(mealKey, index) {
+        const container = document.getElementById(mealKey + 'Options'); if (!container) return;
+        const options = container.querySelectorAll('.snack-option'); if (options.length <= 1) return;
+        const opt = options[index]; if (opt) opt.remove();
+        reindexSnackOptions(mealKey); updateSnackRemoveButtons(mealKey);
+    }
+
+    function reindexSnackOptions(mealKey) {
+        const container = document.getElementById(mealKey + 'Options'); if (!container) return;
+        container.querySelectorAll('.snack-option').forEach((opt, i) => {
+            const label = optionLabels[i] || String(i + 1); opt.setAttribute('data-option-index', i);
+            const lel = opt.querySelector('label'); if (lel) lel.textContent = 'Option ' + label;
+            const ta = opt.querySelector('textarea'); if (ta) ta.id = mealKey + label;
+            const btn = opt.querySelector('.remove-option-btn'); if (btn) btn.setAttribute('onclick', "removeSnackOption('" + mealKey + "', " + i + ")");
+        });
+    }
+
+    function updateSnackRemoveButtons(mealKey) {
+        const container = document.getElementById(mealKey + 'Options'); if (!container) return;
+        const options = container.querySelectorAll('.snack-option');
+        options.forEach(opt => { const btn = opt.querySelector('.remove-option-btn'); if (btn) { if (options.length <= 1) btn.classList.add('hidden'); else btn.classList.remove('hidden'); } });
+    }
+
+    function loadSnackOptions(mealKey, values) {
+        const container = document.getElementById(mealKey + 'Options'); if (!container) return;
+        if (!values || !Array.isArray(values) || values.length === 0) values = [''];
+        container.innerHTML = '';
+        values.forEach((value, i) => {
+            const label = optionLabels[i] || String(i + 1), tid = mealKey + label;
+            const div = document.createElement('div'); div.className = 'snack-option'; div.setAttribute('data-option-index', i);
+            div.innerHTML = '<div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option ' + label + '</label><button type="button" onclick="removeSnackOption(\'' + mealKey + '\', ' + i + ')" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="' + tid + '" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-teal-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="Add feed/food details..."></textarea>';
+            container.appendChild(div);
+            const ta = document.getElementById(tid); if (ta) { ta.value = value || ''; ta.addEventListener('input', autoSaveDraft); ta.addEventListener('change', autoSaveDraft); }
+        });
+        updateSnackRemoveButtons(mealKey);
+    }
+
+    function initTextareaEnhancements() {
+        document.querySelectorAll('textarea').forEach(textarea => {
+            const update = () => { const min = 136; textarea.style.height = Math.max(textarea.scrollHeight, min, textarea.clientHeight) + 'px'; };
+            textarea.addEventListener('input', update); update();
+        });
+    }
+
+    // ─── Save / load / clear / export / import ──────────────────────────────────
+    function collectFormData() {
+        return {
+            baby: { name: document.getElementById('babyName').value, dob: document.getElementById('babyDOB').value, sex: document.getElementById('babySex').value, date: document.getElementById('planDate').value, nextFollowupDate: document.getElementById('nextFollowupDate').value, guardianPhone: document.getElementById('guardianPhone').value, guardianEmail: document.getElementById('guardianEmail').value, guardianAddress: document.getElementById('guardianAddress').value },
+            growth: { weight: document.getElementById('babyWeight').value, length: document.getElementById('babyLength').value, percentile: document.getElementById('percentileValue').textContent, category: document.getElementById('percentileBadge').textContent },
+            feedingPlan: { stage: document.getElementById('feedingStage').value, feedTypes: { breast: document.getElementById('feedBreast').checked, formula: document.getElementById('feedFormula').checked, mixed: document.getElementById('feedMixed').checked, allergyWatch: document.getElementById('feedAllergyWatch').checked }, dailyMilkVolume: document.getElementById('dailyMilkVolume').value, planDuration: document.getElementById('planDuration').value, meals: { earlyMorningOptions: collectSnackOptions('earlyMorning'), breakfastOptions: collectSnackOptions('breakfast'), midMorningOptions: collectSnackOptions('midMorning'), lunchOptions: collectSnackOptions('lunch'), eveningSnackOptions: collectSnackOptions('eveningSnack'), beforeDinnerOptions: collectSnackOptions('beforeDinner'), dinnerOptions: collectSnackOptions('dinner') }, mealTimes: collectMealTimes(), toddlerPlate: { fv: document.getElementById('plateFruitVeg').value, gr: document.getElementById('plateGrains').value, pr: document.getElementById('plateProtein').value } },
+            guidelines: { waterIntake: document.getElementById('waterIntake').value, textureProgression: document.getElementById('textureProgression').value, allergenNotes: document.getElementById('allergenNotes').value, foodsToAvoid: document.getElementById('foodsToAvoid').value, specialInstructions: document.getElementById('specialInstructions').value, checkboxes: Array.from({ length: 11 }, (_, i) => document.getElementById('guideline' + (i + 1))?.checked || false) },
+            provider: { name: document.getElementById('providerName').value, credentials: document.getElementById('credentials').value, phone: document.getElementById('providerPhone').value, email: document.getElementById('providerEmail').value, address: document.getElementById('providerAddress').value },
+            pdfSettings: { headingFontSize: document.getElementById('headingFontSize').value, contentFontSize: document.getElementById('contentFontSize').value, includeMealTable: document.getElementById('includeMealTable')?.checked || false, includeGrowthChart: document.getElementById('includeGrowthChart')?.checked !== false, includeToddlerPlate: document.getElementById('includeToddlerPlate')?.checked || false, includeProviderHeader: document.getElementById('includeProviderHeader')?.checked !== false }
+        };
+    }
+
+    function applyFormData(data) {
+        if (!data) return;
+        if (data.baby) { document.getElementById('babyName').value = data.baby.name || ''; document.getElementById('babyDOB').value = data.baby.dob || ''; document.getElementById('babySex').value = data.baby.sex || ''; document.getElementById('planDate').value = data.baby.date || ''; document.getElementById('nextFollowupDate').value = data.baby.nextFollowupDate || ''; document.getElementById('guardianPhone').value = data.baby.guardianPhone || ''; document.getElementById('guardianEmail').value = data.baby.guardianEmail || ''; document.getElementById('guardianAddress').value = data.baby.guardianAddress || ''; }
+        if (data.growth) { document.getElementById('babyWeight').value = data.growth.weight || ''; document.getElementById('babyLength').value = data.growth.length || ''; }
+        if (data.feedingPlan) {
+            if (data.feedingPlan.stage) { document.getElementById('feedingStage').value = data.feedingPlan.stage; document.getElementById('feedingStage').dataset.userSet = '1'; }
+            if (data.feedingPlan.feedTypes) { document.getElementById('feedBreast').checked = !!data.feedingPlan.feedTypes.breast; document.getElementById('feedFormula').checked = !!data.feedingPlan.feedTypes.formula; document.getElementById('feedMixed').checked = !!data.feedingPlan.feedTypes.mixed; document.getElementById('feedAllergyWatch').checked = !!data.feedingPlan.feedTypes.allergyWatch; }
+            document.getElementById('dailyMilkVolume').value = data.feedingPlan.dailyMilkVolume || '';
+            document.getElementById('planDuration').value = data.feedingPlan.planDuration || 7;
+            if (data.feedingPlan.meals) {
+                loadSnackOptions('earlyMorning', data.feedingPlan.meals.earlyMorningOptions || ['']);
+                loadSnackOptions('breakfast', data.feedingPlan.meals.breakfastOptions || ['', '']);
+                loadSnackOptions('midMorning', data.feedingPlan.meals.midMorningOptions || ['']);
+                loadSnackOptions('lunch', data.feedingPlan.meals.lunchOptions || ['', '']);
+                loadSnackOptions('eveningSnack', data.feedingPlan.meals.eveningSnackOptions || ['']);
+                loadSnackOptions('beforeDinner', data.feedingPlan.meals.beforeDinnerOptions || ['']);
+                loadSnackOptions('dinner', data.feedingPlan.meals.dinnerOptions || ['', '']);
+            }
+            if (data.feedingPlan.mealTimes) { Object.keys(data.feedingPlan.mealTimes).forEach(key => { const times = data.feedingPlan.mealTimes[key], s = document.getElementById(key + 'StartTime'), e = document.getElementById(key + 'EndTime'); if (s && times.start) s.value = times.start; if (e && times.end) e.value = times.end; }); }
+            if (data.feedingPlan.toddlerPlate) { document.getElementById('plateFruitVeg').value = data.feedingPlan.toddlerPlate.fv ?? 50; document.getElementById('plateGrains').value = data.feedingPlan.toddlerPlate.gr ?? 25; document.getElementById('plateProtein').value = data.feedingPlan.toddlerPlate.pr ?? 25; }
+        }
+        if (data.guidelines) { document.getElementById('waterIntake').value = data.guidelines.waterIntake || ''; document.getElementById('textureProgression').value = data.guidelines.textureProgression || ''; document.getElementById('allergenNotes').value = data.guidelines.allergenNotes || ''; document.getElementById('foodsToAvoid').value = data.guidelines.foodsToAvoid || ''; document.getElementById('specialInstructions').value = data.guidelines.specialInstructions || ''; if (data.guidelines.checkboxes) { data.guidelines.checkboxes.forEach((checked, i) => { const cb = document.getElementById('guideline' + (i + 1)); if (cb) cb.checked = checked; }); } }
+        if (data.provider) { document.getElementById('providerName').value = data.provider.name || ''; document.getElementById('credentials').value = data.provider.credentials || ''; document.getElementById('providerPhone').value = data.provider.phone || ''; document.getElementById('providerEmail').value = data.provider.email || ''; document.getElementById('providerAddress').value = data.provider.address || ''; }
+        if (data.pdfSettings) {
+            document.getElementById('headingFontSize').value = data.pdfSettings.headingFontSize || 14;
+            document.getElementById('contentFontSize').value = data.pdfSettings.contentFontSize || 10;
+            document.getElementById('includeMealTable').checked = data.pdfSettings.includeMealTable || false;
+            document.getElementById('includeGrowthChart').checked = data.pdfSettings.includeGrowthChart !== false;
+            document.getElementById('includeToddlerPlate').checked = data.pdfSettings.includeToddlerPlate || false;
+            document.getElementById('includeProviderHeader').checked = data.pdfSettings.includeProviderHeader !== false;
+            updateFontSizeDisplay();
+        }
+        onAgeInputsChanged(); updateFeedingStageGuide(); updateToddlerPlateChart();
+    }
+
+    function saveData() { localStorage.setItem('babyPlanData', JSON.stringify(collectFormData())); Swal.fire({ icon: 'success', title: 'Progress Saved!', text: 'Your feeding plan data has been saved locally', timer: 2000, showConfirmButton: false }); }
+    function loadSavedData() {
+        const savedData = localStorage.getItem('babyPlanData');
+        if (savedData) { applyFormData(JSON.parse(savedData)); Swal.fire({ icon: 'success', title: 'Data Loaded!', timer: 2000, showConfirmButton: false }); }
+        else Swal.fire({ icon: 'info', title: 'No Saved Data', text: 'No previously saved data found' });
+    }
+
+    function clearForm() {
+        Swal.fire({ icon: 'warning', title: 'Clear Form?', text: 'This will clear all form data. This action cannot be undone.', showCancelButton: true, confirmButtonColor: '#EF4444', confirmButtonText: 'Yes, clear it!' }).then(result => {
+            if (result.isConfirmed) {
+                document.getElementById('babyPlanForm').reset(); document.getElementById('planDate').valueAsDate = new Date(); document.getElementById('percentileDisplay').style.display = 'none'; localStorage.removeItem('babyPlanData'); localStorage.removeItem('babyPlanDraft'); document.getElementById('templateImportInput').value = '';
+                document.getElementById('feedingStage').dataset.userSet = '';
+                loadSnackOptions('earlyMorning', ['']); loadSnackOptions('breakfast', ['', '']); loadSnackOptions('midMorning', ['']); loadSnackOptions('lunch', ['', '']); loadSnackOptions('eveningSnack', ['']); loadSnackOptions('beforeDinner', ['']); loadSnackOptions('dinner', ['', '']);
+                goToStep(1); Swal.fire({ icon: 'success', title: 'Cleared!', timer: 2000, showConfirmButton: false });
+            }
+        });
+    }
+
+    function exportTemplate() {
+        const url = URL.createObjectURL(new Blob([JSON.stringify(collectFormData(), null, 2)], { type: 'application/json' }));
+        const link = document.createElement('a'); link.href = url; link.download = 'BabyPlan_Template_' + new Date().toISOString().split('T')[0] + '.json'; link.click();
+        Swal.fire({ icon: 'success', title: 'Template Exported!', timer: 2000, showConfirmButton: false });
+    }
+    function importTemplate() { document.getElementById('templateImportInput').click(); }
+    function handleTemplateImport(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = e => { try { const data = JSON.parse(e.target.result); localStorage.setItem('babyPlanData', JSON.stringify(data)); loadSavedData(); Swal.fire({ icon: 'success', title: 'Template Imported!' }); } catch { Swal.fire({ icon: 'error', title: 'Import Failed', text: 'Invalid template file format' }); } };
+            reader.readAsText(file);
+        }
+    }
+    function printPreview() { generatePDF(true); }
+
+    function initRealtimeValidation() {
+        ['babyName', 'babyDOB', 'babySex', 'babyWeight', 'babyLength', 'planDuration', 'waterIntake'].forEach(id => {
+            const field = document.getElementById(id); if (!field) return;
+            field.addEventListener('blur', () => { if (field.value && String(field.value).trim().length > 0) markFieldValid(field); });
+        });
+    }
+
+    // ═══════════════════════════════ PDF GENERATION ═══════════════════════════════
+    function updateLangSelection(lang) {
+        document.querySelectorAll('[data-lang-card]').forEach(card => { card.style.borderColor = '#bbf7d0'; card.style.background = 'white'; });
+        const active = document.querySelector('[data-lang-card="' + lang + '"]');
+        if (active) { active.style.borderColor = '#16a34a'; active.style.background = '#f0fdf4'; }
+        const radio = document.getElementById('pdfLang' + lang.charAt(0).toUpperCase() + lang.slice(1));
+        if (radio) radio.checked = true;
+    }
+
+    const pdfTranslations = {
+        en: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", mainTitle: 'BABY GROWTH & FEEDING PLAN', patient: 'Baby:', date: 'Date:', age: 'Age:', sex: 'Sex:', weight: 'Weight:', length: 'Length:', percentile: 'Weight-for-Length:', followup: 'Next Follow-up:', notSet: 'Not set', notProvided: 'Not provided', dailyMealSchedule: 'DAILY FEEDING SCHEDULE', mealPlanTable: 'FEEDING PLAN TABLE', guidelinesTitle: 'FEEDING SAFETY & GUIDELINES', mealTimeCol: 'Feed Time', planDetailsCol: 'Details', dailyTargets: 'Hydration & Texture', textureProgression: 'Texture Progression', allergenNotes: 'Allergen Introduction', foodsToAvoid: 'Foods to Avoid', specialInstructions: 'Special Instructions', thingsToConsider: 'Things to Consider', waterIntake: 'Water Intake:', growthChartTitle: 'GROWTH CHART — WEIGHT-FOR-LENGTH', toddlerPlateTitle: 'TODDLER PLATE GUIDE', generatedOn: 'Generated on:', page: 'Page', of: 'of', option: 'Option', mealNames: { earlyMorning: 'Early Morning Feed', breakfast: 'Breakfast', midMorning: 'Mid-Morning Feed/Snack', lunch: 'Lunch', eveningSnack: 'Afternoon Snack', beforeDinner: 'Pre-Dinner Feed', dinner: 'Dinner / Bedtime Feed' }, guidelineTexts: ['Continue breastmilk/formula as the main source of nutrition through 12 months', 'Introduce iron-rich foods (meat, lentils, fortified cereal) from around 6 months', "No honey before 12 months (risk of infant botulism)", "Avoid cow's milk as a main drink before 12 months", 'No added salt or sugar in baby\'s food', 'Cut food to reduce choking risk — avoid whole nuts, whole grapes, hard raw vegetables, popcorn', 'Always supervise baby while eating; feed sitting upright', "Follow baby's hunger and fullness cues (responsive feeding)", 'Offer a variety of textures and flavors; repeated exposure helps acceptance', 'Track weight/length regularly and discuss growth trends at check-ups', 'Consult a pediatrician before starting solids if baby was premature or has a medical condition'] },
+        si: { fontFamily: "'Noto Sans Sinhala', 'Noto Sans', sans-serif", mainTitle: 'ළදරු වර්ධන හා පෝෂණ සැලැස්ම', patient: 'දරුවා:', date: 'දිනය:', age: 'වයස:', sex: 'ස්ත්‍රී/පුරුෂ:', weight: 'බර:', length: 'දිග:', percentile: 'බර-දිග අනුපාතය:', followup: 'ඊළඟ පරීක්ෂාව:', notSet: 'සකසා නැත', notProvided: 'ලබා නොදී ඇත', dailyMealSchedule: 'දෛනික පෝෂණ කාලසටහන', mealPlanTable: 'පෝෂණ සැලැස්ම වගුව', guidelinesTitle: 'ආහාර ආරක්ෂාව සහ මාර්ගෝපදේශ', mealTimeCol: 'ආහාර කාලය', planDetailsCol: 'විස්තර', dailyTargets: 'ජලය සහ රස ස්වභාවය', textureProgression: 'රස ස්වභාව වර්ධනය', allergenNotes: 'අසාත්මිකතා හඳුන්වාදීම', foodsToAvoid: 'වළකින්නට ආහාර', specialInstructions: 'විශේෂ උපදෙස්', thingsToConsider: 'සලකා බැලිය යුතු කරුණු', waterIntake: 'ජල ප්‍රමාණය:', growthChartTitle: 'වර්ධන ප්‍රස්ථාරය — බර-දිග අනුපාතය', toddlerPlateTitle: 'දරුවාගේ පිඟාන මාර්ගෝපදේශය', generatedOn: 'සකස් කළ දිනය:', page: 'පිටුව', of: 'ින්', option: 'විකල්ප', mealNames: { earlyMorning: 'අලුයම කිරි ආහාරය', breakfast: 'උදෑසන ආහාරය', midMorning: 'දහවල් කිරි/ආහාරය', lunch: 'දහවල් ආහාරය', eveningSnack: 'සවස ආහාරය', beforeDinner: 'රාත්‍රී ආහාරයට පෙර', dinner: 'රාත්‍රී/නින්දට පෙර ආහාරය' }, guidelineTexts: ['මාස 12 දක්වා මව්කිරි/කිරි ආහාර ප්‍රධාන පෝෂණ මූලාශ්‍රය ලෙස පවත්වා ගන්න', 'මාස 6 පමණ සිට යකඩ බහුල ආහාර (මාළු/මස්, පරිප්පු, ශක්තිමත් කළ ධාන්‍ය) හඳුන්වා දෙන්න', 'මාස 12 ට පෙර මී පැණි ලබා නොදෙන්න', 'මාස 12 ට පෙර එළකිරි ප්‍රධාන පානය ලෙස වළකින්න', 'දරුවාගේ ආහාරයට ලුණු හෝ සීනි එකතු නොකරන්න', 'හුස්ම හිරවීම වළක්වා ගැනීමට ආහාර කැබලි කුඩා කරන්න', 'ආහාර ගන්නා අවස්ථාවේ දරුවා නිරන්තරයෙන් අධීක්ෂණය කරන්න', 'දරුවාගේ බඩගින්න/සම්පූර්ණත්ව සංඥා අනුගමනය කරන්න', 'විවිධ රස සහ ස්වභාවයන් ලබා දෙන්න', 'බර/දිග නිතිපතා නිරීක්ෂණය කර වෛද්‍යවරයා සමඟ සාකච්ඡා කරන්න', 'ඝන ආහාර ආරම්භ කිරීමට පෙර වෛද්‍ය උපදෙස් ලබා ගන්න'] },
+        ta: { fontFamily: "'Noto Sans Tamil', 'Noto Sans', sans-serif", mainTitle: 'குழந்தை வளர்ச்சி மற்றும் உணவுத் திட்டம்', patient: 'குழந்தை:', date: 'தேதி:', age: 'வயது:', sex: 'பாலினம்:', weight: 'எடை:', length: 'நீளம்:', percentile: 'எடை-நீள விகிதம்:', followup: 'அடுத்த பரிசோதனை:', notSet: 'அமைக்கப்படவில்லை', notProvided: 'வழங்கப்படவில்லை', dailyMealSchedule: 'தினசரி உணவு அட்டவணை', mealPlanTable: 'உணவுத் திட்ட அட்டவணை', guidelinesTitle: 'உணவு பாதுகாப்பு வழிகாட்டுதல்கள்', mealTimeCol: 'உணவு நேரம்', planDetailsCol: 'விவரங்கள்', dailyTargets: 'நீர் மற்றும் அமைப்பு', textureProgression: 'அமைப்பு முன்னேற்றம்', allergenNotes: 'ஒவ்வாமை அறிமுகம்', foodsToAvoid: 'தவிர்க்க வேண்டிய உணவுகள்', specialInstructions: 'சிறப்பு அறிவுறுத்தல்கள்', thingsToConsider: 'கவனிக்க வேண்டியவை', waterIntake: 'தண்ணீர் உட்கொள்ளல்:', growthChartTitle: 'வளர்ச்சி விளக்கப்படம் — எடை-நீள விகிதம்', toddlerPlateTitle: 'குழந்தை தட்டு வழிகாட்டி', generatedOn: 'உருவாக்கிய தேதி:', page: 'பக்கம்', of: 'இல்', option: 'விருப்பம்', mealNames: { earlyMorning: 'அதிகாலை பால் உணவு', breakfast: 'காலை உணவு', midMorning: 'நண்பகல் பால்/சிற்றுண்டி', lunch: 'மதிய உணவு', eveningSnack: 'மாலை சிற்றுண்டி', beforeDinner: 'இரவு உணவுக்கு முன்', dinner: 'இரவு/உறக்க நேர உணவு' }, guidelineTexts: ['12 மாதங்கள் வரை தாய்ப்பால்/பாலுணவை முக்கிய ஊட்டச்சத்து ஆதாரமாக தொடரவும்', '6 மாத வயதில் இருந்து இரும்புச்சத்து நிறைந்த உணவுகளை அறிமுகப்படுத்தவும்', '12 மாதங்களுக்கு முன் தேன் கொடுக்க வேண்டாம்', '12 மாதங்களுக்கு முன் மாட்டுப் பாலை முக்கிய பானமாக தவிர்க்கவும்', 'குழந்தையின் உணவில் உப்பு அல்லது சர்க்கரை சேர்க்க வேண்டாம்', 'மூச்சுத் திணறல் அபாயத்தைத் தவிர்க்க உணவை சிறிய துண்டுகளாக வெட்டவும்', 'உணவு உண்ணும் போது எப்போதும் கண்காணிக்கவும்', 'குழந்தையின் பசி/திருப்தி சமிக்ஞைகளை பின்பற்றவும்', 'பல்வேறு அமைப்புகள் மற்றும் சுவைகளை வழங்கவும்', 'எடை/நீளத்தை தொடர்ந்து கண்காணித்து மருத்துவரிடம் விவாதிக்கவும்', 'திடஉணவு தொடங்கும் முன் மருத்துவ ஆலோசனை பெறவும்'] }
+    };
+
+    async function lTranslate(text, langCode) {
+        if (!text || !text.trim()) return text;
+        try {
+            const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=' + langCode + '&dt=t&q=' + encodeURIComponent(text.trim().substring(0, 450));
+            const resp = await Promise.race([fetch(url), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000))]);
+            const data = await resp.json();
+            if (Array.isArray(data) && Array.isArray(data[0])) return data[0].map(s => (s && s[0]) || '').join('').trim() || text;
+        } catch {}
+        return text;
+    }
+
+    async function translateFormData(formData, lang) {
+        if (lang === 'en') return JSON.parse(JSON.stringify(formData));
+        const langCode = lang === 'si' ? 'si' : 'ta';
+        const fd = JSON.parse(JSON.stringify(formData));
+        const tasks = [];
+        const addTask = (obj, key) => { if (obj[key] && String(obj[key]).trim()) tasks.push({ obj, key }); };
+        addTask(fd.guidelines, 'waterIntake'); addTask(fd.guidelines, 'textureProgression'); addTask(fd.guidelines, 'allergenNotes'); addTask(fd.guidelines, 'foodsToAvoid'); addTask(fd.guidelines, 'specialInstructions');
+        const optPropMap = { earlyMorning: 'earlyMorningOptions', breakfast: 'breakfastOptions', midMorning: 'midMorningOptions', lunch: 'lunchOptions', eveningSnack: 'eveningSnackOptions', beforeDinner: 'beforeDinnerOptions', dinner: 'dinnerOptions' };
+        for (const opts of Object.values(optPropMap)) { if (Array.isArray(fd.feedingPlan.meals[opts])) fd.feedingPlan.meals[opts].forEach((_, i) => addTask(fd.feedingPlan.meals[opts], i)); }
+        if (!tasks.length) return fd;
+        const BATCH = 6;
+        for (let i = 0; i < tasks.length; i += BATCH) {
+            const batch = tasks.slice(i, i + BATCH);
+            const results = await Promise.all(batch.map(tk => lTranslate(String(tk.obj[tk.key]), langCode)));
+            results.forEach((r, j) => { batch[j].obj[batch[j].key] = r; });
+            if (i + BATCH < tasks.length) await new Promise(res => setTimeout(res, 350));
+        }
+        return fd;
+    }
+
+    function makeRuler(fontFamily) {
+        const r = document.createElement('div');
+        r.style.cssText = 'position:fixed;top:-39999px;left:-9999px;width:680px;font-family:' + fontFamily + ';visibility:hidden;box-sizing:border-box;';
+        document.body.appendChild(r);
+        return r;
+    }
+
+    function renderSpec(spec, isCont) {
+        const title = isCont ? spec.title + ' ' + (spec.contWord || '(cont.)') : spec.title;
+        return '<div style="margin-bottom:' + spec.mb + 'px;"><div style="color:' + spec.color + ';font-size:' + spec.ts + 'px;font-weight:700;margin-bottom:' + spec.tmb + 'px;">' + title + '</div><div style="font-size:' + spec.cs + 'px;color:#111827;white-space:pre-wrap;line-height:' + spec.lh + ';padding-left:' + spec.pl + 'px;">' + spec.lines.join('\n') + '</div></div>';
+    }
+
+    const blockHTML = b => b.splittable ? renderSpec(b.spec, false) : b.html;
+    const trimLeadBlanks = lines => { let i = 0; while (i < lines.length && !lines[i].trim()) i++; return lines.slice(i); };
+
+    function paginateBlocks(blocks, maxH, ruler) {
+        const measure = html => { ruler.innerHTML = html; return ruler.offsetHeight; };
+        const pages = []; let cur = [], curH = 0;
+        const flush = () => { if (cur.length) { pages.push(cur.join('')); cur = []; curH = 0; } };
+        for (let i = 0; i < blocks.length; i++) {
+            const b = blocks[i];
+            if (b.type === 'table') {
+                let ri = 0;
+                while (ri < b.rows.length) {
+                    let avail = maxH - curH;
+                    if (cur.length && avail < b.theadH + b.rows[ri].h) { flush(); avail = maxH; }
+                    let used = b.theadH; const chunk = [];
+                    while (ri < b.rows.length) {
+                        if (chunk.length && used + b.rows[ri].h > avail) break;
+                        chunk.push(b.rows[ri].html); used += b.rows[ri].h; ri++;
+                    }
+                    cur.push(b.wrap(b.thead + '<tbody>' + chunk.join('') + '</tbody>')); curH += used;
+                    if (ri < b.rows.length) flush();
+                }
+                continue;
+            }
+            if (!b.splittable) {
+                const h = measure(blockHTML(b));
+                if (cur.length && (curH + h > maxH || (b.keepWithNext && (maxH - (curH + h)) < 80))) flush();
+                cur.push(b.html); curH += h;
+                continue;
+            }
+            let spec = b.spec, isCont = false;
+            while (spec) {
+                const whole = renderSpec(spec, isCont), wholeH = measure(whole);
+                if (curH + wholeH <= maxH) { cur.push(whole); curH += wholeH; break; }
+                let avail = maxH - curH;
+                const oneH = measure(renderSpec({ ...spec, lines: spec.lines.slice(0, 1) }, isCont));
+                if (cur.length && avail < oneH) { flush(); avail = maxH; }
+                let best = 0;
+                for (let k = 1; k <= spec.lines.length; k++) {
+                    if (measure(renderSpec({ ...spec, lines: spec.lines.slice(0, k) }, isCont)) <= avail) best = k; else break;
+                }
+                if (best === 0) best = 1;
+                const placed = renderSpec({ ...spec, lines: spec.lines.slice(0, best) }, isCont);
+                cur.push(placed); curH += measure(placed);
+                const restLines = trimLeadBlanks(spec.lines.slice(best));
+                if (restLines.length) { flush(); spec = { ...spec, lines: restLines }; isCont = true; }
+                else spec = null;
+            }
+        }
+        flush();
+        return pages.length ? pages : [''];
+    }
+
+    function lHeader(fd, t, clean, inclHeader) {
+        if (!inclHeader) return '';
+        const name = clean(fd.provider.name) || 'Baby Feeding Plan', creds = clean(fd.provider.credentials), contact = [clean(fd.provider.phone), clean(fd.provider.email)].filter(Boolean).join(' | ');
+        return '<div style="background:#0EA5A5;width:794px;height:144px;display:flex;align-items:center;padding:0 57px;gap:20px;flex-shrink:0;box-sizing:border-box;"><div style="background:white;border-radius:50%;min-width:57px;width:57px;height:57px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#0EA5A5;font-size:22px;flex-shrink:0;">🍼</div><div style="min-width:0;"><div style="color:white;font-size:21px;font-weight:700;line-height:1.2;">' + name + '</div>' + (creds ? '<div style="color:rgba(255,255,255,0.88);font-size:15px;margin-top:5px;line-height:1.3;">' + creds + '</div>' : '') + (contact ? '<div style="color:rgba(255,255,255,0.72);font-size:12px;margin-top:5px;line-height:1.3;">' + contact + '</div>' : '') + '</div></div>';
+    }
+
+    function lFooter(t, now, pageNote, copyright) {
+        return '<div style="border-top:1px solid #dce0e6;height:53px;padding:5px 57px 3px;flex-shrink:0;box-sizing:border-box;"><div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#6b7280;"><span>' + t.generatedOn + ' ' + now.toLocaleDateString() + '</span>' + (pageNote ? '<span>' + pageNote + '</span>' : '<span></span>') + '</div>' + (copyright ? '<div style="text-align:center;font-size:9px;color:#9ca3af;margin-top:3px;">\u00A9 ' + copyright + '</div>' : '') + '</div>';
+    }
+
+    function lPage(headerHTML, contentHTML, footerHTML, fontFamily) {
+        return '<div style="width:794px;height:1123px;overflow:hidden;background:white;font-family:' + fontFamily + ';color:#111;box-sizing:border-box;display:flex;flex-direction:column;">' + headerHTML + '<div style="flex:1;padding:38px 57px 10px;box-sizing:border-box;overflow:hidden;">' + contentHTML + '</div>' + footerHTML + '</div>';
+    }
+
+    function buildInfoBlocks(fd, t, clean, renderDate, growthImgSrc, plateImgSrc, inclChart, inclPlate, s) {
+        const px = n => Math.round(n * s);
+        const b = fd.baby, g = fd.growth;
+        const info = '<h2 style="text-align:center;color:#0EA5A5;font-size:' + px(21) + 'px;font-weight:700;margin:0 0 ' + px(14) + 'px 0;">' + t.mainTitle + '</h2><div style="background:#eefcfb;border:1.5px solid #b7ece6;border-radius:5px;padding:' + px(9) + 'px ' + px(16) + 'px ' + px(7) + 'px;"><table style="width:100%;border-collapse:collapse;font-size:' + px(13) + 'px;line-height:1.75;"><col style="width:36%"><col style="width:33%"><col style="width:31%"><tr><td style="padding:' + px(2) + 'px 8px;font-weight:700;">' + t.patient + ' ' + (clean(b.name) || t.notProvided) + '</td><td style="padding:' + px(2) + 'px 8px;"></td><td style="padding:' + px(2) + 'px 8px;font-weight:700;">' + t.date + ' ' + renderDate(b.date) + '</td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.age + ' ' + (b.dob ? formatAge(computeAgeMonths(b.dob, b.date)) : '—') + '</td><td style="padding:' + px(2) + 'px 8px;">' + t.sex + ' ' + (clean(b.sex) || '—') + '</td><td style="padding:' + px(2) + 'px 8px;"></td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.weight + ' ' + (clean(g.weight) || '—') + ' kg</td><td style="padding:' + px(2) + 'px 8px;">' + t.length + ' ' + (clean(g.length) || '—') + ' cm</td><td style="padding:' + px(2) + 'px 8px;">' + t.percentile + ' ' + (clean(g.percentile) || '—') + '</td></tr><tr><td colspan="3" style="padding:' + px(2) + 'px 8px;">' + t.followup + ' ' + renderDate(b.nextFollowupDate) + '</td></tr></table></div>';
+        const blocks = [{ splittable: false, keepWithNext: true, html: '<div style="margin-bottom:' + px(12) + 'px;">' + info + '</div>' }];
+        if (growthImgSrc && inclChart) {
+            blocks.push({ splittable: false, keepWithNext: false, html: '<div style="text-align:center;margin-bottom:' + px(10) + 'px;padding-top:' + px(10) + 'px;border-top:1px solid #e5e7eb;"><div style="color:#0EA5A5;font-size:' + px(15) + 'px;font-weight:700;margin-bottom:' + px(4) + 'px;">' + t.growthChartTitle + '</div><img src="' + growthImgSrc + '" style="max-width:' + px(620) + 'px;max-height:' + px(320) + 'px;display:block;margin:0 auto;" /></div>' });
+        }
+        if (plateImgSrc && inclPlate) {
+            blocks.push({ splittable: false, keepWithNext: false, html: '<div style="text-align:center;margin-bottom:' + px(6) + 'px;"><div style="color:#0EA5A5;font-size:' + px(15) + 'px;font-weight:700;margin-bottom:' + px(4) + 'px;">' + t.toddlerPlateTitle + '</div><img src="' + plateImgSrc + '" style="max-width:' + px(340) + 'px;display:block;margin:0 auto;" /></div>' });
+        }
+        return blocks;
+    }
+
+    async function buildMealBlocks(fd, t, clean, s, ruler) {
+        const px = n => Math.round(n * s);
+        const fp = fd.feedingPlan, inclTbl = document.getElementById('includeMealTable')?.checked || false, LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', sm = v => String(v ?? '').split('\n').map(l => l.trim()).filter(Boolean).join('\n');
+        const fmtOpts = opts => { if (!Array.isArray(opts)) return ''; const items = opts.map((o, i) => { const c = sm(o || '').trim(); return c ? { label: LABELS[i] || String(i + 1), content: c } : null; }).filter(Boolean); if (!items.length) return ''; if (items.length === 1) return items[0].content; return items.map(it => t.option + ' ' + it.label + ':\n' + it.content).join('\n\n'); };
+        const mealKeys = ['earlyMorning', 'breakfast', 'midMorning', 'lunch', 'eveningSnack', 'beforeDinner', 'dinner'], optPropMap = { earlyMorning: 'earlyMorningOptions', breakfast: 'breakfastOptions', midMorning: 'midMorningOptions', lunch: 'lunchOptions', eveningSnack: 'eveningSnackOptions', beforeDinner: 'beforeDinnerOptions', dinner: 'dinnerOptions' };
+        const getMealLabel = key => { const nm = t.mealNames[key] || mealNames[key] || key, times = (fp.mealTimes && fp.mealTimes[key]) || defaultMealTimes[key]; return nm + ' (' + formatTimeTo12h(times.start) + ' – ' + formatTimeTo12h(times.end) + ')'; };
+        if (!inclTbl) {
+            const specs = mealKeys.map(key => { const content = fmtOpts(fp.meals[optPropMap[key]]); if (!content) return null; return { splittable: true, spec: { title: getMealLabel(key), color: '#0d9488', ts: px(15), tmb: px(4), cs: px(13), lh: 1.7, pl: px(11), mb: px(12), lines: content.split('\n'), contWord: '(cont.)' } }; }).filter(Boolean);
+            if (!specs.length) return [];
+            return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#0EA5A5;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(10) + 'px 0;">' + t.dailyMealSchedule + '</h2>' }, ...specs];
+        }
+        const COL_STYLES = '<colgroup><col style="width:197px"><col style="width:483px"></colgroup>';
+        const TABLE_WRAP = body => '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-family:' + t.fontFamily + ';">' + COL_STYLES + body + '</table>';
+        const thead = '<thead><tr><th style="background:#0EA5A5;color:white;padding:' + px(8) + 'px ' + px(10) + 'px;text-align:left;border:1px solid #0EA5A5;font-size:' + px(13) + 'px;font-weight:700;">' + t.mealTimeCol + '</th><th style="background:#0EA5A5;color:white;padding:' + px(8) + 'px ' + px(10) + 'px;text-align:left;border:1px solid #0EA5A5;font-size:' + px(13) + 'px;font-weight:700;">' + t.planDetailsCol + '</th></tr></thead>';
+        const rowsRaw = mealKeys.map(key => '<tr><td style="padding:' + px(8) + 'px ' + px(10) + 'px;font-size:' + px(12) + 'px;font-weight:700;color:#0d9488;vertical-align:top;border:1px solid #d1d5db;background:#f8fafc;">' + getMealLabel(key) + '</td><td style="padding:' + px(8) + 'px ' + px(10) + 'px;font-size:' + px(12) + 'px;color:#111827;vertical-align:top;border:1px solid #d1d5db;white-space:pre-wrap;line-height:1.7;">' + (fmtOpts(fp.meals[optPropMap[key]]) || '—') + '</td></tr>');
+        ruler.innerHTML = TABLE_WRAP(thead); const theadH = ruler.offsetHeight + 2;
+        const rows = rowsRaw.map(html => { ruler.innerHTML = TABLE_WRAP('<tbody>' + html + '</tbody>'); return { html, h: ruler.offsetHeight + 2 }; });
+        return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#0EA5A5;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(10) + 'px 0;">' + t.mealPlanTable + '</h2>' }, { type: 'table', thead, theadH, rows, wrap: TABLE_WRAP }];
+    }
+
+    function buildGuidelineBlocks(fd, t, clean, s) {
+        const px = n => Math.round(n * s);
+        const g = fd.guidelines, sm = v => String(v ?? '').split('\n').map(l => l.trim()).filter(Boolean).join('\n');
+        const hydration = t.waterIntake + ' ' + (clean(g.waterIntake) || t.notProvided) + '\n' + t.textureProgression + ': ' + (clean(g.textureProgression) || t.notProvided);
+        const checkedGL = t.guidelineTexts.map((line, i) => g.checkboxes?.[i] ? (i + 1) + '. ' + line : null).filter(Boolean).join('\n');
+        const defs = [['dailyTargets', hydration, '#0284c7'], ['allergenNotes', sm(g.allergenNotes), '#a21caf'], ['thingsToConsider', checkedGL, '#7c3aed'], ['foodsToAvoid', sm(g.foodsToAvoid), '#dc2626'], ['specialInstructions', sm(g.specialInstructions), '#2563eb']];
+        const specs = defs.map(([k, content, color]) => (content && content.trim()) ? { splittable: true, spec: { title: t[k], color, ts: px(15), tmb: px(4), cs: px(13), lh: 1.7, pl: px(11), mb: px(12), lines: content.split('\n'), contWord: '(cont.)' } } : null).filter(Boolean);
+        if (!specs.length) return [];
+        return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#0EA5A5;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(12) + 'px 0;">' + t.guidelinesTitle + '</h2>' }, ...specs];
+    }
+
+    async function generatePDF(previewMode) {
+        if (!window.jspdf?.jsPDF) { Swal.fire({ icon: 'error', title: 'PDF library not available', text: 'Please reload the page.' }); return; }
+        generateLocalizedPDF(document.querySelector('input[name="pdfLanguage"]:checked')?.value || 'en', !!previewMode);
+    }
+
+    async function generateLocalizedPDF(lang, previewMode) {
+        if (!window.jspdf?.jsPDF) { Swal.fire({ icon: 'error', title: 'PDF library not available', text: 'Please reload the page.' }); return; }
+        if (!window.html2canvas) { Swal.fire({ icon: 'error', title: 'Rendering library not available', text: 'html2canvas failed to load. Please check your connection.' }); return; }
+
+        const t = pdfTranslations[lang];
+        const generateBtn = document.getElementById('generatePdfBtn');
+        if (generateBtn) { generateBtn.disabled = true; generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...'; }
+
+        Swal.fire({ title: previewMode ? 'Preparing Preview...' : 'Generating PDF...', html: 'Building ' + (lang === 'en' ? 'English' : lang === 'si' ? 'Sinhala' : 'Tamil') + ' feeding plan PDF...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        const container = document.createElement('div');
+        container.style.cssText = 'position:fixed;top:-39999px;left:-9999px;width:794px;height:1123px;overflow:hidden;background:white;';
+        document.body.appendChild(container);
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
+            const rawFormData = collectFormData();
+            const clean = v => String(v ?? '').trim();
+            const renderDate = value => { const d = new Date(value); return Number.isNaN(d.getTime()) ? clean(value) || t.notProvided : d.toLocaleDateString(); };
+            const now = new Date();
+
+            const inclHeader = document.getElementById('includeProviderHeader')?.checked !== false;
+            const effectiveHdrH = inclHeader ? PDF_HDR_H : 0;
+            const effectiveContentH = PDF_PAGE_H - effectiveHdrH - PDF_FTR_H - 48;
+
+            Swal.update({ html: lang === 'en' ? 'Collecting form data...' : 'Translating content...' });
+            const formData = await translateFormData(rawFormData, lang);
+
+            const inclChart = document.getElementById('includeGrowthChart')?.checked !== false;
+            const inclPlate = document.getElementById('includeToddlerPlate')?.checked || false;
+            let growthImgSrc = null, plateImgSrc = null;
+            if (inclChart) { const gc = document.getElementById('growthChart'); if (gc) { try { growthImgSrc = gc.toDataURL('image/png'); } catch {} } }
+            if (inclPlate) { const pc = document.getElementById('toddlerPlateCanvas'); if (pc) { try { plateImgSrc = pc.toDataURL('image/png'); } catch {} } }
+
+            Swal.update({ html: 'Laying out pages...' });
+            await document.fonts.ready;
+            const copyright = clean(formData.provider.name) || 'Baby Feeding Plan Generator';
+            const ruler = makeRuler(t.fontFamily);
+            let pages = [''];
+            try {
+                const SCALES = [1, 0.96, 0.92, 0.88, 0.84, 0.8, 0.76, 0.72, 0.68, 0.64];
+                for (const s of SCALES) {
+                    const blocks = [
+                        ...buildInfoBlocks(formData, t, clean, renderDate, growthImgSrc, plateImgSrc, inclChart, inclPlate, s),
+                        ...await buildMealBlocks(formData, t, clean, s, ruler),
+                        ...buildGuidelineBlocks(formData, t, clean, s)
+                    ];
+                    pages = paginateBlocks(blocks, effectiveContentH, ruler);
+                    if (pages.length <= 4) break;
+                }
+            } finally { if (document.body.contains(ruler)) document.body.removeChild(ruler); }
+            const allPages = pages.map((content, i) => lPage(lHeader(formData, t, clean, inclHeader), content, lFooter(t, now, t.page + ' ' + (i + 1) + ' ' + t.of + ' ' + pages.length, copyright), t.fontFamily));
+
+            const h2cOpts = { scale: 2.5, useCORS: true, logging: false, backgroundColor: '#ffffff', width: PDF_PAGE_W, height: PDF_PAGE_H };
+
+            for (let i = 0; i < allPages.length; i++) {
+                if (i > 0) doc.addPage();
+                Swal.update({ html: 'Rendering page ' + (i + 1) + ' / ' + allPages.length + '...' });
+                container.innerHTML = allPages[i];
+                await new Promise(r => setTimeout(r, lang === 'en' ? 150 : 300));
+                const el = container.firstElementChild || container;
+                const canvas = await html2canvas(el, h2cOpts);
+                const flat = document.createElement('canvas');
+                flat.width = canvas.width; flat.height = canvas.height;
+                const fctx = flat.getContext('2d');
+                fctx.fillStyle = '#ffffff'; fctx.fillRect(0, 0, flat.width, flat.height); fctx.drawImage(canvas, 0, 0);
+                doc.addImage(flat.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, 297);
+            }
+
+            const safeName = clean(rawFormData.baby.name || 'Baby').replace(/\s+/g, '_');
+            const safeDate = clean(rawFormData.baby.date || now.toISOString().split('T')[0]);
+            const langSuffix = lang !== 'en' ? '_' + lang.toUpperCase() : '';
+            const filename = 'BabyPlan_' + safeName + '_' + safeDate + langSuffix + '.pdf';
+
+            if (previewMode) {
+                const blobUrl = URL.createObjectURL(doc.output('blob'));
+                const win = window.open(blobUrl, '_blank');
+                if (!win) { URL.revokeObjectURL(blobUrl); Swal.fire({ icon: 'warning', title: 'Pop-up Blocked', text: 'Please allow pop-ups to view the PDF preview.' }); }
+                else { setTimeout(() => URL.revokeObjectURL(blobUrl), 300000); Swal.fire({ icon: 'success', title: 'Preview Opened!', timer: 2400, timerProgressBar: true, toast: true, position: 'top-end', showConfirmButton: false }); }
+            } else {
+                doc.save(filename);
+                Swal.fire({ icon: 'success', title: 'PDF Generated!', text: 'Your feeding plan has been downloaded.', timer: 2400, timerProgressBar: true, toast: true, position: 'top-end', showConfirmButton: false });
+            }
+        } catch (err) {
+            console.error('PDF error:', err);
+            Swal.fire({ icon: 'error', title: 'PDF Generation Failed', text: 'An error occurred. Please try again.', footer: err.message });
+        } finally {
+            if (document.body.contains(container)) document.body.removeChild(container);
+            if (generateBtn) { generateBtn.disabled = false; generateBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Generate PDF'; }
+        }
+    }
+
+    // ── Init ────────────────────────────────────────────────────────────────────
+    updateFontSizeDisplay();
+    updateProgressIndicators(currentStep);
+    updateFeedingStageGuide();
+    updateToddlerPlateChart();
+    initRealtimeValidation();
+    initTextareaEnhancements();
+    showStepSummary();
+    setTimeout(() => { canShowDraftToast = true; }, 1200);
+    document.querySelectorAll('#babyPlanForm input, #babyPlanForm textarea, #babyPlanForm select').forEach(field => {
+        field.addEventListener('input', autoSaveDraft);
+        field.addEventListener('change', autoSaveDraft);
+    });
+
+    const savedDraft = localStorage.getItem('babyPlanDraft');
+    if (savedDraft && !localStorage.getItem('babyPlanData')) {
+        localStorage.setItem('babyPlanData', savedDraft);
+        loadSavedData();
+    }
+</script>
+<script src="../../assets/gt-switcher.js" defer></script>
+</body>
+</html>

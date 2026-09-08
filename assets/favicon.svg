@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="GT Meal Plan System">
+  <rect width="64" height="64" rx="14" fill="#2D7A5F"/>
+  <path d="M20 17c0 12 5 17 12 17s12-5 12-17c-8 0-12 2-12 7 0-5-4-7-12-7z" fill="#FAFBF9" opacity=".92"/>
+  <path d="M32 34v14" stroke="#FAFBF9" stroke-width="3.6" stroke-linecap="round" opacity=".92"/>
+</svg>

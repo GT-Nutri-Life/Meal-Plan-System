@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Plan Generator - Gayathri Dissanayaka | Professional Edition</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🥗</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #1877F2;
+            --dark-blue: #166FE5;
+            --light-blue: #E7F3FF;
+            --background: #F0F2F5;
+            --white: #FFFFFF;
+            --text-dark: #050505;
+            --text-secondary: #65676B;
+            --success-green: #42B72A;
+            --border: #CCD0D5;
+            --error-red: #EF4444;
+            --warning-orange: #F59E0B;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--background); }
+        h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; }
+        .form-step { display: none; }
+        .form-step.active { display: block !important; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .meal-template { cursor: pointer; transition: all 0.3s ease; }
+        .meal-template:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(24,119,242,0.2); }
+        .meal-template.selected { border-color: var(--primary-blue); background: var(--light-blue); }
+        .checkbox-custom {
+            --checkbox-size: 22px;
+            appearance: none; width: var(--checkbox-size); height: var(--checkbox-size);
+            min-width: var(--checkbox-size); min-height: var(--checkbox-size); flex: 0 0 var(--checkbox-size);
+            border: 2px solid #94A3B8; background: #FFFFFF; border-radius: 4px; cursor: pointer;
+            position: relative; display: inline-flex; align-items: center; justify-content: center;
+            vertical-align: middle; box-shadow: 0 1px 2px rgba(2,6,23,0.08);
+        }
+        .checkbox-custom:checked { background: var(--primary-blue); border-color: var(--primary-blue); }
+        .checkbox-custom:focus-visible { outline: 3px solid rgba(24,119,242,0.45); outline-offset: 2px; }
+        .checkbox-custom:checked::after { content: '✓'; position: absolute; color: white; font-size: 14px; font-weight: 700; top: 0px; left: 4px; }
+        .error-border { border-color: var(--error-red) !important; }
+        .floating-save-btn { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; }
+        .step-scroll { overflow-x: auto; scrollbar-width: thin; }
+        .meal-plate-canvas { width: min(240px, 72vw); height: auto; border: 6px solid #ffffff; box-shadow: 0 8px 24px rgba(15,23,42,0.12); }
+        .chart-caption { max-width: 280px; }
+        textarea { min-height: 8.5rem; resize: vertical; }
+        .meal-schedule-textarea { min-height: 11.5rem; }
+        .meal-time-input { border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.15rem 0.35rem; font-size: 0.85rem; font-weight: 500; background: white; color: #374151; cursor: text; outline: none; transition: border-color 0.2s; }
+        .meal-time-input:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.15); }
+        .guidance-textarea { min-height: 10.5rem; }
+        .address-textarea { min-height: 8.5rem; }
+        @media (max-width: 768px) {
+            .floating-save-btn { bottom: 1rem; right: 1rem; }
+            .meal-time-title { font-size: 0.95rem; line-height: 1.25rem; }
+            .meal-time-input { font-size: 0.75rem; padding: 0.1rem 0.2rem; }
+            .meal-schedule-textarea { min-height: 9.5rem; }
+            .guidance-textarea { min-height: 8.75rem; }
+            .address-textarea { min-height: 7.5rem; }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <header class="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-6 md:py-8 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="text-4xl md:text-6xl">🥗</div>
+                    <div>
+                        <h1 class="text-2xl md:text-4xl font-bold">Meal Plan Generator</h1>
+                        <p class="text-blue-100 text-sm md:text-lg">Gayathri Dissanayaka - Dietitian &amp; Nutritionist</p>
+                        <p class="text-blue-200 text-sm mt-1">Professional Edition with Advanced Features</p>
+                    </div>
+                </div>
+
+                <!-- Account menu (visible only when signed in) -->
+                <div id="accountMenu" style="display:none;" class="relative w-full md:w-auto">
+                    <button type="button" onclick="toggleAccountMenu(event)" class="flex items-center gap-3 bg-white/15 hover:bg-white/25 rounded-full py-1.5 pl-1.5 pr-3 md:pr-4 transition w-full md:w-auto ring-1 ring-white/20">
+                        <span id="userInitial" class="flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 text-white font-bold text-sm shrink-0 shadow"></span>
+                        <span class="flex flex-col items-start leading-tight min-w-0 flex-1">
+                            <span id="userEmail" class="text-white text-sm font-semibold truncate max-w-full md:max-w-[220px]"></span>
+                            <span id="userRole" class="text-blue-100 text-[11px] font-medium uppercase tracking-wide"></span>
+                        </span>
+                        <i id="acctCaret" class="fas fa-chevron-down text-blue-100 text-xs ml-2 transition-transform duration-200"></i>
+                    </button>
+                    <div id="accountDropdown" style="display:none;" class="absolute right-0 mt-2 w-full md:w-72 bg-white rounded-xl shadow-2xl z-50 text-gray-700 ring-1 ring-black/5 overflow-hidden">
+                        <div class="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-100">
+                            <span id="userInitial2" class="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 text-white font-bold shrink-0"></span>
+                            <div class="min-w-0">
+                                <p id="userEmailFull" class="text-sm font-semibold text-gray-800 truncate"></p>
+                                <p id="userRole2" class="text-xs text-gray-500"></p>
+                            </div>
+                        </div>
+                        <button type="button" onclick="changePassword()" class="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center gap-3 text-sm transition"><span class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><i class="fas fa-key"></i></span> Change Password</button>
+                        <button type="button" onclick="signOutUser()" class="w-full text-left px-4 py-3 hover:bg-red-50 text-red-600 flex items-center gap-3 text-sm transition border-t border-gray-100"><span class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center shrink-0"><i class="fas fa-sign-out-alt"></i></span> Sign Out</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Progress Steps -->
+        <div class="bg-white rounded-xl shadow-lg p-4 md:p-6 mb-6">
+            <div class="md:hidden">
+                <div class="flex items-center justify-between text-sm text-gray-600 mb-2">
+                    <span id="mobileStepText">Step 1 of 5</span>
+                    <span id="progressPercent">20%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
+                    <div id="progressBar" class="h-full bg-blue-600 transition-all duration-300" style="width: 20%;"></div>
+                </div>
+            </div>
+            <div class="hidden md:flex justify-between items-center gap-3">
+                <button type="button" onclick="goToStep(1, true)" class="step-trigger flex-1 min-w-[120px] text-center" id="step1-trigger">
+                    <div class="w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold text-lg" id="step1-icon"><i class="fas fa-user"></i></div>
+                    <span class="text-sm font-semibold text-blue-600" id="step1-label">Patient Info</span>
+                </button>
+                <button type="button" onclick="goToStep(2, true)" class="step-trigger flex-1 min-w-[120px] text-center" id="step2-trigger">
+                    <div class="w-14 h-14 bg-gray-300 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold text-lg" id="step2-icon"><i class="fas fa-ruler"></i></div>
+                    <span class="text-sm text-gray-500 font-medium" id="step2-label">Measurements</span>
+                </button>
+                <button type="button" onclick="goToStep(3, true)" class="step-trigger flex-1 min-w-[120px] text-center" id="step3-trigger">
+                    <div class="w-14 h-14 bg-gray-300 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold text-lg" id="step3-icon"><i class="fas fa-utensils"></i></div>
+                    <span class="text-sm text-gray-500 font-medium" id="step3-label">Meal Plan</span>
+                </button>
+                <button type="button" onclick="goToStep(4, true)" class="step-trigger flex-1 min-w-[120px] text-center" id="step4-trigger">
+                    <div class="w-14 h-14 bg-gray-300 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold text-lg" id="step4-icon"><i class="fas fa-clipboard-list"></i></div>
+                    <span class="text-sm text-gray-500 font-medium" id="step4-label">Guidelines</span>
+                </button>
+                <button type="button" onclick="goToStep(5, true)" class="step-trigger flex-1 min-w-[120px] text-center" id="step5-trigger">
+                    <div class="w-14 h-14 bg-gray-300 text-white rounded-full flex items-center justify-center mx-auto mb-2 font-bold text-lg" id="step5-icon"><i class="fas fa-file-pdf"></i></div>
+                    <span class="text-sm text-gray-500 font-medium" id="step5-label">Generate PDF</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <form id="mealPlanForm" novalidate class="xl:col-span-8">
+
+            <!-- Step 1: Patient Information -->
+            <div class="form-step active" id="step1">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3"><i class="fas fa-user-circle text-blue-600"></i> Patient Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Full Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="patientName" autocomplete="name" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" placeholder="Enter patient's full name" required>
+                            <span class="text-red-500 text-sm hidden" id="nameError">Please enter a valid name</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Age <span class="text-red-500">*</span></label>
+                            <input type="number" id="patientAge" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" placeholder="Enter age" min="1" max="120" required>
+                            <span class="text-red-500 text-sm hidden" id="ageError">Age must be between 1 and 120</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Gender <span class="text-red-500">*</span></label>
+                            <select id="patientGender" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" required>
+                                <option value="">Select gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                            <span class="text-red-500 text-sm hidden" id="genderError">Please select gender</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Date <span class="text-red-500">*</span></label>
+                            <input type="date" id="planDate" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Next Follow-up Date</label>
+                            <input type="date" id="nextFollowupDate" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition">
+                            <span class="text-xs text-gray-500 mt-1 block">Optional. Use YYYY-MM-DD format.</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                            <input type="tel" id="patientPhone" autocomplete="tel" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" placeholder="+94 XX XXX XXXX">
+                            <span class="text-red-500 text-sm hidden" id="phoneError">Invalid phone number format</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                            <input type="email" id="patientEmail" autocomplete="email" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" placeholder="email@example.com">
+                            <span class="text-red-500 text-sm hidden" id="emailError">Invalid email format</span>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Address</label>
+                        <textarea id="patientAddress" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="3" placeholder="Enter full address (optional)"></textarea>
+                    </div>
+                    <div class="flex justify-end mt-8">
+                        <button type="button" onclick="validateAndNext(1)" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg hover:shadow-xl">Next Step <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Physical Measurements -->
+            <div class="form-step" id="step2">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3"><i class="fas fa-ruler-combined text-blue-600"></i> Physical Measurements &amp; Health Data</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Height (cm) <span class="text-red-500">*</span></label>
+                            <input type="number" id="patientHeight" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" placeholder="e.g., 172" min="100" max="250" step="0.1" required oninput="calculateBMI()">
+                            <span class="text-gray-500 text-xs mt-1 block">Enter in centimeters</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Current Weight (kg) <span class="text-red-500">*</span></label>
+                            <input type="number" id="patientWeight" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" placeholder="e.g., 82" min="30" max="300" step="0.1" required oninput="calculateBMI()">
+                            <span class="text-gray-500 text-xs mt-1 block">Enter in kilograms</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Target Weight (kg) <span class="text-red-500">*</span></label>
+                            <input type="number" id="targetWeight" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" placeholder="e.g., 73.8" min="30" max="300" step="0.1" required oninput="calculateBMI()">
+                            <span class="text-gray-500 text-xs mt-1 block">Your weight goal</span>
+                        </div>
+                    </div>
+                    <div id="bmiDisplay" class="mt-6 p-8 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 shadow-md" style="display: none;">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                            <div>
+                                <div class="text-6xl font-bold text-blue-600 mb-2" id="bmiValue">--</div>
+                                <div class="text-lg font-semibold text-gray-700">BMI</div>
+                                <div class="mt-2"><span id="bmiCategoryBadge" class="px-4 py-1 rounded-full text-sm font-semibold"></span></div>
+                            </div>
+                            <div>
+                                <div class="text-6xl font-bold text-green-600 mb-2" id="ibwValue">--</div>
+                                <div class="text-lg font-semibold text-gray-700">Ideal Body Weight</div>
+                                <div class="text-sm text-gray-500 mt-2">Based on height &amp; gender</div>
+                            </div>
+                            <div>
+                                <div class="text-6xl font-bold text-orange-600 mb-2" id="weightToLose">--</div>
+                                <div class="text-lg font-semibold text-gray-700" id="weightGoalLabel">Target Weight Change</div>
+                                <div class="text-sm text-gray-500 mt-2" id="timelineEstimate">--</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-8">
+                        <button type="button" onclick="goToStep(1)" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition"><i class="fas fa-arrow-left"></i> Previous</button>
+                        <button type="button" onclick="validateAndNext(2)" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg hover:shadow-xl">Next Step <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Meal Plan Configuration -->
+            <div class="form-step" id="step3">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3"><i class="fas fa-utensils text-blue-600"></i> Meal Plan Configuration</h2>
+                    <div class="mb-8">
+                        <label class="block text-lg font-bold text-gray-700 mb-4">Plan Type <span class="text-red-500">*</span></label>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <label class="meal-template flex items-center p-6 border-2 border-gray-300 rounded-xl cursor-pointer hover:border-blue-600 transition">
+                                <input type="radio" name="planType" value="general" checked class="mr-4 w-5 h-5 accent-blue-600">
+                                <div><div class="font-bold text-lg">📋 General Plan</div><div class="text-sm text-gray-500 mt-1">Template-based options</div></div>
+                            </label>
+                            <label class="meal-template flex items-center p-6 border-2 border-gray-300 rounded-xl cursor-pointer hover:border-blue-600 transition">
+                                <input type="radio" name="planType" value="weekly" class="mr-4 w-5 h-5 accent-blue-600">
+                                <div><div class="font-bold text-lg">📅 Weekly Plan</div><div class="text-sm text-gray-500 mt-1">7-day structured plan</div></div>
+                            </label>
+                            <label class="meal-template flex items-center p-6 border-2 border-gray-300 rounded-xl cursor-pointer hover:border-blue-600 transition">
+                                <input type="radio" name="planType" value="custom" class="mr-4 w-5 h-5 accent-blue-600">
+                                <div><div class="font-bold text-lg">✨ Custom Plan</div><div class="text-sm text-gray-500 mt-1">Fully customizable</div></div>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-8">
+                        <label class="block text-lg font-bold text-gray-700 mb-4">Dietary Preferences</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition"><input type="checkbox" id="prefVegetarian" class="checkbox-custom mr-3"><span class="font-semibold">🥬 Vegetarian Options</span></label>
+                            <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition"><input type="checkbox" id="prefNonVeg" class="checkbox-custom mr-3" checked><span class="font-semibold">🍗 Non-Vegetarian Options</span></label>
+                            <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition"><input type="checkbox" id="prefLowCarb" class="checkbox-custom mr-3"><span class="font-semibold">🌾 Low Carb</span></label>
+                            <label class="flex items-center p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition"><input type="checkbox" id="prefHighProtein" class="checkbox-custom mr-3"><span class="font-semibold">💪 High Protein</span></label>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Daily Calorie Target (kcal)</label>
+                            <input type="number" id="calorieTarget" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" placeholder="e.g., 1845" min="1000" max="5000">
+                            <span class="text-gray-500 text-xs mt-1 block">Auto-calculated based on BMI</span>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Plan Duration (days)</label>
+                            <input type="number" id="planDuration" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" placeholder="e.g., 7" value="7" min="1" max="30">
+                        </div>
+                    </div>
+                    <!-- Plate Ratio -->
+                    <div class="mb-8 p-5 md:p-6 border-2 border-gray-200 rounded-xl bg-gradient-to-br from-white to-blue-50">
+                        <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-3">🍽️ Meal Plate Ratio</h3>
+                        <p class="text-sm text-gray-600 mb-5">Customize plate percentages. Total must be exactly 100% before moving to next step.</p>
+                        <div class="mb-5">
+                            <label for="platePatientType" class="block text-sm font-semibold text-gray-700 mb-2">Patient Type for Meal Plate</label>
+                            <select id="platePatientType" class="w-full md:w-80 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" onchange="handlePlatePatientTypeChange()">
+                                <option value="nonDiabetic">Non-Diabetic Patient</option>
+                                <option value="diabetic">Diabetic Patient</option>
+                            </select>
+                            <p id="platePatientTypeHint" class="text-xs text-gray-500 mt-2">Non-diabetic meal plate uses Carbohydrate, Protein, and Fat percentages.</p>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="plateVegetables" id="plateVegetablesLabel" class="block text-sm font-semibold text-gray-700 mb-2">Carbohydrate (%)</label>
+                                    <input type="number" id="plateVegetables" min="0" max="100" value="50" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" oninput="updateMealPlateChart()">
+                                </div>
+                                <div>
+                                    <label for="plateProtein" id="plateProteinLabel" class="block text-sm font-semibold text-gray-700 mb-2">Protein (%)</label>
+                                    <input type="number" id="plateProtein" min="0" max="100" value="25" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" oninput="updateMealPlateChart()">
+                                </div>
+                                <div>
+                                    <label for="plateGrains" id="plateGrainsLabel" class="block text-sm font-semibold text-gray-700 mb-2">Fat (%)</label>
+                                    <input type="number" id="plateGrains" min="0" max="100" value="25" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" oninput="updateMealPlateChart()">
+                                </div>
+                                <div class="bg-white border rounded-lg p-3">
+                                    <p class="text-sm text-gray-700">Total: <span id="plateTotal" class="font-bold text-blue-700">100%</span></p>
+                                    <p id="plateTotalError" class="text-sm text-red-600 mt-1 hidden">Plate total must equal 100%.</p>
+                                </div>
+                            </div>
+                            <div class="flex flex-col items-center gap-3">
+                                <canvas id="mealPlateCanvas" width="260" height="260" class="meal-plate-canvas max-w-full bg-white rounded-full"></canvas>
+                                <p class="chart-caption text-xs text-gray-500 text-center">This preview is optimized for quick review and exported at balanced size in the final PDF.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">📝 Daily Meal Schedule</h3>
+                    <div class="space-y-4">
+                        <!-- Early Morning -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('earlyMorningSection')" class="w-full px-6 py-4 bg-gradient-to-r from-yellow-50 to-orange-50 hover:from-yellow-100 hover:to-orange-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-base">🌅 Early Morning</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="earlyMorningStartTime" value="07:00" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="earlyMorningEndTime" value="07:30" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="earlyMorningIcon"></i>
+                            </div>
+                            <div id="earlyMorningSection" class="p-6 bg-white" style="display: none;">
+                                <div id="earlyMorningOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0">
+                                        <div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('earlyMorning', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold hidden remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div>
+                                        <textarea id="earlyMorningA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="e.g., Detox water 1 glass / Warm water 1 glass&#10;ABC juice 1 glass + Swiss collagen"></textarea>
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('earlyMorning')" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                        <!-- Breakfast -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('breakfastSection')" class="w-full px-6 py-4 bg-gradient-to-r from-amber-50 to-yellow-50 hover:from-amber-100 hover:to-yellow-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-xl">☕ Breakfast</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="breakfastStartTime" value="08:00" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="breakfastEndTime" value="09:00" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="breakfastIcon"></i>
+                            </div>
+                            <div id="breakfastSection" class="p-6 bg-white" style="display: none;">
+                                <div id="breakfastOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('breakfast', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="breakfastA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="4" maxlength="600" placeholder="e.g., Chapati / Atta Rotti - 02 (medium size)&#10;Mixed vegetable preparation Sambar - 02-03 tbsp&#10;Lentil preparation - 2-3 tbsp&#10;Fish or chicken - 01 piece (30g)"></textarea></div>
+                                    <div class="snack-option" data-option-index="1"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option B</label><button type="button" onclick="removeSnackOption('breakfast', 1)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="breakfastB" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="4" maxlength="600" placeholder="e.g., Oats - 1/2 cup&#10;Milk - 1 cup (low-fat)&#10;Cinnamon - 1/2 tsp&#10;Chopped nuts - 1 tbsp"></textarea></div>
+                                    <div class="snack-option" data-option-index="2"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option C</label><button type="button" onclick="removeSnackOption('breakfast', 2)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="breakfastC" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="4" maxlength="600" placeholder="Add third breakfast option if needed..."></textarea></div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('breakfast')" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                        <!-- Mid-Morning -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('midMorningSection')" class="w-full px-6 py-4 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-lg">🍎 Mid-Morning Snack</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="midMorningStartTime" value="10:30" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="midMorningEndTime" value="11:30" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="midMorningIcon"></i>
+                            </div>
+                            <div id="midMorningSection" class="p-6 bg-white" style="display: none;">
+                                <div id="midMorningOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('midMorning', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold hidden remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="midMorningA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="e.g., Green Apple (1 medium), Strawberries (4-5), Orange (1 medium)"></textarea></div>
+                                    <div class="snack-option" data-option-index="1"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option B</label><button type="button" onclick="removeSnackOption('midMorning', 1)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="midMorningB" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="e.g., Yogurt (sugar-free) + Vegetable salad"></textarea></div>
+                                    <div class="snack-option" data-option-index="2"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option C</label><button type="button" onclick="removeSnackOption('midMorning', 2)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="midMorningC" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="e.g., Nuts + Herbal tea"></textarea></div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('midMorning')" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                        <!-- Lunch -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('lunchSection')" class="w-full px-6 py-4 bg-gradient-to-r from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-xl">🍽️ Lunch</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="lunchStartTime" value="13:00" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="lunchEndTime" value="14:00" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="lunchIcon"></i>
+                            </div>
+                            <div id="lunchSection" class="p-6 bg-white" style="display: none;">
+                                <div id="lunchOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('lunch', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="lunchA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="4" maxlength="600" placeholder="e.g., Rice - 1 cup&#10;Lentil preparation - 2-3 tbsp&#10;Cooked vegetables - 2-3 tbsp&#10;Fish/Meat - 01 piece (30g) OR 01 egg"></textarea></div>
+                                    <div class="snack-option" data-option-index="1"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option B</label><button type="button" onclick="removeSnackOption('lunch', 1)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="lunchB" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="4" maxlength="600" placeholder="e.g., Pasta/Noodles - 1 cup&#10;Egg - 01 or Chicken/Fish - 1 piece (30g)&#10;Boiled/Sauté vegetables - 1 bowl"></textarea></div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('lunch')" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                        <!-- Evening Snack -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('eveningSnackSection')" class="w-full px-6 py-4 bg-gradient-to-r from-orange-50 to-red-50 hover:from-orange-100 hover:to-red-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-lg">🍪 Evening Snack</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="eveningSnackStartTime" value="16:00" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="eveningSnackEndTime" value="17:00" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="eveningSnackIcon"></i>
+                            </div>
+                            <div id="eveningSnackSection" class="p-6 bg-white" style="display: none;">
+                                <div id="eveningSnackOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('eveningSnack', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold hidden remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="eveningSnackA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="e.g., Ginger + lemon peel tea OR Cinnamon tea - 1 cup"></textarea></div>
+                                    <div class="snack-option" data-option-index="1"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option B</label><button type="button" onclick="removeSnackOption('eveningSnack', 1)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="eveningSnackB" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="e.g., Nuts + Fruit smoothie with yogurt + chia seeds"></textarea></div>
+                                    <div class="snack-option" data-option-index="2"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option C</label><button type="button" onclick="removeSnackOption('eveningSnack', 2)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="eveningSnackC" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="e.g., Roasted chickpeas + Herbal tea"></textarea></div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('eveningSnack')" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                        <!-- Before Dinner -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('beforeDinnerSection')" class="w-full px-6 py-4 bg-gradient-to-r from-teal-50 to-green-50 hover:from-teal-100 hover:to-green-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-lg">🥗 Before Dinner</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="beforeDinnerStartTime" value="19:00" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="beforeDinnerEndTime" value="20:00" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="beforeDinnerIcon"></i>
+                            </div>
+                            <div id="beforeDinnerSection" class="p-6 bg-white" style="display: none;">
+                                <div id="beforeDinnerOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('beforeDinner', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold hidden remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="beforeDinnerA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="2" placeholder="e.g., Vegetable salad OR Boiled/Sauté vegetables"></textarea></div>
+                                    <div class="snack-option" data-option-index="1"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option B</label><button type="button" onclick="removeSnackOption('beforeDinner', 1)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="beforeDinnerB" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="2" placeholder="e.g., Vegetable soup - 01 bowl"></textarea></div>
+                                    <div class="snack-option" data-option-index="2"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option C</label><button type="button" onclick="removeSnackOption('beforeDinner', 2)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="beforeDinnerC" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="2" placeholder="e.g., Fresh fruit + Herbal tea"></textarea></div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('beforeDinner')" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                        <!-- Dinner -->
+                        <div class="border-2 border-gray-300 rounded-lg overflow-hidden">
+                            <div onclick="toggleSection('dinnerSection')" class="w-full px-6 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 hover:from-indigo-100 hover:to-purple-100 text-left font-bold flex justify-between items-center transition cursor-pointer">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="meal-time-title text-xl">🌙 Dinner</span>
+                                    <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+                                        <input type="time" id="dinnerStartTime" value="20:30" class="meal-time-input">
+                                        <span class="text-gray-400 text-sm">-</span>
+                                        <input type="time" id="dinnerEndTime" value="21:30" class="meal-time-input">
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-down transition-transform" id="dinnerIcon"></i>
+                            </div>
+                            <div id="dinnerSection" class="p-6 bg-white" style="display: none;">
+                                <div id="dinnerOptions" class="space-y-4">
+                                    <div class="snack-option" data-option-index="0"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option A</label><button type="button" onclick="removeSnackOption('dinner', 0)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="dinnerA" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="4" maxlength="600" placeholder="e.g., Chapati - 02 (medium size)&#10;Mixed vegetable sambar - 2-3 tbsp&#10;Lentil preparation - 2-3 tbsp&#10;Fish or chicken - 01 piece (30g)"></textarea></div>
+                                    <div class="snack-option" data-option-index="1"><div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option B</label><button type="button" onclick="removeSnackOption('dinner', 1)" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="dinnerB" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="4" maxlength="600" placeholder="e.g., Mixed soup - 01 bowl&#10;(Vegetables + Chicken/Egg + Lentil + Vermicelli + Coconut oil)"></textarea></div>
+                                </div>
+                                <button type="button" onclick="addSnackOption('dinner')" class="mt-4 text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center gap-1 transition"><i class="fas fa-plus-circle"></i> Add Option</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between mt-8">
+                        <button type="button" onclick="goToStep(2)" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition"><i class="fas fa-arrow-left"></i> Previous</button>
+                        <button type="button" onclick="validateAndNext(3)" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg hover:shadow-xl">Next Step <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Guidelines -->
+            <div class="form-step" id="step4">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3"><i class="fas fa-clipboard-check text-blue-600"></i> Nutritional Guidelines &amp; Recommendations</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">💧 Water Intake Recommendation</label>
+                            <input type="text" id="waterIntake" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" value="2-3 liters per day">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">🥥 Virgin Coconut Oil</label>
+                            <input type="text" id="coconutOil" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" value="03 tsp/day">
+                        </div>
+                    </div>
+                    <div class="mb-8">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">🏃 Exercise Recommendation</label>
+                        <textarea id="exerciseRecommendation" class="guidance-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="3">Weight Loss: Moderate intensity exercise - minimum 300 min/week
+(Daily - 30 min to 01 hr. or 3-4 days/week - 1-1.5 hrs. e.g.: Cycling, Brisk walk, Jogging)</textarea>
+                    </div>
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">✅ Things to Consider</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline1" checked><span class="text-sm">Have your three main meals on time in small portions, do not skip any meals</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline2" checked><span class="text-sm">Have less salt diet</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline3" checked><span class="text-sm">Better to eat fruits rather than having fruit juices</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline4" checked><span class="text-sm">Small fish like Herrings (Salaya), Hurulla, Salmon, Handella Sprats are preferable</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline5" checked><span class="text-sm">Add garlic frequently to your food preparations</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline6" checked><span class="text-sm">Be alert of your weight changes</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline7" checked><span class="text-sm">Take 2-3 healthy snacks in addition to the 3 main meals</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline8" checked><span class="text-sm">Avoid using oil during food preparation - select Baking, Grilling, Microwave</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline9" checked><span class="text-sm">Regular exercise is important (for about 45 min) - Brisk Walk, Jogging, Swimming, Cycling</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline10" checked><span class="text-sm">Stress Management is very important (Stress may affect Blood sugar level)</span></label>
+                            <label class="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition"><input type="checkbox" class="checkbox-custom mr-3" id="guideline11" checked><span class="text-sm">Get good sleep - Lack of sleep can increase insulin resistance</span></label>
+                        </div>
+                    </div>
+                    <div class="mb-8">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">🚫 Foods to Strictly Avoid</label>
+                        <textarea id="foodsToAvoid" class="guidance-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="4" placeholder="Enter specific foods to avoid (optional)&#10;e.g., Spicy food, Fried food, Processed snacks, Caffeine on empty stomach..."></textarea>
+                    </div>
+                    <div class="mb-8">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">📝 Special Instructions or Notes</label>
+                        <textarea id="specialInstructions" class="guidance-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="4" placeholder="Any additional instructions, allergies, medical conditions, or special considerations..."></textarea>
+                    </div>
+                    <div class="flex justify-between mt-8">
+                        <button type="button" onclick="goToStep(3)" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition"><i class="fas fa-arrow-left"></i> Previous</button>
+                        <button type="button" onclick="validateAndNext(4)" class="bg-blue-600 hover:bg-blue-700 text-white px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg hover:shadow-xl">Next Step <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Generate PDF -->
+            <div class="form-step" id="step5">
+                <div class="bg-white rounded-xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-3"><i class="fas fa-file-pdf text-blue-600"></i> Professional Details &amp; PDF Generation</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Nutritionist Name</label><input type="text" id="nutritionistName" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50" value="Gayathri Dissanayaka" readonly></div>
+                        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Credentials</label><input type="text" id="credentials" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg bg-gray-50" value="Dietitian &amp; Nutritionist" readonly></div>
+                        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Contact Phone</label><input type="tel" id="nutritionistPhone" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" placeholder="+94 XX XXX XXXX"></div>
+                        <div><label class="block text-sm font-semibold text-gray-700 mb-2">Contact Email</label><input type="email" id="nutritionistEmail" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" placeholder="contact@email.com"></div>
+                    </div>
+                    <div class="mb-8">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Practice Address</label>
+                        <textarea id="nutritionistAddress" class="address-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="2" placeholder="Enter clinic/practice address"></textarea>
+                    </div>
+
+                    <!-- Font Size -->
+                    <div class="mb-8 p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200">
+                        <h3 class="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2"><i class="fas fa-text-height"></i> PDF Font Size Customization</h3>
+                        <p class="text-gray-700 mb-4">Adjust font sizes for better readability, especially for elderly patients</p>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Patient Type</label>
+                                <select id="pdfFontSizePreset" class="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:border-purple-600 focus:outline-none transition" onchange="applyFontSizePreset()">
+                                    <option value="standard">Standard (All Ages)</option>
+                                    <option value="elderly">Elderly Friendly (Large Text)</option>
+                                    <option value="custom">Custom Sizes</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Heading Font Size</label>
+                                <div class="flex items-center gap-3">
+                                    <input type="range" id="headingFontSize" min="11" max="18" value="14" class="flex-1" oninput="updateFontSizeDisplay()">
+                                    <span id="headingSizeDisplay" class="font-bold text-purple-700 w-12">14pt</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Content Font Size</label>
+                                <div class="flex items-center gap-3">
+                                    <input type="range" id="contentFontSize" min="8" max="14" value="10" class="flex-1" oninput="updateFontSizeDisplay()">
+                                    <span id="contentSizeDisplay" class="font-bold text-purple-700 w-12">10pt</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-4 bg-white rounded-lg border border-purple-200">
+                            <p class="text-sm text-gray-600"><strong>Preview:</strong> Headings will be <span id="headingPreview" class="font-bold">14pt</span>, meal content will be <span id="contentPreview" class="font-bold">10pt</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Language Selection -->
+                    <div class="mb-8 p-6 bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border-2 border-green-200">
+                        <h3 class="text-xl font-bold text-green-800 mb-4 flex items-center gap-2"><i class="fas fa-language"></i> PDF Language</h3>
+                        <p class="text-gray-700 mb-4">Select the language for the generated PDF document</p>
+                        <div class="flex flex-wrap gap-4">
+                            <label data-lang-card="en" onclick="updateLangSelection('en')" class="flex items-center gap-3 cursor-pointer p-4 bg-white rounded-lg border-2 transition" style="border-color:#16a34a;background:#f0fdf4;">
+                                <input type="radio" name="pdfLanguage" id="pdfLangEn" value="en" checked class="w-5 h-5 accent-green-600" onchange="updateLangSelection('en')">
+                                <div><span class="block font-semibold text-gray-800">🇬🇧 English</span><span class="text-sm text-gray-500">Default language</span></div>
+                            </label>
+                            <label data-lang-card="si" onclick="updateLangSelection('si')" class="flex items-center gap-3 cursor-pointer p-4 bg-white rounded-lg border-2 border-green-200 transition">
+                                <input type="radio" name="pdfLanguage" id="pdfLangSi" value="si" class="w-5 h-5 accent-green-600" onchange="updateLangSelection('si')">
+                                <div><span class="block font-semibold text-gray-800">🇱🇰 සිංහල (Sinhala)</span><span class="text-sm text-gray-500">ශ්‍රී ලාංකේය</span></div>
+                            </label>
+                            <label data-lang-card="ta" onclick="updateLangSelection('ta')" class="flex items-center gap-3 cursor-pointer p-4 bg-white rounded-lg border-2 border-green-200 transition">
+                                <input type="radio" name="pdfLanguage" id="pdfLangTa" value="ta" class="w-5 h-5 accent-green-600" onchange="updateLangSelection('ta')">
+                                <div><span class="block font-semibold text-gray-800">🇱🇰 தமிழ் (Tamil)</span><span class="text-sm text-gray-500">இலங்கை தமிழ்</span></div>
+                            </label>
+                        </div>
+                        <div id="langInfoNote" class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-800" style="display:none;">
+                            <i class="fas fa-info-circle mr-1"></i><strong>Note:</strong> All PDF labels and section headings will appear in the selected language.
+                        </div>
+                    </div>
+
+                    <!-- Ready to Generate -->
+                    <div class="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl p-8 mb-8">
+                        <h3 class="text-2xl font-bold text-blue-800 mb-4 flex items-center gap-2"><i class="fas fa-check-circle text-green-600"></i> Ready to Generate PDF</h3>
+                        <p class="text-gray-700 mb-6 text-lg">Your personalized meal plan is complete and ready to download as a professional PDF document.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex items-center gap-3 p-3 bg-white rounded-lg"><i class="fas fa-check text-green-600 text-xl"></i><span class="font-semibold">Patient information completed</span></div>
+                            <div class="flex items-center gap-3 p-3 bg-white rounded-lg"><i class="fas fa-check text-green-600 text-xl"></i><span class="font-semibold">Physical measurements recorded</span></div>
+                            <div class="flex items-center gap-3 p-3 bg-white rounded-lg"><i class="fas fa-check text-green-600 text-xl"></i><span class="font-semibold">Meal plan configured</span></div>
+                            <div class="flex items-center gap-3 p-3 bg-white rounded-lg"><i class="fas fa-check text-green-600 text-xl"></i><span class="font-semibold">Guidelines added</span></div>
+                        </div>
+                    </div>
+
+                    <!-- PDF Options -->
+                    <div class="bg-white border-2 border-blue-200 rounded-xl p-5 mb-6 shadow-sm">
+                        <label for="includeMealTable" class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="includeMealTable" class="checkbox-custom">
+                            <span><span class="block text-base font-semibold text-gray-800">Include meal plan as a table in PDF (optional)</span><span class="block text-sm text-gray-600">Turn this on to include MEAL PLAN TABLE in the PDF. Leave it unchecked to include DAILY MEAL SCHEDULE instead.</span></span>
+                        </label>
+                    </div>
+                    <div class="bg-white border-2 border-blue-200 rounded-xl p-5 mb-6 shadow-sm">
+                        <label for="includeMealPlateChart" class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="includeMealPlateChart" class="checkbox-custom" checked>
+                            <span><span class="block text-base font-semibold text-gray-800">Include Meal Plate Chart in PDF</span><span class="block text-sm text-gray-600">Turn this on to include the meal plate ratio pie chart in the PDF.</span></span>
+                        </label>
+                    </div>
+                    <div class="bg-white border-2 border-green-200 rounded-xl p-5 mb-6 shadow-sm">
+                        <label for="includeMealPlateImage" class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="includeMealPlateImage" class="checkbox-custom">
+                            <span><span class="block text-base font-semibold text-gray-800">Include Meal Plate Image in PDF</span><span class="block text-sm text-gray-600">Turn this on to include a default meal plate image in the PDF when the Meal Plate Chart is not included.</span></span>
+                        </label>
+                    </div>
+
+                    <!-- ★ NEW: Dietitian Header Toggle ★ -->
+                    <div class="bg-white border-2 border-indigo-200 rounded-xl p-5 mb-6 shadow-sm">
+                        <label for="includeDietitianHeader" class="flex items-start gap-3 cursor-pointer">
+                            <input type="checkbox" id="includeDietitianHeader" class="checkbox-custom" checked>
+                            <span>
+                                <span class="block text-base font-semibold text-gray-800">Include Dietitian Header on Every Page</span>
+                                <span class="block text-sm text-gray-600">When enabled, the dietitian's name, credentials and contact details appear at the top of every page. Disable this for a clean, content-only layout — the freed space is automatically distributed to meal content.</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="flex justify-between mt-8 flex-wrap gap-4">
+                        <button type="button" onclick="goToStep(4)" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition"><i class="fas fa-arrow-left"></i> Previous</button>
+                        <div class="flex gap-4 flex-wrap">
+                            <button type="button" onclick="exportTemplate()" class="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg hover:shadow-xl"><i class="fas fa-download"></i> Export Template</button>
+                            <button type="button" onclick="importTemplate()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg hover:shadow-xl"><i class="fas fa-upload"></i> Import Template</button>
+                            <button type="button" onclick="generatePDF()" id="generatePdfBtn" class="bg-green-600 hover:bg-green-700 text-white px-10 py-4 rounded-lg font-semibold flex items-center gap-2 transition shadow-xl hover:shadow-2xl text-lg"><i class="fas fa-file-pdf"></i> Generate PDF</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <aside class="hidden xl:block xl:col-span-4">
+            <div class="bg-white rounded-xl shadow-lg p-6 sticky top-6">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Current Summary</h3>
+                <div id="summaryPanel" class="space-y-2 text-sm text-gray-700">
+                    <p><strong>Name:</strong> <span data-summary="patientName">—</span></p>
+                    <p><strong>Age/Gender:</strong> <span data-summary="ageGender">—</span></p>
+                    <p><strong>Date:</strong> <span data-summary="planDate">—</span></p>
+                    <p><strong>BMI:</strong> <span data-summary="bmi">—</span></p>
+                    <p><strong>Calories:</strong> <span data-summary="calories">—</span></p>
+                    <p><strong>Plan:</strong> <span data-summary="planType">General</span></p>
+                </div>
+            </div>
+        </aside>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-xl shadow-2xl p-6 mt-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><i class="fas fa-bolt text-yellow-500"></i> Quick Actions</h3>
+            <div class="flex flex-wrap gap-3">
+                <button type="button" onclick="saveData()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-save"></i> Save Progress</button>
+                <button type="button" onclick="loadSavedData()" class="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-folder-open"></i> Load Saved Data</button>
+                <button type="button" onclick="clearForm()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-trash-alt"></i> Clear Form</button>
+                <button type="button" onclick="printPreview()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-print"></i> Print Preview</button>
+                <button type="button" onclick="saveProgressToCloud()" class="bg-sky-600 hover:bg-sky-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-cloud"></i> Save to Cloud</button>
+                <button type="button" onclick="restoreProgressFromCloud()" class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-cloud-download-alt"></i> Restore from Cloud</button>
+                <button type="button" onclick="saveTemplateToCloud()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-cloud-upload-alt"></i> Save as Template</button>
+                <button type="button" onclick="openTemplateModal()" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-book-open"></i> Load Template</button>
+                <button type="button" onclick="exportTemplate()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-download"></i> Export Template</button>
+                <button type="button" onclick="importTemplate()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition shadow-lg"><i class="fas fa-upload"></i> Import Template</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gradient-to-r from-gray-800 to-gray-900 text-white mt-16 py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-lg font-semibold">&copy; 2026 Gayathri Dissanayaka - Dietitian &amp; Nutritionist</p>
+            <p class="text-gray-400 mt-2">Professional Meal Plan Generator - All Features Edition v1.0</p>
+            <p class="text-sm text-gray-500 mt-3">Powered by Falcon 98 🦅 | Made with ❤️ by <a href="https://ashenwijesingha.github.io/">Ashen Wijesingha</a> for Better Nutrition</p>
+        </div>
+    </footer>
+
+    <input type="file" id="templateImportInput" accept=".json" style="display: none;" onchange="handleTemplateImport(event)">
+
+    <!-- Login gate overlay -->
+    <div id="authOverlay" style="position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;" class="bg-gradient-to-br from-blue-600 via-blue-500 to-green-500 px-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <div class="text-center mb-7">
+                <div class="mx-auto mb-4 w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center text-3xl shadow-lg">🥗</div>
+                <h2 class="text-2xl font-bold text-gray-800">Welcome back</h2>
+                <p class="text-gray-500 text-sm mt-1">Sign in to the Meal Plan Generator</p>
+            </div>
+            <form onsubmit="doLogin(event); return false;">
+                <label for="authEmail" class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+                <div class="relative mb-4">
+                    <i class="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input id="authEmail" type="email" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="email" class="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="you@example.com">
+                </div>
+                <label for="authPassword" class="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
+                <div class="relative mb-3">
+                    <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input id="authPassword" type="password" required autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" class="w-full border border-gray-300 rounded-lg pl-10 pr-11 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Enter your password">
+                    <button type="button" id="pwToggle" onclick="togglePw()" aria-label="Show password" class="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100 transition"><i class="fas fa-eye"></i></button>
+                </div>
+                <div id="authError" style="display:none;" class="items-center gap-2 bg-red-50 text-red-700 text-sm rounded-lg px-3 py-2 mb-3"><i class="fas fa-circle-exclamation shrink-0"></i> <span id="authErrorText"></span></div>
+                <button id="authSubmit" type="submit" class="w-full bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"><i class="fas fa-right-to-bracket"></i> Sign In</button>
+            </form>
+            <p class="text-center text-xs text-gray-400 mt-6"><i class="fas fa-shield-halved"></i> Authorized users only &middot; Secured by Supabase</p>
+        </div>
+    </div>
+
+<script>
+    document.getElementById('planDate').valueAsDate = new Date();
+    let currentStep = 1;
+    let autoSaveTimer;
+    let canShowDraftToast = false;
+
+    // ─── Page dimension constants ───────────────────────────────────────────────
+    const PDF_PAGE_W  = 794;
+    const PDF_PAGE_H  = 1123;
+    const PDF_HDR_H   = 144;   // height of the blue dietitian banner
+    const PDF_FTR_H   = 53;    // height of the footer bar
+    // Base content height (with header). When header is hidden, effectiveContentH is recomputed.
+    const PDF_CONTENT_H = PDF_PAGE_H - PDF_HDR_H - PDF_FTR_H - 48;
+
+    // ─── Supabase-backed template library ───────────────────────────────────────
+    const SUPABASE_URL = 'https://oadssynldelrkinhreza.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_Y1jiS-zw5beFYQj1vWQixw_IHJUGjRN';
+    let sbClient = null;
+    function getSb() {
+        if (!sbClient) {
+            if (!window.supabase || !window.supabase.createClient) throw new Error('Cloud library failed to load. Check your internet connection and reload.');
+            sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        }
+        return sbClient;
+    }
+
+    // Reusable subset of the form (no patient / measurement data).
+    function collectTemplatePayload() {
+        const d = collectFormData();
+        return { mealPlan: d.mealPlan, guidelines: d.guidelines, nutritionist: d.nutritionist, pdfSettings: d.pdfSettings };
+    }
+
+    async function saveTemplateToCloud() {
+        const { value: name } = await Swal.fire({ title: 'Save as Template', input: 'text', inputLabel: 'Template name', inputPlaceholder: 'e.g. Diabetic 1600 kcal', showCancelButton: true, confirmButtonText: 'Save', confirmButtonColor: '#059669', inputValidator: v => (!v || !v.trim()) ? 'Please enter a template name' : undefined });
+        if (!name || !name.trim()) return;
+        const tname = name.trim();
+        try {
+            const sb = getSb();
+            Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            const { data: existing, error: selErr } = await sb.from('meal_plan_templates').select('id').eq('name', tname).eq('is_library', false).maybeSingle();
+            if (selErr) throw selErr;
+            if (existing) {
+                const c = await Swal.fire({ icon: 'question', title: 'Overwrite?', text: 'A template named "' + tname + '" already exists. Overwrite it?', showCancelButton: true, confirmButtonText: 'Overwrite', confirmButtonColor: '#059669' });
+                if (!c.isConfirmed) return;
+                Swal.fire({ title: 'Saving...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            }
+            const { error } = await sb.from('meal_plan_templates').upsert({ name: tname, is_library: false, data: collectTemplatePayload() }, { onConflict: 'name,is_library' });
+            if (error) throw error;
+            Swal.fire({ icon: 'success', title: 'Template Saved!', text: 'Saved to the cloud template library.', timer: 2400, timerProgressBar: true, toast: true, position: 'top-end', showConfirmButton: false });
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Save Failed', text: e.message || 'Could not save template.' });
+        }
+    }
+
+    let __tplCache = {};
+    async function openTemplateModal() {
+        try {
+            const sb = getSb();
+            Swal.fire({ title: 'Loading templates...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            const { data, error } = await sb.from('meal_plan_templates').select('id,name,is_library,updated_at').order('is_library', { ascending: false }).order('name');
+            if (error) throw error;
+            renderTemplateModal(data || []);
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Could Not Load Templates', text: e.message || 'Please try again.' });
+        }
+    }
+
+    function renderTemplateModal(rows) {
+        __tplCache = {}; rows.forEach(r => { __tplCache[r.id] = r; });
+        const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const lib = rows.filter(r => r.is_library), mine = rows.filter(r => !r.is_library);
+        const row = (r, withDel) => '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:6px;"><span style="text-align:left;"><span style="font-weight:600;">' + esc(r.name) + '</span>' + (withDel ? '<br><span style="font-size:11px;color:#6b7280;">Updated ' + new Date(r.updated_at).toLocaleDateString() + '</span>' : '') + '</span><span style="display:flex;gap:6px;flex-shrink:0;"><button class="tpl-load" data-id="' + r.id + '" style="background:#0d9488;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Load</button>' + (withDel ? '<button class="tpl-del" data-id="' + r.id + '" title="Delete" style="background:#ef4444;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:13px;"><i class="fas fa-trash-alt"></i></button>' : '') + '</span></div>';
+        const libHTML = lib.length ? lib.map(r => row(r, false)).join('') : '<p style="color:#9ca3af;font-size:13px;">No library templates.</p>';
+        const mineHTML = mine.length ? mine.map(r => row(r, true)).join('') : '<p style="color:#9ca3af;font-size:13px;">You have no saved templates yet.</p>';
+        Swal.fire({
+            title: 'Template Library', width: 640, showConfirmButton: false, showCloseButton: true,
+            html: '<div style="max-height:60vh;overflow:auto;"><h4 style="text-align:left;font-weight:700;color:#0f766e;margin:4px 0 8px;"><i class="fas fa-book"></i> Common Templates</h4>' + libHTML + '<h4 style="text-align:left;font-weight:700;color:#1e40af;margin:18px 0 8px;"><i class="fas fa-save"></i> My Templates</h4>' + mineHTML + '</div><p style="font-size:11px;color:#9ca3af;margin-top:10px;">Loading a template updates meals, guidelines & settings. Patient details are kept as-is.</p>',
+            didOpen: () => { const c = Swal.getHtmlContainer(); c.querySelectorAll('.tpl-load').forEach(b => b.addEventListener('click', () => loadTemplate(b.dataset.id))); c.querySelectorAll('.tpl-del').forEach(b => b.addEventListener('click', () => deleteTemplate(b.dataset.id))); }
+        });
+    }
+
+    async function loadTemplate(id) {
+        try {
+            const sb = getSb();
+            Swal.fire({ title: 'Loading template...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            const { data, error } = await sb.from('meal_plan_templates').select('name,data').eq('id', id).single();
+            if (error) throw error;
+            applyFormData(data.data, { skipPatient: true });
+            Swal.fire({ icon: 'success', title: 'Template Loaded', text: '"' + data.name + '" applied. Patient details kept as-is.', timer: 2600, timerProgressBar: true, toast: true, position: 'top-end', showConfirmButton: false });
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Load Failed', text: e.message || 'Could not load template.' });
+        }
+    }
+
+    async function deleteTemplate(id) {
+        const r = __tplCache[id];
+        const c = await Swal.fire({ icon: 'warning', title: 'Delete Template?', text: 'Delete "' + (r ? r.name : 'this template') + '"? This cannot be undone.', showCancelButton: true, confirmButtonColor: '#EF4444', confirmButtonText: 'Yes, delete' });
+        if (!c.isConfirmed) return;
+        try {
+            const sb = getSb();
+            const { error } = await sb.from('meal_plan_templates').delete().eq('id', id).eq('is_library', false);
+            if (error) throw error;
+            Swal.fire({ icon: 'success', title: 'Deleted', timer: 1400, showConfirmButton: false, toast: true, position: 'top-end' });
+            openTemplateModal();
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Delete Failed', text: e.message || 'Could not delete template.' });
+        }
+    }
+
+    // ─── Authentication + cloud progress ────────────────────────────────────────
+    const ALLOWED_EMAILS = ['inbox.ashen@gmail.com', 'gayathrithakshila1997@gmail.com'];
+    let __restoreOffered = false;
+    let __signedInEmail = null;
+
+    function showAuthError(msg) { const box = document.getElementById('authError'), txt = document.getElementById('authErrorText'); if (txt) txt.textContent = msg || ''; if (box) box.style.display = msg ? 'flex' : 'none'; }
+    function togglePw() { const i = document.getElementById('authPassword'), ic = document.querySelector('#pwToggle i'); if (i.type === 'password') { i.type = 'text'; ic.className = 'fas fa-eye-slash'; } else { i.type = 'password'; ic.className = 'fas fa-eye'; } }
+
+    function showLogin() {
+        document.getElementById('authOverlay').style.display = 'flex';
+        document.getElementById('accountMenu').style.display = 'none';
+        document.getElementById('accountDropdown').style.display = 'none';
+        document.body.style.overflow = 'hidden';
+        const pw = document.getElementById('authPassword'); if (pw) pw.value = '';
+        // Drop the previous user's identity instead of leaving it in the header
+        // behind the overlay.
+        ['userEmail', 'userEmailFull', 'userInitial', 'userInitial2', 'userRole', 'userRole2']
+            .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = ''; });
+        __signedInEmail = null;
+        __restoreOffered = false;
+        clearIdleTimers();
+    }
+
+    function showApp(email) {
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('accountMenu').style.display = 'block';
+        document.body.style.overflow = '';
+        // handleSession() also runs on every token refresh and on tab focus. Only
+        // rebuild the header and restart the idle countdown for an actual sign-in,
+        // otherwise a background refresh would keep postponing the idle logout.
+        if (__signedInEmail === email) return;
+        __signedInEmail = email;
+        showAuthError('');
+        const initial = (email[0] || '?').toUpperCase();
+        const role = email === 'inbox.ashen@gmail.com' ? 'Owner' : 'Admin';
+        document.getElementById('userEmail').textContent = email;
+        document.getElementById('userEmailFull').textContent = email;
+        document.getElementById('userInitial').textContent = initial;
+        document.getElementById('userInitial2').textContent = initial;
+        document.getElementById('userRole').textContent = role;
+        document.getElementById('userRole2').textContent = role + ' account';
+        document.body.style.overflow = '';
+        startIdleTimer();
+    }
+
+    function toggleAccountMenu(e) {
+        if (e) e.stopPropagation();
+        const d = document.getElementById('accountDropdown');
+        const open = d.style.display === 'none';
+        d.style.display = open ? 'block' : 'none';
+        const caret = document.getElementById('acctCaret');
+        if (caret) caret.style.transform = open ? 'rotate(180deg)' : '';
+    }
+    // Close the account dropdown when clicking anywhere else.
+    document.addEventListener('click', () => { const d = document.getElementById('accountDropdown'); if (d && d.style.display !== 'none') { d.style.display = 'none'; const caret = document.getElementById('acctCaret'); if (caret) caret.style.transform = ''; } });
+
+    // ─── Idle auto-logout ───────────────────────────────────────────────────────
+    const IDLE_LIMIT_MS = 30 * 60 * 1000;   // sign out after 30 min inactivity
+    const IDLE_WARN_MS  = 60 * 1000;        // warn 60 s before
+    let idleWarnTimer = null, idleWarningOpen = false, lastIdleReset = 0;
+    const isSignedIn = () => document.getElementById('accountMenu').style.display !== 'none';
+
+    function clearIdleTimers() { if (idleWarnTimer) { clearTimeout(idleWarnTimer); idleWarnTimer = null; } }
+    function startIdleTimer() { clearIdleTimers(); lastIdleReset = Date.now(); idleWarnTimer = setTimeout(showIdleWarning, Math.max(0, IDLE_LIMIT_MS - IDLE_WARN_MS)); }
+    function resetIdle() { if (idleWarningOpen || !isSignedIn()) return; const now = Date.now(); if (now - lastIdleReset < 5000) return; startIdleTimer(); }
+
+    async function showIdleWarning() {
+        if (idleWarningOpen || !isSignedIn()) return;
+        idleWarningOpen = true;
+        const r = await Swal.fire({ icon: 'warning', title: 'Are you still there?', text: 'You will be signed out due to inactivity.', timer: IDLE_WARN_MS, timerProgressBar: true, showCancelButton: true, confirmButtonText: 'Stay signed in', confirmButtonColor: '#059669', cancelButtonText: 'Sign out now', allowOutsideClick: false });
+        idleWarningOpen = false;
+        if (r.isConfirmed) startIdleTimer();
+        else doIdleLogout();
+    }
+
+    async function doIdleLogout() {
+        clearIdleTimers();
+        try { await getSb().auth.signOut(); } catch {}
+        showLogin();
+        showAuthError('You were signed out due to inactivity.');
+    }
+
+    ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach(ev => document.addEventListener(ev, resetIdle, { passive: true }));
+
+    function handleSession(session) {
+        const email = session?.user?.email?.toLowerCase();
+        if (session && email && ALLOWED_EMAILS.includes(email)) {
+            showApp(email);
+            maybeOfferRestore();
+        } else if (session && email) {
+            // Authenticated with Supabase but not on this app's allow-list. Drop the
+            // session so the token cannot linger, and keep the reason on screen: the
+            // sign-out triggers another handleSession() that would otherwise race it.
+            const notAllowed = 'This account is not authorized to use this application.';
+            showLogin();
+            showAuthError(notAllowed);
+            setTimeout(() => {
+                Promise.resolve(getSb().auth.signOut())
+                    .catch(() => {})
+                    .then(() => showAuthError(notAllowed));
+            }, 0);
+        } else {
+            showLogin();
+        }
+    }
+
+    // signInWithPassword() reports connection and server failures by *returning* an
+    // error rather than throwing, so a single hard-coded message made an outage, a
+    // rate-limit and an unconfirmed email all look like a rejected password.
+    // A failed request looks the same to the browser whether the backend is down
+    // (a paused Supabase project, an outage) or the device is offline, so check
+    // navigator.onLine before pointing the user at their own connection.
+    function serviceUnreachableMessage() {
+        return navigator.onLine === false
+            ? 'You appear to be offline. Reconnect and try again.'
+            : 'The sign-in service is not responding. It may be temporarily unavailable - please try again in a few minutes.';
+    }
+
+    function authErrorMessage(error) {
+        const code = error?.code || error?.error_code || '';
+        const status = Number(error?.status);
+        if (error?.name === 'AuthRetryableFetchError' || status === 0 || status >= 500) {
+            return serviceUnreachableMessage();
+        }
+        switch (code) {
+            case 'invalid_credentials':
+            case 'invalid_grant':
+                return 'Incorrect email or password.';
+            case 'email_not_confirmed':
+                return 'Confirm your email address first - check your inbox for the confirmation link.';
+            case 'user_banned':
+                return 'This account has been suspended. Contact the administrator.';
+            case 'over_request_rate_limit':
+            case 'over_email_send_rate_limit':
+                return 'Too many sign-in attempts. Wait a minute and try again.';
+            case 'validation_failed':
+                return 'Enter a valid email address and password.';
+        }
+        if (status === 429) return 'Too many sign-in attempts. Wait a minute and try again.';
+        if (status === 400 || status === 401) return 'Incorrect email or password.';
+        return error?.message || 'Could not sign in. Please try again.';
+    }
+
+    async function initAuth() {
+        let sb;
+        try { sb = getSb(); } catch (e) { showLogin(); showAuthError(e.message); return; }
+        try {
+            const { data: { session } } = await sb.auth.getSession();
+            handleSession(session);
+        } catch (e) { showLogin(); showAuthError(serviceUnreachableMessage()); }
+        // Keeps the UI in step with later sign-ins, sign-outs and token refreshes.
+        // Re-running for INITIAL_SESSION is harmless: showApp()/showLogin() are idempotent.
+        sb.auth.onAuthStateChange((_event, session) => handleSession(session));
+    }
+
+    async function doLogin(e) {
+        if (e) e.preventDefault();
+        const email = document.getElementById('authEmail').value.trim().toLowerCase();
+        const password = document.getElementById('authPassword').value;
+        const btn = document.getElementById('authSubmit');
+        showAuthError('');
+        if (!email || !password) { showAuthError('Enter your email and password.'); return false; }
+        const label = btn.innerHTML;
+        btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+        try {
+            const { error } = await getSb().auth.signInWithPassword({ email, password });
+            if (error) showAuthError(authErrorMessage(error));
+            // success handled by onAuthStateChange -> handleSession
+        } catch (err) {
+            // Practically only reachable when getSb() throws because the Supabase
+            // library never loaded; signInWithPassword reports failures via `error`.
+            showAuthError(err?.message || 'Could not sign in. Check your connection.');
+        } finally { btn.disabled = false; btn.innerHTML = label; }
+        return false;
+    }
+
+    async function signOutUser() {
+        try { await getSb().auth.signOut(); } catch {}
+        showLogin();
+    }
+
+    async function changePassword() {
+        const { value: pw } = await Swal.fire({ title: 'Change Password', input: 'password', inputLabel: 'New password (minimum 6 characters)', inputAttributes: { minlength: 6, autocomplete: 'new-password' }, showCancelButton: true, confirmButtonText: 'Update', confirmButtonColor: '#2563eb', inputValidator: v => (!v || v.length < 6) ? 'Password must be at least 6 characters' : undefined });
+        if (!pw) return;
+        try {
+            const { error } = await getSb().auth.updateUser({ password: pw });
+            if (error) throw error;
+            Swal.fire({ icon: 'success', title: 'Password Updated', timer: 2200, showConfirmButton: false, toast: true, position: 'top-end' });
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Update Failed', text: e.message || 'Could not change password.' });
+        }
+    }
+
+    async function saveProgressToCloud() {
+        try {
+            const sb = getSb();
+            const { data: { user } } = await sb.auth.getUser();
+            if (!user) throw new Error('Please sign in first.');
+            Swal.fire({ title: 'Saving to cloud...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            const { error } = await sb.from('user_progress').upsert({ user_id: user.id, data: collectFormData() }, { onConflict: 'user_id' });
+            if (error) throw error;
+            Swal.fire({ icon: 'success', title: 'Saved to Cloud', text: 'Continue from any device by signing in.', timer: 2600, timerProgressBar: true, toast: true, position: 'top-end', showConfirmButton: false });
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Cloud Save Failed', text: e.message || 'Could not save to cloud.' });
+        }
+    }
+
+    async function restoreProgressFromCloud() {
+        try {
+            const sb = getSb();
+            const { data: { user } } = await sb.auth.getUser();
+            if (!user) throw new Error('Please sign in first.');
+            Swal.fire({ title: 'Restoring from cloud...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            const { data, error } = await sb.from('user_progress').select('data,updated_at').eq('user_id', user.id).maybeSingle();
+            if (error) throw error;
+            if (!data) { Swal.fire({ icon: 'info', title: 'No Cloud Progress', text: 'You have not saved any progress to the cloud yet.' }); return; }
+            applyFormData(data.data);
+            Swal.fire({ icon: 'success', title: 'Progress Restored', text: 'Saved on ' + new Date(data.updated_at).toLocaleString(), timer: 2800, timerProgressBar: true, toast: true, position: 'top-end', showConfirmButton: false });
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Restore Failed', text: e.message || 'Could not restore from cloud.' });
+        }
+    }
+
+    async function maybeOfferRestore() {
+        if (__restoreOffered) return;
+        __restoreOffered = true;
+        try {
+            const sb = getSb();
+            const { data: { user } } = await sb.auth.getUser();
+            if (!user) return;
+            const { data, error } = await sb.from('user_progress').select('updated_at').eq('user_id', user.id).maybeSingle();
+            if (error || !data) return;
+            const c = await Swal.fire({ icon: 'question', title: 'Restore Cloud Progress?', text: 'You have progress saved on ' + new Date(data.updated_at).toLocaleString() + '. Restore it now?', showCancelButton: true, confirmButtonText: 'Restore', confirmButtonColor: '#0284c7', cancelButtonText: 'Not now' });
+            if (c.isConfirmed) restoreProgressFromCloud();
+        } catch {}
+    }
+
+    function showStepSummary() {
+        const set = (key, value) => { const el = document.querySelector(`[data-summary="${key}"]`); if (el) el.textContent = value || '—'; };
+        set('patientName', document.getElementById('patientName')?.value?.trim() || '—');
+        const age = document.getElementById('patientAge')?.value, gender = document.getElementById('patientGender')?.value;
+        set('ageGender', age ? `${age}${gender ? ` / ${gender}` : ''}` : '—');
+        set('planDate', document.getElementById('planDate')?.value || '—');
+        set('bmi', document.getElementById('bmiValue')?.textContent === '--' ? '—' : document.getElementById('bmiValue')?.textContent);
+        set('calories', document.getElementById('calorieTarget')?.value ? `${document.getElementById('calorieTarget').value} kcal` : '—');
+        set('planType', document.querySelector('input[name="planType"]:checked')?.value || 'general');
+    }
+
+    function openInitialMealSection() {
+        const s = document.getElementById('breakfastSection');
+        if (s && s.style.display !== 'block') toggleSection('breakfastSection');
+    }
+
+    function goToStep(stepNumber, clicked = false) {
+        if (clicked && stepNumber > currentStep) return;
+        document.querySelectorAll('.form-step').forEach(step => step.classList.remove('active'));
+        document.getElementById('step' + stepNumber).classList.add('active');
+        updateProgressIndicators(stepNumber);
+        currentStep = stepNumber;
+        showStepSummary();
+        if (stepNumber === 3) openInitialMealSection();
+        const activeCard = document.querySelector(`#step${stepNumber} .bg-white`);
+        if (activeCard) activeCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function updateProgressIndicators(activeStep) {
+        for (let i = 1; i <= 5; i++) {
+            const icon = document.getElementById('step' + i + '-icon'), label = document.getElementById('step' + i + '-label');
+            if (icon && label) {
+                if (i <= activeStep) { icon.classList.remove('bg-gray-300'); icon.classList.add('bg-blue-600'); label.classList.remove('text-gray-500'); label.classList.add('text-blue-600', 'font-semibold'); }
+                else { icon.classList.remove('bg-blue-600'); icon.classList.add('bg-gray-300'); label.classList.remove('text-blue-600', 'font-semibold'); label.classList.add('text-gray-500'); }
+            }
+        }
+        const progress = Math.round((activeStep / 5) * 100);
+        const pb = document.getElementById('progressBar'), pp = document.getElementById('progressPercent'), ms = document.getElementById('mobileStepText');
+        if (pb) pb.style.width = `${progress}%`;
+        if (pp) pp.textContent = `${progress}%`;
+        if (ms) ms.textContent = `Step ${activeStep} of 5`;
+    }
+
+    const bmiInputLimits = { minHeight: 20, maxHeight: 250, minWeight: 5, maxWeight: 300 };
+    function isValidMeasurement(value, min, max) {
+        const num = parseFloat(value);
+        return Number.isFinite(num) && num >= min && num <= max;
+    }
+    function resetBmiDisplay() {
+        document.getElementById('bmiDisplay').style.display = 'none';
+        document.getElementById('bmiValue').textContent = '--';
+        document.getElementById('ibwValue').textContent = '--';
+        document.getElementById('weightToLose').textContent = '--';
+        document.getElementById('timelineEstimate').textContent = '--';
+        const wgl = document.getElementById('weightGoalLabel');
+        if (wgl) wgl.textContent = 'Target Weight Change';
+    }
+
+    function validateAndNext(step) {
+        let isValid = true;
+        if (step === 1) {
+            const name = document.getElementById('patientName'), age = document.getElementById('patientAge'), gender = document.getElementById('patientGender'), email = document.getElementById('patientEmail'), phone = document.getElementById('patientPhone');
+            if (!name.value.trim()) { showValidationError(name, 'nameError'); isValid = false; }
+            if (!age.value || age.value < 1 || age.value > 120) { showValidationError(age, 'ageError'); isValid = false; }
+            if (!gender.value) { showValidationError(gender, 'genderError'); isValid = false; }
+            if (email.value && !isValidEmail(email.value)) { showValidationError(email, 'emailError'); isValid = false; }
+            if (phone.value && !isValidPhone(phone.value)) { showValidationError(phone, 'phoneError'); isValid = false; }
+        }
+        if (step === 2) {
+            const height = document.getElementById('patientHeight'), weight = document.getElementById('patientWeight'), target = document.getElementById('targetWeight');
+            if (!isValidMeasurement(height.value, bmiInputLimits.minHeight, bmiInputLimits.maxHeight)) { showValidationError(height, null); isValid = false; }
+            if (!isValidMeasurement(weight.value, bmiInputLimits.minWeight, bmiInputLimits.maxWeight)) { showValidationError(weight, null); isValid = false; }
+            if (!isValidMeasurement(target.value, bmiInputLimits.minWeight, bmiInputLimits.maxWeight)) { showValidationError(target, null); isValid = false; }
+            if (isValid) calculateBMI();
+            else resetBmiDisplay();
+        }
+        if (step === 3) {
+            const calorieTarget = document.getElementById('calorieTarget'), planDuration = document.getElementById('planDuration');
+            const snackIds = ['earlyMorning','breakfast','midMorning','lunch','eveningSnack','beforeDinner','dinner'].flatMap(k => getSnackOptionIds(k));
+            const hasMealContent = snackIds.some(id => { const el = document.getElementById(id); return el && el.value.trim().length > 0; });
+            if (!calorieTarget.value || calorieTarget.value < 1000 || calorieTarget.value > 5000) { showValidationError(calorieTarget, null); isValid = false; }
+            if (!planDuration.value || planDuration.value < 1 || planDuration.value > 30) { showValidationError(planDuration, null); isValid = false; }
+            if (getMealPlatePercentages().total !== 100) { isValid = false; Swal.fire({ icon: 'warning', title: 'Meal plate total must be 100%', text: 'Please adjust the meal plate percentages so the total equals exactly 100%.', confirmButtonColor: '#1877F2' }); }
+            if (!hasMealContent) { isValid = false; Swal.fire({ icon: 'warning', title: 'Add at least one meal entry', text: 'Please provide content for at least one meal section before continuing.', confirmButtonColor: '#1877F2' }); }
+        }
+        if (step === 4) {
+            const waterIntake = document.getElementById('waterIntake'), exerciseRecommendation = document.getElementById('exerciseRecommendation');
+            if (!waterIntake.value.trim()) { showValidationError(waterIntake, null); isValid = false; }
+            if (!exerciseRecommendation.value.trim()) { showValidationError(exerciseRecommendation, null); isValid = false; }
+        }
+        if (isValid) goToStep(step + 1);
+        else Swal.fire({ icon: 'warning', title: 'Validation Error', text: 'Please fill in all required fields correctly', confirmButtonColor: '#1877F2' });
+    }
+
+    function showValidationError(input, errorId) { input.classList.add('error-border'); if (errorId) { const e = document.getElementById(errorId); if (e) e.classList.remove('hidden'); } }
+    function markFieldValid(input) { input.classList.remove('error-border'); input.classList.add('border-green-500'); }
+    function isValidEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+    function isValidPhone(phone) { return /^[\+]?[0-9]{10,15}$/.test(phone.replace(/\s/g, '')); }
+
+    function toggleSection(sectionId) {
+        const section = document.getElementById(sectionId), icon = document.getElementById(sectionId.replace('Section', 'Icon'));
+        const isOpen = section.style.display === 'block';
+        section.style.display = isOpen ? 'none' : 'block';
+        if (icon) icon.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+
+    function showDraftSavedToast() {
+        if (!canShowDraftToast) return;
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-4 left-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 text-sm';
+        toast.textContent = 'Draft saved ✓';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 1800);
+    }
+
+    function autoSaveDraft() {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = setTimeout(() => { localStorage.setItem('mealPlanDraft', JSON.stringify(collectFormData())); showStepSummary(); showDraftSavedToast(); }, 400);
+    }
+
+    function calculateBMI() {
+        const height = parseFloat(document.getElementById('patientHeight').value), weight = parseFloat(document.getElementById('patientWeight').value);
+        const gender = document.getElementById('patientGender').value, targetWeightInput = parseFloat(document.getElementById('targetWeight').value);
+        const targetWeight = Number.isFinite(targetWeightInput) ? targetWeightInput : null;
+        const hasValidHeight = Number.isFinite(height) && height >= bmiInputLimits.minHeight && height <= bmiInputLimits.maxHeight;
+        const hasValidWeight = Number.isFinite(weight) && weight >= bmiInputLimits.minWeight && weight <= bmiInputLimits.maxWeight;
+        const hasValidTarget = targetWeight === null || (targetWeight >= bmiInputLimits.minWeight && targetWeight <= bmiInputLimits.maxWeight);
+        if (hasValidHeight && hasValidWeight && hasValidTarget) {
+            const heightM = height / 100, bmi = (weight / (heightM * heightM)).toFixed(1);
+            const heightIn = height / 2.54;
+            let ibw = gender === 'Male' ? 50 + 2.3 * (heightIn - 60) : 45.5 + 2.3 * (heightIn - 60);
+            ibw = Math.max(30, Math.round(ibw * 10) / 10);
+            let category = '', badgeClass = '';
+            if (bmi < 18.5) { category = 'Underweight'; badgeClass = 'bg-blue-100 text-blue-800'; }
+            else if (bmi < 25) { category = 'Normal Weight'; badgeClass = 'bg-green-100 text-green-800'; }
+            else if (bmi < 30) { category = 'Overweight'; badgeClass = 'bg-orange-100 text-orange-800'; }
+            else { category = 'Obese'; badgeClass = 'bg-red-100 text-red-800'; }
+            const weightDiff = targetWeight !== null ? (weight - targetWeight) : null, absDiff = weightDiff !== null ? Math.abs(weightDiff) : 0;
+            const weeksToGoal = absDiff > 0 ? Math.ceil(absDiff / 0.5) : 0, monthsToGoal = weeksToGoal > 0 ? Math.ceil(weeksToGoal / 4) : 0;
+            const wgl = document.getElementById('weightGoalLabel');
+            document.getElementById('bmiValue').textContent = bmi;
+            document.getElementById('ibwValue').textContent = ibw;
+            if (targetWeight === null) { document.getElementById('weightToLose').textContent = '--'; document.getElementById('timelineEstimate').textContent = 'Enter target weight'; if (wgl) wgl.textContent = 'Target Weight Change'; }
+            else if (weightDiff > 0) { document.getElementById('weightToLose').textContent = absDiff.toFixed(1) + ' kg'; document.getElementById('timelineEstimate').textContent = `Approx. ${monthsToGoal} month${monthsToGoal > 1 ? 's' : ''} to lose`; if (wgl) wgl.textContent = 'Weight to Lose'; }
+            else if (weightDiff < 0) { document.getElementById('weightToLose').textContent = absDiff.toFixed(1) + ' kg'; document.getElementById('timelineEstimate').textContent = `Approx. ${monthsToGoal} month${monthsToGoal > 1 ? 's' : ''} to gain`; if (wgl) wgl.textContent = 'Weight to Gain'; }
+            else { document.getElementById('weightToLose').textContent = '0.0 kg'; document.getElementById('timelineEstimate').textContent = 'At target!'; if (wgl) wgl.textContent = 'Target Weight Change'; }
+            document.getElementById('bmiCategoryBadge').textContent = category;
+            document.getElementById('bmiCategoryBadge').className = `px-4 py-1 rounded-full text-sm font-semibold ${badgeClass}`;
+            document.getElementById('bmiDisplay').style.display = 'block';
+            const bmr = gender === 'Male' ? (10 * weight) + (6.25 * height) - (5 * (document.getElementById('patientAge').value || 30)) + 5 : (10 * weight) + (6.25 * height) - (5 * (document.getElementById('patientAge').value || 30)) - 161;
+            document.getElementById('calorieTarget').value = Math.round(bmr * 1.375);
+        } else {
+            resetBmiDisplay();
+        }
+    }
+
+    const mealPlateTypeConfig = {
+        diabetic:    { labels: { vegetables: 'Non-Starchy Vegetables (%)', protein: 'Protein (%)', grains: 'Carbohydrate (%)' }, legend: ['Non-Starchy Vegetables', 'Protein', 'Carbohydrate'], hint: 'Diabetic meal plate uses Non-Starchy Vegetables, Carbohydrate, and Protein percentages.', defaults: { vegetables: 50, protein: 25, grains: 25 } },
+        nonDiabetic: { labels: { vegetables: 'Carbohydrate (%)', protein: 'Protein (%)', grains: 'Fat (%)' }, legend: ['Carbohydrate', 'Protein', 'Fat'], hint: 'Non-diabetic meal plate uses Carbohydrate, Protein, and Fat percentages.', defaults: { vegetables: 50, protein: 25, grains: 25 } }
+    };
+
+    function getSelectedPlatePatientType() { return document.getElementById('platePatientType')?.value === 'diabetic' ? 'diabetic' : 'nonDiabetic'; }
+    function getMealPlateTypeDetails() { return mealPlateTypeConfig[getSelectedPlatePatientType()] || mealPlateTypeConfig.nonDiabetic; }
+
+    function handlePlatePatientTypeChange(resetValues = true) {
+        const td = getMealPlateTypeDetails();
+        const vl = document.getElementById('plateVegetablesLabel'), pl = document.getElementById('plateProteinLabel'), gl = document.getElementById('plateGrainsLabel'), hl = document.getElementById('platePatientTypeHint');
+        if (vl) vl.textContent = td.labels.vegetables; if (pl) pl.textContent = td.labels.protein; if (gl) gl.textContent = td.labels.grains; if (hl) hl.textContent = td.hint;
+        if (resetValues) { document.getElementById('plateVegetables').value = td.defaults.vegetables; document.getElementById('plateProtein').value = td.defaults.protein; document.getElementById('plateGrains').value = td.defaults.grains; }
+        updateMealPlateChart();
+    }
+
+    function getMealPlatePercentages() {
+        const v = parseInt(document.getElementById('plateVegetables').value, 10) || 0, p = parseInt(document.getElementById('plateProtein').value, 10) || 0, g = parseInt(document.getElementById('plateGrains').value, 10) || 0;
+        return { vegetables: v, protein: p, grains: g, total: v + p + g };
+    }
+
+    function updateMealPlateChart() {
+        const canvas = document.getElementById('mealPlateCanvas'); if (!canvas) return;
+        const ctx = canvas.getContext('2d'), { vegetables, protein, grains, total } = getMealPlatePercentages(), td = getMealPlateTypeDetails();
+        const tl = document.getElementById('plateTotal'), el = document.getElementById('plateTotalError');
+        if (tl) { tl.textContent = `${total}%`; tl.className = `font-bold ${total === 100 ? 'text-green-700' : 'text-red-700'}`; }
+        if (el) el.classList.toggle('hidden', total === 100);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const cx = canvas.width / 2, cy = canvas.height / 2, r = Math.min(canvas.width, canvas.height) * 0.44, hr = r * 0.5;
+        const colors = ['#93B56B', '#6AB4E4', '#F3C55B'], values = [vegetables, protein, grains];
+        let start = -Math.PI / 2;
+        values.forEach((value, i) => {
+            const angle = total > 0 ? (value / total) * Math.PI * 2 : 0;
+            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, start, start + angle); ctx.closePath(); ctx.fillStyle = colors[i]; ctx.fill();
+            if (value > 0) { const la = start + angle / 2; ctx.fillStyle = '#0F172A'; ctx.font = 'bold 12px Inter, Arial'; ctx.textAlign = 'center'; ctx.fillText(`${value}%`, cx + Math.cos(la) * (r * 0.72), cy + Math.sin(la) * (r * 0.72)); }
+            start += angle;
+        });
+        ctx.beginPath(); ctx.arc(cx, cy, hr, 0, Math.PI * 2); ctx.fillStyle = '#FFFFFF'; ctx.fill();
+        ctx.fillStyle = '#1F2937'; ctx.font = 'bold 13px Inter, Arial'; ctx.textAlign = 'center'; ctx.fillText('MEAL', cx, cy - 5); ctx.fillText('PLATE', cx, cy + 13);
+        let lc = document.getElementById('mealPlateLegend');
+        if (!lc) { lc = document.createElement('div'); lc.id = 'mealPlateLegend'; lc.className = 'w-full grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs'; canvas.parentElement.appendChild(lc); }
+        lc.innerHTML = td.legend.map((label, i) => `<div class="flex items-center gap-2 justify-center px-2 py-1 rounded bg-white border border-gray-200"><span class="inline-block w-3 h-3 rounded-full" style="background:${colors[i]}"></span><span class="text-gray-700">${label}</span></div>`).join('');
+    }
+
+    function applyFontSizePreset() {
+        const preset = document.getElementById('pdfFontSizePreset').value;
+        if (preset === 'standard') { document.getElementById('headingFontSize').value = 14; document.getElementById('contentFontSize').value = 10; }
+        else if (preset === 'elderly') { document.getElementById('headingFontSize').value = 16; document.getElementById('contentFontSize').value = 13; }
+        updateFontSizeDisplay();
+    }
+
+    function updateFontSizeDisplay() {
+        const h = document.getElementById('headingFontSize').value, c = document.getElementById('contentFontSize').value;
+        document.getElementById('headingSizeDisplay').textContent = h + 'pt'; document.getElementById('contentSizeDisplay').textContent = c + 'pt';
+        document.getElementById('headingPreview').textContent = h + 'pt'; document.getElementById('contentPreview').textContent = c + 'pt';
+    }
+
+    function saveData() { localStorage.setItem('mealPlanData', JSON.stringify(collectFormData())); Swal.fire({ icon: 'success', title: 'Progress Saved!', text: 'Your meal plan data has been saved locally', timer: 2000, showConfirmButton: false }); }
+
+    function collectFormData() {
+        return {
+            patient: { name: document.getElementById('patientName').value, age: document.getElementById('patientAge').value, gender: document.getElementById('patientGender').value, date: document.getElementById('planDate').value, nextFollowupDate: document.getElementById('nextFollowupDate').value, phone: document.getElementById('patientPhone').value, email: document.getElementById('patientEmail').value, address: document.getElementById('patientAddress').value },
+            measurements: { height: document.getElementById('patientHeight').value, weight: document.getElementById('patientWeight').value, targetWeight: document.getElementById('targetWeight').value, bmi: document.getElementById('bmiValue').textContent },
+            mealPlan: { planType: document.querySelector('input[name="planType"]:checked').value, calorieTarget: document.getElementById('calorieTarget').value, planDuration: document.getElementById('planDuration').value, preferences: { vegetarian: document.getElementById('prefVegetarian').checked, nonVeg: document.getElementById('prefNonVeg').checked, lowCarb: document.getElementById('prefLowCarb').checked, highProtein: document.getElementById('prefHighProtein').checked }, meals: { earlyMorningOptions: collectSnackOptions('earlyMorning'), breakfastOptions: collectSnackOptions('breakfast'), midMorningOptions: collectSnackOptions('midMorning'), lunchOptions: collectSnackOptions('lunch'), eveningSnackOptions: collectSnackOptions('eveningSnack'), beforeDinnerOptions: collectSnackOptions('beforeDinner'), dinnerOptions: collectSnackOptions('dinner') }, mealTimes: collectMealTimes(), mealPlate: { patientType: getSelectedPlatePatientType(), vegetables: document.getElementById('plateVegetables').value, protein: document.getElementById('plateProtein').value, grains: document.getElementById('plateGrains').value } },
+            guidelines: { waterIntake: document.getElementById('waterIntake').value, coconutOil: document.getElementById('coconutOil').value, exercise: document.getElementById('exerciseRecommendation').value, foodsToAvoid: document.getElementById('foodsToAvoid').value, specialInstructions: document.getElementById('specialInstructions').value, checkboxes: Array.from({length: 11}, (_, i) => document.getElementById('guideline' + (i+1))?.checked || false) },
+            nutritionist: { name: document.getElementById('nutritionistName').value, credentials: document.getElementById('credentials').value, phone: document.getElementById('nutritionistPhone').value, email: document.getElementById('nutritionistEmail').value, address: document.getElementById('nutritionistAddress').value },
+            pdfSettings: { fontSizePreset: document.getElementById('pdfFontSizePreset').value, headingFontSize: document.getElementById('headingFontSize').value, contentFontSize: document.getElementById('contentFontSize').value, includeMealTable: document.getElementById('includeMealTable')?.checked || false, includeMealPlateChart: document.getElementById('includeMealPlateChart')?.checked !== false, includeMealPlateImage: document.getElementById('includeMealPlateImage')?.checked || false, includeDietitianHeader: document.getElementById('includeDietitianHeader')?.checked !== false }
+        };
+    }
+
+    function loadSavedData() {
+        const savedData = localStorage.getItem('mealPlanData');
+        if (savedData) {
+            applyFormData(JSON.parse(savedData));
+            Swal.fire({ icon: 'success', title: 'Data Loaded!', text: 'Saved data has been restored', timer: 2000, showConfirmButton: false });
+        } else { Swal.fire({ icon: 'info', title: 'No Saved Data', text: 'No previously saved data found' }); }
+    }
+
+    // Apply a data object to the form. opts.skipPatient=true leaves patient &
+    // measurement fields untouched (used when loading a reusable template).
+    function applyFormData(data, opts = {}) {
+        if (data) {
+            if (!opts.skipPatient) {
+                document.getElementById('patientName').value = data.patient?.name || ''; document.getElementById('patientAge').value = data.patient?.age || ''; document.getElementById('patientGender').value = data.patient?.gender || ''; document.getElementById('planDate').value = data.patient?.date || ''; document.getElementById('nextFollowupDate').value = data.patient?.nextFollowupDate || ''; document.getElementById('patientPhone').value = data.patient?.phone || ''; document.getElementById('patientEmail').value = data.patient?.email || ''; document.getElementById('patientAddress').value = data.patient?.address || '';
+                document.getElementById('patientHeight').value = data.measurements?.height || ''; document.getElementById('patientWeight').value = data.measurements?.weight || ''; document.getElementById('targetWeight').value = data.measurements?.targetWeight || '';
+            }
+            if (data.mealPlan) {
+                document.getElementById('calorieTarget').value = data.mealPlan.calorieTarget || ''; document.getElementById('planDuration').value = data.mealPlan.planDuration || '';
+                if (data.mealPlan.preferences) { document.getElementById('prefVegetarian').checked = data.mealPlan.preferences.vegetarian; document.getElementById('prefNonVeg').checked = data.mealPlan.preferences.nonVeg; document.getElementById('prefLowCarb').checked = data.mealPlan.preferences.lowCarb; document.getElementById('prefHighProtein').checked = data.mealPlan.preferences.highProtein; }
+                if (data.mealPlan.meals) {
+                    loadSnackOptions('earlyMorning', data.mealPlan.meals.earlyMorningOptions || (data.mealPlan.meals.earlyMorning ? [data.mealPlan.meals.earlyMorning] : []));
+                    loadSnackOptions('breakfast', data.mealPlan.meals.breakfastOptions || [data.mealPlan.meals.breakfastA, data.mealPlan.meals.breakfastB, data.mealPlan.meals.breakfastC].filter(Boolean));
+                    loadSnackOptions('midMorning', data.mealPlan.meals.midMorningOptions || (data.mealPlan.meals.midMorning ? [data.mealPlan.meals.midMorning] : []));
+                    loadSnackOptions('lunch', data.mealPlan.meals.lunchOptions || [data.mealPlan.meals.lunchA, data.mealPlan.meals.lunchB].filter(Boolean));
+                    loadSnackOptions('eveningSnack', data.mealPlan.meals.eveningSnackOptions || (data.mealPlan.meals.eveningSnack ? [data.mealPlan.meals.eveningSnack] : []));
+                    loadSnackOptions('beforeDinner', data.mealPlan.meals.beforeDinnerOptions || (data.mealPlan.meals.beforeDinner ? [data.mealPlan.meals.beforeDinner] : []));
+                    loadSnackOptions('dinner', data.mealPlan.meals.dinnerOptions || [data.mealPlan.meals.dinnerA, data.mealPlan.meals.dinnerB].filter(Boolean));
+                }
+                if (data.mealPlan.mealTimes) { Object.keys(data.mealPlan.mealTimes).forEach(key => { const times = data.mealPlan.mealTimes[key], s = document.getElementById(key + 'StartTime'), e = document.getElementById(key + 'EndTime'); if (s && times.start) s.value = times.start; if (e && times.end) e.value = times.end; }); }
+                if (data.mealPlan.mealPlate) { document.getElementById('platePatientType').value = data.mealPlan.mealPlate.patientType === 'diabetic' ? 'diabetic' : 'nonDiabetic'; document.getElementById('plateVegetables').value = data.mealPlan.mealPlate.vegetables ?? 50; document.getElementById('plateProtein').value = data.mealPlan.mealPlate.protein ?? 25; document.getElementById('plateGrains').value = data.mealPlan.mealPlate.grains ?? 25; }
+            }
+            if (data.guidelines) { document.getElementById('waterIntake').value = data.guidelines.waterIntake || ''; document.getElementById('coconutOil').value = data.guidelines.coconutOil || ''; document.getElementById('exerciseRecommendation').value = data.guidelines.exercise || ''; document.getElementById('foodsToAvoid').value = data.guidelines.foodsToAvoid || ''; document.getElementById('specialInstructions').value = data.guidelines.specialInstructions || ''; if (data.guidelines.checkboxes) { data.guidelines.checkboxes.forEach((checked, i) => { const cb = document.getElementById('guideline' + (i+1)); if (cb) cb.checked = checked; }); } }
+            if (data.nutritionist) { document.getElementById('nutritionistPhone').value = data.nutritionist.phone || ''; document.getElementById('nutritionistEmail').value = data.nutritionist.email || ''; document.getElementById('nutritionistAddress').value = data.nutritionist.address || ''; }
+            if (data.pdfSettings) {
+                document.getElementById('pdfFontSizePreset').value = data.pdfSettings.fontSizePreset || 'standard';
+                document.getElementById('headingFontSize').value = data.pdfSettings.headingFontSize || 14;
+                document.getElementById('contentFontSize').value = data.pdfSettings.contentFontSize || 10;
+                document.getElementById('includeMealTable').checked = data.pdfSettings.includeMealTable || false;
+                document.getElementById('includeMealPlateChart').checked = data.pdfSettings.includeMealPlateChart !== false;
+                document.getElementById('includeMealPlateImage').checked = data.pdfSettings.includeMealPlateImage || false;
+                document.getElementById('includeDietitianHeader').checked = data.pdfSettings.includeDietitianHeader !== false;
+                updateFontSizeDisplay();
+            }
+            calculateBMI(); handlePlatePatientTypeChange(false); updateMealPlateChart();
+        }
+    }
+
+    function clearForm() {
+        Swal.fire({ icon: 'warning', title: 'Clear Form?', text: 'This will clear all form data. This action cannot be undone.', showCancelButton: true, confirmButtonColor: '#EF4444', confirmButtonText: 'Yes, clear it!' }).then(result => {
+            if (result.isConfirmed) {
+                document.getElementById('mealPlanForm').reset(); document.getElementById('planDate').valueAsDate = new Date(); document.getElementById('bmiDisplay').style.display = 'none'; localStorage.removeItem('mealPlanData'); localStorage.removeItem('mealPlanDraft'); document.getElementById('templateImportInput').value = '';
+                loadSnackOptions('earlyMorning', ['']); loadSnackOptions('breakfast', ['', '', '']); ['midMorning', 'eveningSnack', 'beforeDinner'].forEach(k => loadSnackOptions(k, ['', '', ''])); loadSnackOptions('lunch', ['', '']); loadSnackOptions('dinner', ['', '']);
+                goToStep(1); Swal.fire({ icon: 'success', title: 'Cleared!', timer: 2000, showConfirmButton: false });
+            }
+        });
+    }
+
+    function exportTemplate() {
+        const url = URL.createObjectURL(new Blob([JSON.stringify(collectFormData(), null, 2)], {type: 'application/json'}));
+        const link = document.createElement('a'); link.href = url; link.download = `MealPlan_Template_${new Date().toISOString().split('T')[0]}.json`; link.click();
+        Swal.fire({ icon: 'success', title: 'Template Exported!', timer: 2000, showConfirmButton: false });
+    }
+
+    function importTemplate() { document.getElementById('templateImportInput').click(); }
+
+    function handleTemplateImport(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = e => { try { const data = JSON.parse(e.target.result); localStorage.setItem('mealPlanData', JSON.stringify(data)); loadSavedData(); Swal.fire({ icon: 'success', title: 'Template Imported!' }); } catch { Swal.fire({ icon: 'error', title: 'Import Failed', text: 'Invalid template file format' }); } };
+            reader.readAsText(file);
+        }
+    }
+
+    function printPreview() { generatePDF(true); }
+
+    function initRealtimeValidation() {
+        ['patientName','patientAge','patientGender','patientHeight','patientWeight','targetWeight','calorieTarget','planDuration','waterIntake','exerciseRecommendation'].forEach(id => {
+            const field = document.getElementById(id); if (!field) return;
+            field.addEventListener('blur', () => { if (field.value && String(field.value).trim().length > 0) markFieldValid(field); });
+        });
+    }
+
+    function initTextareaEnhancements() {
+        document.querySelectorAll('textarea').forEach(textarea => {
+            const update = () => { const min = 136; textarea.style.height = `${Math.max(textarea.scrollHeight, min, textarea.clientHeight)}px`; };
+            textarea.addEventListener('input', update); update();
+        });
+    }
+
+    const optionLabels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const defaultMealTimes = { earlyMorning: { start: '07:00', end: '07:30' }, breakfast: { start: '08:00', end: '09:00' }, midMorning: { start: '10:30', end: '11:30' }, lunch: { start: '13:00', end: '14:00' }, eveningSnack: { start: '16:00', end: '17:00' }, beforeDinner: { start: '19:00', end: '20:00' }, dinner: { start: '20:30', end: '21:30' } };
+    const mealNames = { earlyMorning: 'Early Morning', breakfast: 'Breakfast', midMorning: 'Mid-Morning Snack', lunch: 'Lunch', eveningSnack: 'Evening Snack', beforeDinner: 'Before Dinner', dinner: 'Dinner' };
+
+    function formatTimeTo12h(time24) {
+        if (!time24) return ''; const parts = time24.split(':'); if (parts.length < 2) return time24;
+        const hours = parseInt(parts[0], 10), minutes = parseInt(parts[1], 10); if (isNaN(hours) || isNaN(minutes)) return time24;
+        return (hours % 12 || 12) + ':' + String(minutes).padStart(2, '0') + ' ' + (hours >= 12 ? 'PM' : 'AM');
+    }
+
+    function collectMealTimes() { const t = {}; Object.keys(defaultMealTimes).forEach(key => { const s = document.getElementById(key + 'StartTime'), e = document.getElementById(key + 'EndTime'); t[key] = { start: s ? s.value : defaultMealTimes[key].start, end: e ? e.value : defaultMealTimes[key].end }; }); return t; }
+
+    function getSnackOptionIds(mealKey) { const c = document.getElementById(mealKey + 'Options'); if (!c) return []; return Array.from(c.querySelectorAll('textarea')).map(ta => ta.id); }
+    function collectSnackOptions(mealKey) { return getSnackOptionIds(mealKey).map(id => { const el = document.getElementById(id); return el ? el.value : ''; }); }
+
+    function addSnackOption(mealKey) {
+        const container = document.getElementById(mealKey + 'Options'); if (!container) return;
+        const existing = container.querySelectorAll('.snack-option'); if (existing.length >= 10) return;
+        const newIndex = existing.length, label = optionLabels[newIndex] || String(newIndex + 1), tid = mealKey + label;
+        const div = document.createElement('div'); div.className = 'snack-option'; div.setAttribute('data-option-index', newIndex);
+        div.innerHTML = `<div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option ${label}</label><button type="button" onclick="removeSnackOption('${mealKey}', ${newIndex})" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="${tid}" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="Add meal option details..."></textarea>`;
+        container.appendChild(div); updateSnackRemoveButtons(mealKey); initTextareaEnhancements();
+        const ta = document.getElementById(tid); if (ta) { ta.addEventListener('input', autoSaveDraft); ta.addEventListener('change', autoSaveDraft); }
+    }
+
+    function removeSnackOption(mealKey, index) {
+        const container = document.getElementById(mealKey + 'Options'); if (!container) return;
+        const options = container.querySelectorAll('.snack-option'); if (options.length <= 1) return;
+        const opt = options[index]; if (opt) opt.remove();
+        reindexSnackOptions(mealKey); updateSnackRemoveButtons(mealKey);
+    }
+
+    function reindexSnackOptions(mealKey) {
+        const container = document.getElementById(mealKey + 'Options'); if (!container) return;
+        container.querySelectorAll('.snack-option').forEach((opt, i) => {
+            const label = optionLabels[i] || String(i + 1); opt.setAttribute('data-option-index', i);
+            const lel = opt.querySelector('label'); if (lel) lel.textContent = `Option ${label}`;
+            const ta = opt.querySelector('textarea'); if (ta) ta.id = mealKey + label;
+            const btn = opt.querySelector('.remove-option-btn'); if (btn) btn.setAttribute('onclick', `removeSnackOption('${mealKey}', ${i})`);
+        });
+    }
+
+    function updateSnackRemoveButtons(mealKey) {
+        const container = document.getElementById(mealKey + 'Options'); if (!container) return;
+        const options = container.querySelectorAll('.snack-option');
+        options.forEach(opt => { const btn = opt.querySelector('.remove-option-btn'); if (btn) { if (options.length <= 1) btn.classList.add('hidden'); else btn.classList.remove('hidden'); } });
+    }
+
+    function loadSnackOptions(mealKey, values) {
+        const container = document.getElementById(mealKey + 'Options'); if (!container) return;
+        if (!values || !Array.isArray(values) || values.length === 0) values = ['', '', ''];
+        container.innerHTML = '';
+        values.forEach((value, i) => {
+            const label = optionLabels[i] || String(i + 1), tid = mealKey + label;
+            const div = document.createElement('div'); div.className = 'snack-option'; div.setAttribute('data-option-index', i);
+            div.innerHTML = `<div class="flex items-center justify-between mb-2"><label class="block text-sm font-semibold text-gray-600">Option ${label}</label><button type="button" onclick="removeSnackOption('${mealKey}', ${i})" class="text-red-500 hover:text-red-700 text-sm font-semibold remove-option-btn"><i class="fas fa-times mr-1"></i>Remove</button></div><textarea id="${tid}" class="meal-schedule-textarea w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-blue-600 focus:outline-none transition" rows="2" maxlength="600" placeholder="Add meal option details..."></textarea>`;
+            container.appendChild(div);
+            const ta = document.getElementById(tid); if (ta) { ta.value = value || ''; ta.addEventListener('input', autoSaveDraft); ta.addEventListener('change', autoSaveDraft); }
+        });
+        updateSnackRemoveButtons(mealKey);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  PDF GENERATION
+    //  Quality: scale 2.5 + JPEG 0.95 → sharp, crisp text at A4 resolution
+    //  Header: conditionally included per "includeDietitianHeader" toggle
+    //  Layout: when header is off, content area expands automatically (flexbox)
+    //          and pagination thresholds are recalculated accordingly
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    async function generatePDF(previewMode = false) {
+        if (!window.jspdf || !window.jspdf.jsPDF) { Swal.fire({ icon: 'error', title: 'PDF library not available', text: 'Please check your internet connection and reload the page.' }); return; }
+        generateLocalizedPDF(document.querySelector('input[name="pdfLanguage"]:checked')?.value || 'en', previewMode);
+    }
+
+    function updateLangSelection(lang) {
+        document.querySelectorAll('[data-lang-card]').forEach(card => { card.style.borderColor = '#bbf7d0'; card.style.background = 'white'; });
+        const active = document.querySelector('[data-lang-card="' + lang + '"]');
+        if (active) { active.style.borderColor = '#16a34a'; active.style.background = '#f0fdf4'; }
+        const note = document.getElementById('langInfoNote');
+        if (note) note.style.display = lang !== 'en' ? 'block' : 'none';
+        const radio = document.getElementById('pdfLang' + lang.charAt(0).toUpperCase() + lang.slice(1));
+        if (radio) radio.checked = true;
+    }
+
+    const pdfTranslations = {
+        en: { fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif", mainTitle: 'PERSONALIZED MEAL PLAN', patient: 'Patient:', date: 'Date:', age: 'Age:', gender: 'Gender:', height: 'Height:', weight: 'Weight:', target: 'Target:', bmi: 'BMI:', calories: 'Calories:', followup: 'Next Follow-up:', years: 'years', notSet: 'Not set', notProvided: 'Not provided', dailyMealSchedule: 'DAILY MEAL SCHEDULE', mealPlanTable: 'MEAL PLAN TABLE', guidelinesTitle: 'NUTRITIONAL GUIDELINES & RECOMMENDATIONS', mealTimeCol: 'Meal Time', planDetailsCol: 'Plan Details', dailyTargets: 'Daily Targets', exerciseRec: 'Exercise Recommendation', thingsToConsider: 'Things to Consider', foodsToAvoid: 'Foods to Avoid', specialInstructions: 'Special Instructions', waterIntake: 'Water Intake:', coconutOil: 'Coconut Oil Guidance:', mealPlateRatio: 'CUSTOM MEAL PLATE RATIO', patientType: 'Patient Type:', diabetic: 'Diabetic', nonDiabetic: 'Non-Diabetic', generatedOn: 'Generated on:', page: 'Page', of: 'of', dietaryPrefs: 'Dietary preferences:', vegetarian: 'Vegetarian', nonVeg: 'Non-Vegetarian', lowCarb: 'Low Carb', highProtein: 'High Protein', option: 'Option', mealNames: { earlyMorning: 'Early Morning', breakfast: 'Breakfast', midMorning: 'Mid Morning', lunch: 'Lunch', eveningSnack: 'Evening Snack', beforeDinner: 'Before Dinner', dinner: 'Dinner' }, guidelineTexts: ['Have your three main meals on time in small portions, do not skip any meals','Have less salt diet','Better to eat fruits rather than having fruit juices','Small fish like Herrings (Salaya), Hurulla, Salmon, Handella Sprats are preferable','Add garlic frequently to your food preparations','Be alert of your weight changes','Take 2-3 healthy snacks in addition to the 3 main meals','Avoid using oil during food preparation - select Baking, Grilling, Microwave','Regular exercise is important (for about 45 min)','Stress management is very important','Get good sleep - lack of sleep can increase insulin resistance'] },
+        si: { fontFamily: "'Noto Sans Sinhala', 'Noto Sans', sans-serif", mainTitle: 'පෞද්ගලිකකරණ ආහාර සැලැස්ම', patient: 'රෝගියා:', date: 'දිනය:', age: 'වයස:', gender: 'ස්ත්‍රී/පුරුෂ:', height: 'උස:', weight: 'බර:', target: 'ඉලක්ක:', bmi: 'BMI:', calories: 'කැලරි:', followup: 'ඊළඟ පරීක්ෂාව:', years: 'අවුරුදු', notSet: 'සකසා නැත', notProvided: 'ලබා නොදී ඇත', dailyMealSchedule: 'දෛනික ආහාර කාලසටහන', mealPlanTable: 'ආහාර සැලැස්ම වගුව', guidelinesTitle: 'පෝෂණ මාර්ගෝපදේශ සහ නිර්දේශ', mealTimeCol: 'ආහාර කාලය', planDetailsCol: 'සැලැස්ම විස්තර', dailyTargets: 'දෛනික ඉලක්ක', exerciseRec: 'ව්‍යායාම නිර්දේශ', thingsToConsider: 'සලකා බැලිය යුතු කරුණු', foodsToAvoid: 'වළකින්නට ආහාර', specialInstructions: 'විශේෂ උපදෙස්', waterIntake: 'ජල ප්‍රමාණය:', coconutOil: 'පොල් තෙල් මාර්ගෝපදේශ:', mealPlateRatio: 'ආහාර පිඟාන අනුපාතය', patientType: 'රෝගියාගේ වර්ගය:', diabetic: 'දියවැඩියා', nonDiabetic: 'දියවැඩියා නොවන', generatedOn: 'සකස් කළ දිනය:', page: 'පිටුව', of: 'ින්', dietaryPrefs: 'ආහාර කැමැත්ත:', vegetarian: 'නිර්මාංශ', nonVeg: 'මාංශ', lowCarb: 'අඩු කාබොහයිඩ්‍රේට්', highProtein: 'ඉහළ ප්‍රෝටීන්', option: 'විකල්ප', mealNames: { earlyMorning: 'අලුයම ආහාරය', breakfast: 'උදෑසන ආහාරය', midMorning: 'දහවල් ස්නැක්', lunch: 'දහවල් ආහාරය', eveningSnack: 'සවස ස්නැක්', beforeDinner: 'රාත්‍රී ආහාරයට පෙර', dinner: 'රාත්‍රී ආහාරය' }, guidelineTexts: ['ඔබේ ප්‍රධාන ආහාර 3 කාලසිරිතට කුඩා ප්‍රමාණවලින් ගන්න, ආහාර මඟ හැරීමෙන් වළකින්න','අඩු ලුණු ආහාර වේලක් ගන්න','පලතුරු යුෂ ගනු වෙනුවට පලතුරු ආහාරයට ගැනීම වඩා යෝග්‍ය','කුඩා මාළු (සාලයා, හරුල්ලා, සල්මන්, හඳල්ල, ස්ප්‍රැට්ස්) ආහාරයට ගැනීම සුදුසු','ආහාර සකස් කිරීමේදී සුදුළූනු නිතර භාවිත කරන්න','ඔබේ බර වෙනස්කම් ගැන සැලකිලිමත් වන්න','ප්‍රධාන ආහාර 3 ට අමතරව සෞඛ්‍යසම්පන්න සුලු ආහාර 2-3 ක් ගන්න','ආහාර සකස් කිරීමේදී තෙල් භාවිතා කිරීමෙන් වළකින්න','නිත්‍ය ව්‍යායාම වැදගත් (විනාඩි 45 පමණ)','ආතතිය කළමනාකරණය ඉතා වැදගත්','හොඳ නිද්‍රාවක් ලබා ගන්න'] },
+        ta: { fontFamily: "'Noto Sans Tamil', 'Noto Sans', sans-serif", mainTitle: 'தனிப்பயனாக்கப்பட்ட உணவுத் திட்டம்', patient: 'நோயாளி:', date: 'தேதி:', age: 'வயது:', gender: 'பாலினம்:', height: 'உயரம்:', weight: 'எடை:', target: 'இலக்கு:', bmi: 'BMI:', calories: 'கலோரி:', followup: 'அடுத்த பரிசோதனை:', years: 'வயது', notSet: 'அமைக்கப்படவில்லை', notProvided: 'வழங்கப்படவில்லை', dailyMealSchedule: 'தினசரி உணவு அட்டவணை', mealPlanTable: 'உணவுத் திட்ட அட்டவணை', guidelinesTitle: 'ஊட்டச்சத்து வழிகாட்டுதல்கள் மற்றும் பரிந்துரைகள்', mealTimeCol: 'உணவு நேரம்', planDetailsCol: 'திட்ட விவரங்கள்', dailyTargets: 'தினசரி இலக்குகள்', exerciseRec: 'உடற்பயிற்சி பரிந்துரை', thingsToConsider: 'கவனிக்க வேண்டியவை', foodsToAvoid: 'தவிர்க்க வேண்டிய உணவுகள்', specialInstructions: 'சிறப்பு அறிவுறுத்தல்கள்', waterIntake: 'தண்ணீர் உட்கொள்ளல்:', coconutOil: 'தேங்காய் எண்ணெய் வழிகாட்டுதல்:', mealPlateRatio: 'தனிப்பயன் உணவு தட்டு விகிதம்', patientType: 'நோயாளி வகை:', diabetic: 'நீரிழிவு', nonDiabetic: 'நீரிழிவு அல்லாத', generatedOn: 'உருவாக்கிய தேதி:', page: 'பக்கம்', of: 'இல்', dietaryPrefs: 'உணவு விருப்பங்கள்:', vegetarian: 'சைவம்', nonVeg: 'அசைவம்', lowCarb: 'குறைந்த கார்ப்', highProtein: 'அதிக புரதம்', option: 'விருப்பம்', mealNames: { earlyMorning: 'அதிகாலை உணவு', breakfast: 'காலை உணவு', midMorning: 'நண்பகல் சிற்றுண்டி', lunch: 'மதிய உணவு', eveningSnack: 'மாலை சிற்றுண்டி', beforeDinner: 'இரவு உணவுக்கு முன்', dinner: 'இரவு உணவு' }, guidelineTexts: ['உங்கள் மூன்று முக்கிய உணவுகளை சரியான நேரத்தில் சிறிய அளவுகளில் சாப்பிடுங்கள், உணவை தவிர்க்காதீர்கள்','குறைந்த உப்பு உணவை உட்கொள்ளுங்கள்','பழச்சாறு குடிப்பதை விட பழங்களை சாப்பிடுவது சிறந்தது','சிறிய மீன்கள் (ஹெர்ரிங்ஸ், ஹுரில்லா, சால்மன், ஹாண்டெல்லா, ஸ்ப்ரட்ஸ்) சாப்பிடுவது நல்லது','உணவு தயாரிப்பில் பூண்டை அடிக்கடி சேர்க்கவும்','உங்கள் எடை மாற்றங்களை கவனிக்கவும்','3 முக்கிய உணவுகளுக்கு கூடுதலாக 2-3 ஆரோக்கியமான சிற்றுண்டிகள் சாப்பிடுங்கள்','உணவு தயாரிப்பில் எண்ணெய் பயன்படுத்துவதை தவிர்க்கவும்','தொடர் உடற்பயிற்சி முக்கியம் (சுமார் 45 நிமிடங்கள்)','மன அழுத்த மேலாண்மை மிகவும் முக்கியம்','நல்ல தூக்கம் அவசியம்'] }
+    };
+
+    async function lTranslate(text, langCode) {
+        if (!text || !text.trim()) return text;
+        try {
+            const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=' + langCode + '&dt=t&q=' + encodeURIComponent(text.trim().substring(0, 450));
+            const resp = await Promise.race([fetch(url), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000))]);
+            const data = await resp.json();
+            if (Array.isArray(data) && Array.isArray(data[0])) return data[0].map(s => (s && s[0]) || '').join('').trim() || text;
+        } catch {}
+        return text;
+    }
+
+    async function translateFormData(formData, lang) {
+        if (lang === 'en') return JSON.parse(JSON.stringify(formData));
+        const langCode = lang === 'si' ? 'si' : 'ta';
+        const fd = JSON.parse(JSON.stringify(formData));
+        const tasks = [];
+        const addTask = (obj, key) => { if (obj[key] && String(obj[key]).trim()) tasks.push({ obj, key }); };
+        addTask(fd.guidelines, 'waterIntake'); addTask(fd.guidelines, 'coconutOil'); addTask(fd.guidelines, 'exercise'); addTask(fd.guidelines, 'foodsToAvoid'); addTask(fd.guidelines, 'specialInstructions');
+        const optPropMap = { earlyMorning:'earlyMorningOptions', breakfast:'breakfastOptions', midMorning:'midMorningOptions', lunch:'lunchOptions', eveningSnack:'eveningSnackOptions', beforeDinner:'beforeDinnerOptions', dinner:'dinnerOptions' };
+        for (const opts of Object.values(optPropMap)) { if (Array.isArray(fd.mealPlan.meals[opts])) fd.mealPlan.meals[opts].forEach((_, i) => addTask(fd.mealPlan.meals[opts], i)); }
+        if (!tasks.length) return fd;
+        const BATCH = 6;
+        for (let i = 0; i < tasks.length; i += BATCH) {
+            const batch = tasks.slice(i, i + BATCH);
+            const results = await Promise.all(batch.map(tk => lTranslate(String(tk.obj[tk.key]), langCode)));
+            results.forEach((r, j) => { batch[j].obj[batch[j].key] = r; });
+            if (i + BATCH < tasks.length) await new Promise(res => setTimeout(res, 350));
+        }
+        return fd;
+    }
+
+    // ── Hidden ruler at content width (794 − 2·57 = 680px) for height measurement ──
+    function makeRuler(fontFamily) {
+        const r = document.createElement('div');
+        r.style.cssText = 'position:fixed;top:-39999px;left:-9999px;width:680px;font-family:' + fontFamily + ';visibility:hidden;box-sizing:border-box;';
+        document.body.appendChild(r);
+        return r;
+    }
+
+    // Render a splittable text block (heading + pre-wrap body) for a subset of lines.
+    function renderSpec(spec, isCont) {
+        const title = isCont ? spec.title + ' ' + (spec.contWord || '(cont.)') : spec.title;
+        return '<div style="margin-bottom:' + spec.mb + 'px;"><div style="color:' + spec.color + ';font-size:' + spec.ts + 'px;font-weight:700;margin-bottom:' + spec.tmb + 'px;">' + title + '</div><div style="font-size:' + spec.cs + 'px;color:#111827;white-space:pre-wrap;line-height:' + spec.lh + ';padding-left:' + spec.pl + 'px;">' + spec.lines.join('\n') + '</div></div>';
+    }
+
+    const blockHTML = b => b.splittable ? renderSpec(b.spec, false) : b.html;
+    const trimLeadBlanks = lines => { let i = 0; while (i < lines.length && !lines[i].trim()) i++; return lines.slice(i); };
+
+    // Continuous, splitting paginator. Fills each page up to maxH; never overflows/clips.
+    function paginateBlocks(blocks, maxH, ruler) {
+        const measure = html => { ruler.innerHTML = html; return ruler.offsetHeight; };
+        const pages = []; let cur = [], curH = 0;
+        const flush = () => { if (cur.length) { pages.push(cur.join('')); cur = []; curH = 0; } };
+        for (let i = 0; i < blocks.length; i++) {
+            const b = blocks[i];
+            if (b.type === 'table') {
+                let ri = 0;
+                while (ri < b.rows.length) {
+                    let avail = maxH - curH;
+                    if (cur.length && avail < b.theadH + b.rows[ri].h) { flush(); avail = maxH; }
+                    let used = b.theadH; const chunk = [];
+                    while (ri < b.rows.length) {
+                        if (chunk.length && used + b.rows[ri].h > avail) break;
+                        chunk.push(b.rows[ri].html); used += b.rows[ri].h; ri++;
+                    }
+                    cur.push(b.wrap(b.thead + '<tbody>' + chunk.join('') + '</tbody>')); curH += used;
+                    if (ri < b.rows.length) flush();
+                }
+                continue;
+            }
+            if (!b.splittable) {
+                const h = measure(blockHTML(b));
+                if (cur.length && (curH + h > maxH || (b.keepWithNext && (maxH - (curH + h)) < 80))) flush();
+                cur.push(b.html); curH += h;
+                continue;
+            }
+            // splittable text block — fits whole, else split at line boundaries
+            let spec = b.spec, isCont = false;
+            while (spec) {
+                const whole = renderSpec(spec, isCont), wholeH = measure(whole);
+                if (curH + wholeH <= maxH) { cur.push(whole); curH += wholeH; break; }
+                let avail = maxH - curH;
+                const oneH = measure(renderSpec({ ...spec, lines: spec.lines.slice(0, 1) }, isCont));
+                if (cur.length && avail < oneH) { flush(); avail = maxH; }
+                let best = 0;
+                for (let k = 1; k <= spec.lines.length; k++) {
+                    if (measure(renderSpec({ ...spec, lines: spec.lines.slice(0, k) }, isCont)) <= avail) best = k; else break;
+                }
+                if (best === 0) best = 1; // overflow guard: always place ≥1 line
+                const placed = renderSpec({ ...spec, lines: spec.lines.slice(0, best) }, isCont);
+                cur.push(placed); curH += measure(placed);
+                const restLines = trimLeadBlanks(spec.lines.slice(best));
+                if (restLines.length) { flush(); spec = { ...spec, lines: restLines }; isCont = true; }
+                else spec = null;
+            }
+        }
+        flush();
+        return pages.length ? pages : [''];
+    }
+
+    // ── Header builder (returns '' when inclHeader is false) ───────────────────
+    function lHeader(fd, t, clean, inclHeader) {
+        if (!inclHeader) return '';
+        const name = clean(fd.nutritionist.name) || 'Meal Plan', creds = clean(fd.nutritionist.credentials), contact = [clean(fd.nutritionist.phone), clean(fd.nutritionist.email)].filter(Boolean).join(' | ');
+        return '<div style="background:#1877F2;width:794px;height:144px;display:flex;align-items:center;padding:0 57px;gap:20px;flex-shrink:0;box-sizing:border-box;"><div style="background:white;border-radius:50%;min-width:57px;width:57px;height:57px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#1877F2;font-size:14px;flex-shrink:0;letter-spacing:0.5px;">MP</div><div style="min-width:0;"><div style="color:white;font-size:21px;font-weight:700;line-height:1.2;">' + name + '</div>' + (creds ? '<div style="color:rgba(255,255,255,0.88);font-size:15px;margin-top:5px;line-height:1.3;">' + creds + '</div>' : '') + (contact ? '<div style="color:rgba(255,255,255,0.72);font-size:12px;margin-top:5px;line-height:1.3;">' + contact + '</div>' : '') + '</div></div>';
+    }
+
+    function lFooter(t, now, pageNote, copyright) {
+        return '<div style="border-top:1px solid #dce0e6;height:53px;padding:5px 57px 3px;flex-shrink:0;box-sizing:border-box;"><div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#6b7280;"><span>' + t.generatedOn + ' ' + now.toLocaleDateString() + '</span>' + (pageNote ? '<span>' + pageNote + '</span>' : '<span></span>') + '</div>' + (copyright ? '<div style="text-align:center;font-size:9px;color:#9ca3af;margin-top:3px;">\u00A9 ' + copyright + '</div>' : '') + '</div>';
+    }
+
+    // ── Page wrapper — header is optional; flex:1 content fills the freed space ─
+    function lPage(headerHTML, contentHTML, footerHTML, fontFamily) {
+        return '<div style="width:794px;height:1123px;overflow:hidden;background:white;font-family:' + fontFamily + ';color:#111;box-sizing:border-box;display:flex;flex-direction:column;">' + headerHTML + '<div style="flex:1;padding:38px 57px 10px;box-sizing:border-box;overflow:hidden;">' + contentHTML + '</div>' + footerHTML + '</div>';
+    }
+
+    // ── Info blocks: title + patient box (kept together) + optional plate chart ───
+    function buildInfoBlocks(fd, t, clean, renderDate, plateImgSrc, inclChart, inclImage, s) {
+        const px = n => Math.round(n * s);
+        const p = fd.patient, m = fd.measurements, mp = fd.mealPlan;
+        const plate = mp.mealPlate || {}, isDiab = plate.patientType === 'diabetic', ptd = mealPlateTypeConfig[isDiab ? 'diabetic' : 'nonDiabetic'];
+        const prefs = []; if (mp.preferences?.vegetarian) prefs.push(t.vegetarian); if (mp.preferences?.nonVeg) prefs.push(t.nonVeg); if (mp.preferences?.lowCarb) prefs.push(t.lowCarb); if (mp.preferences?.highProtein) prefs.push(t.highProtein);
+        const info = '<h2 style="text-align:center;color:#1877F2;font-size:' + px(21) + 'px;font-weight:700;margin:0 0 ' + px(14) + 'px 0;">' + t.mainTitle + '</h2><div style="background:#f4f8ff;border:1.5px solid #d2ddef;border-radius:5px;padding:' + px(9) + 'px ' + px(16) + 'px ' + px(7) + 'px;"><table style="width:100%;border-collapse:collapse;font-size:' + px(13) + 'px;line-height:1.75;"><col style="width:36%"><col style="width:33%"><col style="width:31%"><tr><td style="padding:' + px(2) + 'px 8px;font-weight:700;">' + t.patient + ' ' + (clean(p.name) || t.notProvided) + '</td><td style="padding:' + px(2) + 'px 8px;"></td><td style="padding:' + px(2) + 'px 8px;font-weight:700;">' + t.date + ' ' + renderDate(p.date) + '</td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.age + ' ' + (clean(p.age) || '—') + ' ' + t.years + '</td><td style="padding:' + px(2) + 'px 8px;">' + t.gender + ' ' + (clean(p.gender) || '—') + '</td><td style="padding:' + px(2) + 'px 8px;"></td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.height + ' ' + (clean(m.height) || '—') + ' cm</td><td style="padding:' + px(2) + 'px 8px;">' + t.weight + ' ' + (clean(m.weight) || '—') + ' kg</td><td style="padding:' + px(2) + 'px 8px;">' + t.target + ' ' + (clean(m.targetWeight) || '—') + ' kg</td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.bmi + ' ' + (clean(m.bmi) || '—') + ' kg/m²</td><td style="padding:' + px(2) + 'px 8px;">' + t.calories + ' ' + (clean(mp.calorieTarget) || t.notSet) + ' kcal/day</td><td style="padding:' + px(2) + 'px 8px;"></td></tr><tr><td colspan="3" style="padding:' + px(2) + 'px 8px;">' + t.followup + ' ' + renderDate(p.nextFollowupDate) + '</td></tr></table></div>' + (prefs.length ? '<div style="font-size:' + px(11) + 'px;color:#475569;font-style:italic;margin:' + px(8) + 'px 0;">' + t.dietaryPrefs + ' ' + prefs.join(', ') + '</div>' : '');
+        const blocks = [{ splittable: false, keepWithNext: true, html: '<div style="margin-bottom:' + px(12) + 'px;">' + info + '</div>' }];
+        let plateHTML = '';
+        if (plateImgSrc && inclChart) {
+            plateHTML = '<div style="text-align:center;margin-bottom:' + px(6) + 'px;padding-top:' + px(10) + 'px;border-top:1px solid #e5e7eb;"><div style="color:#1877F2;font-size:' + px(15) + 'px;font-weight:700;margin-bottom:' + px(4) + 'px;">' + t.mealPlateRatio + '</div><div style="font-size:' + px(11) + 'px;color:#64748b;margin-bottom:' + px(6) + 'px;">' + t.patientType + ' ' + (isDiab ? t.diabetic : t.nonDiabetic) + '</div><img src="' + plateImgSrc + '" style="max-width:' + px(430) + 'px;max-height:' + px(360) + 'px;display:block;margin:0 auto;" /><div style="display:flex;justify-content:center;gap:' + px(24) + 'px;margin-top:' + px(6) + 'px;font-size:' + px(11) + 'px;color:#374151;"><span>' + ptd.legend[0] + ': ' + (plate.vegetables || 0) + '%</span><span>' + ptd.legend[1] + ': ' + (plate.protein || 0) + '%</span><span>' + ptd.legend[2] + ': ' + (plate.grains || 0) + '%</span></div></div>';
+        } else if (inclChart || inclImage) {
+            plateHTML = '<div style="text-align:center;margin-bottom:' + px(6) + 'px;"><img src="https://res.cloudinary.com/dkj22lm1g/image/upload/v1773588268/IMG-20260315-WA0081_rwxwet.jpg" style="max-width:' + px(500) + 'px;width:80%;display:block;margin:0 auto;" crossorigin="anonymous" /></div>';
+        }
+        if (plateHTML) blocks.push({ splittable: false, keepWithNext: false, html: plateHTML });
+        return blocks;
+    }
+
+    // ── Meal blocks: heading (keep-with-next) + one splittable block per meal, ─────
+    //    or, in table mode, heading + a single flowing table block. ────────────────
+    async function buildMealBlocks(fd, t, clean, s, ruler) {
+        const px = n => Math.round(n * s);
+        const mp = fd.mealPlan, inclTbl = document.getElementById('includeMealTable')?.checked || false, LABELS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', sm = v => String(v ?? '').split('\n').map(l => l.trim()).filter(Boolean).join('\n');
+        const fmtOpts = opts => { if (!Array.isArray(opts)) return ''; const items = opts.map((o, i) => { const c = sm(o || '').trim(); return c ? { label: LABELS[i] || String(i+1), content: c } : null; }).filter(Boolean); if (!items.length) return ''; if (items.length === 1) return items[0].content; return items.map(it => t.option + ' ' + it.label + ':\n' + it.content).join('\n\n'); };
+        const mealKeys = ['earlyMorning','breakfast','midMorning','lunch','eveningSnack','beforeDinner','dinner'], optPropMap = { earlyMorning:'earlyMorningOptions', breakfast:'breakfastOptions', midMorning:'midMorningOptions', lunch:'lunchOptions', eveningSnack:'eveningSnackOptions', beforeDinner:'beforeDinnerOptions', dinner:'dinnerOptions' };
+        const getMealLabel = key => { const nm = t.mealNames[key] || mealNames[key] || key, times = (mp.mealTimes && mp.mealTimes[key]) || defaultMealTimes[key]; return nm + ' (' + formatTimeTo12h(times.start) + ' – ' + formatTimeTo12h(times.end) + ')'; };
+        if (!inclTbl) {
+            const specs = mealKeys.map(key => { const content = fmtOpts(mp.meals[optPropMap[key]]); if (!content) return null; return { splittable: true, spec: { title: getMealLabel(key), color: '#1e40af', ts: px(15), tmb: px(4), cs: px(13), lh: 1.7, pl: px(11), mb: px(12), lines: content.split('\n'), contWord: '(cont.)' } }; }).filter(Boolean);
+            if (!specs.length) return [];
+            return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#1877F2;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(10) + 'px 0;">' + t.dailyMealSchedule + '</h2>' }, ...specs];
+        }
+        const COL_STYLES = '<colgroup><col style="width:197px"><col style="width:483px"></colgroup>';
+        const TABLE_WRAP = body => '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-family:' + t.fontFamily + ';">' + COL_STYLES + body + '</table>';
+        const thead = '<thead><tr><th style="background:#1877F2;color:white;padding:' + px(8) + 'px ' + px(10) + 'px;text-align:left;border:1px solid #1877F2;font-size:' + px(13) + 'px;font-weight:700;">' + t.mealTimeCol + '</th><th style="background:#1877F2;color:white;padding:' + px(8) + 'px ' + px(10) + 'px;text-align:left;border:1px solid #1877F2;font-size:' + px(13) + 'px;font-weight:700;">' + t.planDetailsCol + '</th></tr></thead>';
+        const rowsRaw = mealKeys.map(key => '<tr><td style="padding:' + px(8) + 'px ' + px(10) + 'px;font-size:' + px(12) + 'px;font-weight:700;color:#1e40af;vertical-align:top;border:1px solid #d1d5db;background:#f8fafc;">' + getMealLabel(key) + '</td><td style="padding:' + px(8) + 'px ' + px(10) + 'px;font-size:' + px(12) + 'px;color:#111827;vertical-align:top;border:1px solid #d1d5db;white-space:pre-wrap;line-height:1.7;">' + (fmtOpts(mp.meals[optPropMap[key]]) || '—') + '</td></tr>');
+        ruler.innerHTML = TABLE_WRAP(thead); const theadH = ruler.offsetHeight + 2;
+        const rows = rowsRaw.map(html => { ruler.innerHTML = TABLE_WRAP('<tbody>' + html + '</tbody>'); return { html, h: ruler.offsetHeight + 2 }; });
+        return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#1877F2;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(10) + 'px 0;">' + t.mealPlanTable + '</h2>' }, { type: 'table', thead, theadH, rows, wrap: TABLE_WRAP }];
+    }
+
+    // ── Guideline blocks: heading (keep-with-next) + one splittable block each ─────
+    function buildGuidelineBlocks(fd, t, clean, s) {
+        const px = n => Math.round(n * s);
+        const g = fd.guidelines, sm = v => String(v ?? '').split('\n').map(l => l.trim()).filter(Boolean).join('\n');
+        const hydration = t.waterIntake + ' ' + (clean(g.waterIntake) || t.notProvided) + '\n' + t.coconutOil + ' ' + (clean(g.coconutOil) || t.notProvided);
+        const checkedGL = t.guidelineTexts.map((line, i) => g.checkboxes?.[i] ? (i + 1) + '. ' + line : null).filter(Boolean).join('\n');
+        const defs = [['dailyTargets', hydration, '#0284c7'], ['exerciseRec', sm(g.exercise), '#059669'], ['thingsToConsider', checkedGL, '#7c3aed'], ['foodsToAvoid', sm(g.foodsToAvoid), '#dc2626'], ['specialInstructions', sm(g.specialInstructions), '#2563eb']];
+        const specs = defs.map(([k, content, color]) => (content && content.trim()) ? { splittable: true, spec: { title: t[k], color, ts: px(15), tmb: px(4), cs: px(13), lh: 1.7, pl: px(11), mb: px(12), lines: content.split('\n'), contWord: '(cont.)' } } : null).filter(Boolean);
+        if (!specs.length) return [];
+        return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#1877F2;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(12) + 'px 0;">' + t.guidelinesTitle + '</h2>' }, ...specs];
+    }
+
+    async function generateLocalizedPDF(lang, previewMode = false) {
+        if (!window.jspdf?.jsPDF) { Swal.fire({ icon: 'error', title: 'PDF library not available', text: 'Please reload the page.' }); return; }
+        if (!window.html2canvas) { Swal.fire({ icon: 'error', title: 'Rendering library not available', text: 'html2canvas failed to load. Please check your connection.' }); return; }
+
+        const t = pdfTranslations[lang];
+        const generateBtn = document.getElementById('generatePdfBtn');
+        if (generateBtn) { generateBtn.disabled = true; generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...'; }
+
+        Swal.fire({ title: previewMode ? 'Preparing Preview...' : 'Generating PDF...', html: 'Building ' + (lang === 'en' ? 'English' : lang === 'si' ? 'Sinhala' : 'Tamil') + ' meal plan PDF...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        const container = document.createElement('div');
+        container.style.cssText = 'position:fixed;top:-39999px;left:-9999px;width:794px;height:1123px;overflow:hidden;background:white;';
+        document.body.appendChild(container);
+
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true });
+            const rawFormData = collectFormData();
+            const clean = v => String(v ?? '').trim();
+            const renderDate = value => { const d = new Date(value); return Number.isNaN(d.getTime()) ? clean(value) || t.notProvided : d.toLocaleDateString(); };
+            const now = new Date();
+
+            // ── Dietitian header toggle ──────────────────────────────────────────
+            const inclHeader  = document.getElementById('includeDietitianHeader')?.checked !== false;
+            // When the header band is removed (144 px), that space flows to the content area
+            const effectiveHdrH  = inclHeader ? PDF_HDR_H : 0;
+            const effectiveContentH = PDF_PAGE_H - effectiveHdrH - PDF_FTR_H - 48;
+
+            Swal.update({ html: lang === 'en' ? 'Collecting form data...' : 'Translating content...' });
+            const formData = await translateFormData(rawFormData, lang);
+
+            const inclChart = document.getElementById('includeMealPlateChart')?.checked !== false;
+            const inclImage = document.getElementById('includeMealPlateImage')?.checked || false;
+            let plateImgSrc = null;
+            if (inclChart) { const pc = document.getElementById('mealPlateCanvas'); if (pc) { try { plateImgSrc = pc.toDataURL('image/png'); } catch {} } }
+
+            Swal.update({ html: 'Laying out pages...' });
+            await document.fonts.ready;
+            const copyright = clean(formData.nutritionist.name) || 'Meal Plan Generator';
+            const ruler = makeRuler(t.fontFamily);
+            let pages = [''];
+            try {
+                // Shrink-to-fit: densest readable layout that lands within 4 pages.
+                const SCALES = [1, 0.96, 0.92, 0.88, 0.84, 0.8, 0.76, 0.72, 0.68, 0.64];
+                for (const s of SCALES) {
+                    const blocks = [
+                        ...buildInfoBlocks(formData, t, clean, renderDate, plateImgSrc, inclChart, inclImage, s),
+                        ...await buildMealBlocks(formData, t, clean, s, ruler),
+                        ...buildGuidelineBlocks(formData, t, clean, s)
+                    ];
+                    pages = paginateBlocks(blocks, effectiveContentH, ruler);
+                    if (pages.length <= 4) break;
+                }
+            } finally { if (document.body.contains(ruler)) document.body.removeChild(ruler); }
+            const allPages = pages.map((content, i) => lPage(lHeader(formData, t, clean, inclHeader), content, lFooter(t, now, t.page + ' ' + (i + 1) + ' ' + t.of + ' ' + pages.length, copyright), t.fontFamily));
+
+            // ── High-fidelity render ─────────────────────────────────────────────
+            // scale 2.5 → pixel density ≈ 235 DPI at A4, which is well above
+            // the 150 DPI threshold where text starts to look sharp in PDF viewers.
+            const h2cOpts = {
+                scale: 2.5,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff',
+                width:  PDF_PAGE_W,
+                height: PDF_PAGE_H,
+            };
+
+            for (let i = 0; i < allPages.length; i++) {
+                if (i > 0) doc.addPage();
+                Swal.update({ html: 'Rendering page ' + (i + 1) + ' / ' + allPages.length + '...' });
+                container.innerHTML = allPages[i];
+                await new Promise(r => setTimeout(r, lang === 'en' ? 150 : 300));
+                const el = container.firstElementChild || container;
+                const canvas = await html2canvas(el, h2cOpts);
+
+                // Flatten alpha onto white before JPEG encode
+                const flat = document.createElement('canvas');
+                flat.width = canvas.width; flat.height = canvas.height;
+                const fctx = flat.getContext('2d');
+                fctx.fillStyle = '#ffffff';
+                fctx.fillRect(0, 0, flat.width, flat.height);
+                fctx.drawImage(canvas, 0, 0);
+
+                // JPEG quality 0.95 — visually indistinguishable from lossless for
+                // text & flat-colour pages, ~70 % smaller than PNG at this scale.
+                doc.addImage(flat.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, 210, 297);
+            }
+
+            const safeName   = clean(rawFormData.patient.name || 'Patient').replace(/\s+/g, '_');
+            const safeDate   = clean(rawFormData.patient.date || now.toISOString().split('T')[0]);
+            const langSuffix = lang !== 'en' ? '_' + lang.toUpperCase() : '';
+            const filename   = 'MealPlan_' + safeName + '_' + safeDate + langSuffix + '.pdf';
+
+            if (previewMode) {
+                const blobUrl = URL.createObjectURL(doc.output('blob'));
+                const win = window.open(blobUrl, '_blank');
+                if (!win) { URL.revokeObjectURL(blobUrl); Swal.fire({ icon: 'warning', title: 'Pop-up Blocked', text: 'Please allow pop-ups to view the PDF preview.' }); }
+                else { setTimeout(() => URL.revokeObjectURL(blobUrl), 300000); Swal.fire({ icon: 'success', title: 'Preview Opened!', timer: 2400, timerProgressBar: true, toast: true, position: 'top-end', showConfirmButton: false }); }
+            } else {
+                doc.save(filename);
+                Swal.fire({ icon: 'success', title: 'PDF Generated!', text: 'Your meal plan has been downloaded.', timer: 2400, timerProgressBar: true, toast: true, position: 'top-end', showConfirmButton: false });
+            }
+        } catch (err) {
+            console.error('PDF error:', err);
+            Swal.fire({ icon: 'error', title: 'PDF Generation Failed', text: 'An error occurred. Please try again.', footer: err.message });
+        } finally {
+            if (document.body.contains(container)) document.body.removeChild(container);
+            if (generateBtn) { generateBtn.disabled = false; generateBtn.innerHTML = '<i class="fas fa-file-pdf"></i> Generate PDF'; }
+        }
+    }
+
+    // ── Init ────────────────────────────────────────────────────────────────────
+    handlePlatePatientTypeChange(false);
+    updateFontSizeDisplay();
+    updateProgressIndicators(currentStep);
+    initRealtimeValidation();
+    initTextareaEnhancements();
+    showStepSummary();
+    setTimeout(() => { canShowDraftToast = true; }, 1200);
+    document.querySelectorAll('#mealPlanForm input, #mealPlanForm textarea, #mealPlanForm select').forEach(field => {
+        field.addEventListener('input', autoSaveDraft);
+        field.addEventListener('change', autoSaveDraft);
+    });
+
+    const savedDraft = localStorage.getItem('mealPlanDraft');
+    if (savedDraft && !localStorage.getItem('mealPlanData')) {
+        localStorage.setItem('mealPlanData', savedDraft);
+        loadSavedData();
+    }
+
+    // Gate the app behind Supabase email login.
+    initAuth();
+</script>
+<script src="../../assets/gt-switcher.js" defer></script>
+</body>
+</html>

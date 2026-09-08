@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICU NutriPlan — Critical Care Diet Plan Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-primary: #0a0e17;
+    --bg-secondary: #111827;
+    --bg-card: #1a2236;
+    --bg-card-hover: #1f2a42;
+    --bg-input: #0d1321;
+    --border: #2a3654;
+    --border-focus: #3b82f6;
+    --text-primary: #e8edf5;
+    --text-secondary: #8896b3;
+    --text-muted: #5a6a8a;
+    --accent-blue: #3b82f6;
+    --accent-cyan: #06b6d4;
+    --accent-emerald: #10b981;
+    --accent-amber: #f59e0b;
+    --accent-rose: #f43f5e;
+    --accent-violet: #8b5cf6;
+    --gradient-1: linear-gradient(135deg, #3b82f6, #06b6d4);
+    --gradient-2: linear-gradient(135deg, #10b981, #06b6d4);
+    --gradient-3: linear-gradient(135deg, #f59e0b, #f43f5e);
+    --shadow-lg: 0 20px 40px rgba(0,0,0,0.4);
+    --shadow-glow: 0 0 30px rgba(59,130,246,0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-primary); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent-blue); }
+
+  /* Header */
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,14,23,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+  }
+  .header-inner {
+    max-width: 1440px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--gradient-1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+    box-shadow: 0 0 20px rgba(59,130,246,0.3);
+  }
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .logo-text span { color: var(--accent-cyan); }
+  .header-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    padding: 4px 10px;
+    background: rgba(59,130,246,0.12);
+    border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 20px;
+    color: var(--accent-blue);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Main */
+  .main { max-width: 1440px; margin: 0 auto; padding: 2rem; }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    position: relative;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+  }
+  .hero h1 .gradient-text {
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .hero p {
+    color: var(--text-secondary);
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.6;
+    font-size: 0.95rem;
+  }
+  .guideline-tags {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .g-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    padding: 5px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .g-tag.blue { background: rgba(59,130,246,0.1); color: var(--accent-blue); border: 1px solid rgba(59,130,246,0.2); }
+  .g-tag.cyan { background: rgba(6,182,212,0.1); color: var(--accent-cyan); border: 1px solid rgba(6,182,212,0.2); }
+  .g-tag.emerald { background: rgba(16,185,129,0.1); color: var(--accent-emerald); border: 1px solid rgba(16,185,129,0.2); }
+  .g-tag.amber { background: rgba(245,158,11,0.1); color: var(--accent-amber); border: 1px solid rgba(245,158,11,0.2); }
+
+  /* Steps nav */
+  .steps-nav {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 2rem;
+    background: var(--bg-secondary);
+    border-radius: 14px;
+    padding: 6px;
+    border: 1px solid var(--border);
+  }
+  .step-btn {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .step-btn.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+  .step-btn:hover:not(.active) { color: var(--text-secondary); }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    background: var(--border);
+    color: var(--text-muted);
+  }
+  .step-btn.active .step-num {
+    background: var(--gradient-1);
+    color: white;
+  }
+  .step-btn.completed .step-num {
+    background: var(--accent-emerald);
+    color: white;
+  }
+
+  /* Section panels */
+  .section-panel { display: none; animation: fadeIn 0.4s ease; }
+  .section-panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Cards */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s;
+  }
+  .card:hover { border-color: rgba(59,130,246,0.2); }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .card-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+  }
+  .card-icon.blue { background: rgba(59,130,246,0.12); color: var(--accent-blue); }
+  .card-icon.cyan { background: rgba(6,182,212,0.12); color: var(--accent-cyan); }
+  .card-icon.emerald { background: rgba(16,185,129,0.12); color: var(--accent-emerald); }
+  .card-icon.amber { background: rgba(245,158,11,0.12); color: var(--accent-amber); }
+  .card-icon.rose { background: rgba(244,63,94,0.12); color: var(--accent-rose); }
+  .card-icon.violet { background: rgba(139,92,246,0.12); color: var(--accent-violet); }
+  .card-title {
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  .card-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Form */
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+  }
+  .form-input, .form-select {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    transition: all 0.2s;
+    outline: none;
+  }
+  .form-input:focus, .form-select:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+  }
+  .form-select { cursor: pointer; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238896b3' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+  .form-select option { background: var(--bg-card); color: var(--text-primary); }
+
+  /* Buttons */
+  .btn {
+    padding: 12px 28px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-primary {
+    background: var(--gradient-1);
+    color: white;
+    box-shadow: 0 4px 15px rgba(59,130,246,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
+  .btn-secondary {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--accent-blue); }
+  .btn-row { display: flex; gap: 12px; margin-top: 1.5rem; justify-content: flex-end; }
+
+  /* Results */
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+  }
+  .result-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .result-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .result-card.blue::before { background: var(--gradient-1); }
+  .result-card.cyan::before { background: linear-gradient(90deg, #06b6d4, #3b82f6); }
+  .result-card.emerald::before { background: linear-gradient(90deg, #10b981, #06b6d4); }
+  .result-card.amber::before { background: linear-gradient(90deg, #f59e0b, #f43f5e); }
+  .result-card.rose::before { background: linear-gradient(90deg, #f43f5e, #8b5cf6); }
+  .result-card.violet::before { background: linear-gradient(90deg, #8b5cf6, #3b82f6); }
+  .result-value {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0.5rem 0 0.25rem;
+  }
+  .result-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .result-unit {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+  }
+
+  /* Supplement table */
+  .supp-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.78rem;
+  }
+  .supp-table th {
+    background: var(--bg-secondary);
+    padding: 10px 12px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .supp-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(42,54,84,0.5);
+    color: var(--text-primary);
+  }
+  .supp-table tr:hover td { background: rgba(59,130,246,0.04); }
+  .supp-table .num { font-family: 'Space Mono', monospace; font-size: 0.75rem; }
+  .table-scroll { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+
+  /* Nutrient bars */
+  .nutrient-bar-wrap { margin-bottom: 12px; }
+  .nutrient-bar-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    font-size: 0.75rem;
+  }
+  .nutrient-bar-name { color: var(--text-secondary); }
+  .nutrient-bar-value { font-family: 'Space Mono', monospace; color: var(--text-primary); font-size: 0.72rem; }
+  .nutrient-bar-track {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-input);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .nutrient-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s ease;
+  }
+
+  /* Chart container */
+  .chart-container {
+    position: relative;
+    height: 280px;
+    margin-top: 1rem;
+  }
+
+  /* Feed schedule */
+  .schedule-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 120px 120px;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(42,54,84,0.4);
+    align-items: center;
+    font-size: 0.82rem;
+  }
+  .schedule-row:last-child { border-bottom: none; }
+  .schedule-time {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--accent-cyan);
+  }
+  .schedule-item { color: var(--text-primary); }
+  .schedule-vol, .schedule-cal {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-align: right;
+  }
+
+  /* Disclaimer */
+  .disclaimer {
+    margin-top: 2rem;
+    padding: 1.25rem;
+    background: rgba(244,63,94,0.06);
+    border: 1px solid rgba(244,63,94,0.15);
+    border-radius: 12px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+  .disclaimer strong { color: var(--accent-rose); }
+
+  /* Supplement selector */
+  .supp-selector {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .supp-option {
+    background: var(--bg-secondary);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .supp-option:hover { border-color: rgba(59,130,246,0.3); }
+  .supp-option.selected { border-color: var(--accent-blue); background: rgba(59,130,246,0.06); }
+  .supp-option .name { font-weight: 600; font-size: 0.85rem; margin-bottom: 4px; }
+  .supp-option .mfg { font-size: 0.7rem; color: var(--text-muted); }
+  .supp-option .meta {
+    display: flex; gap: 8px; margin-top: 8px;
+    font-family: 'Space Mono', monospace; font-size: 0.65rem;
+  }
+  .supp-option .meta span {
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: var(--bg-input);
+  }
+  .supp-check {
+    position: absolute;
+    top: 10px; right: 10px;
+    width: 20px; height: 20px;
+    border-radius: 6px;
+    background: var(--accent-blue);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+  }
+  .supp-option.selected .supp-check { display: flex; }
+
+  /* Phase indicator */
+  .phase-indicator {
+    display: flex; gap: 6px; margin-bottom: 1.5rem;
+  }
+  .phase-pill {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .phase-pill.active {
+    background: rgba(59,130,246,0.1);
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+  }
+
+  /* Print */
+  .print-section { display: none; }
+  @media print {
+    .header, .steps-nav, .btn-row, .hero { display: none !important; }
+    .section-panel { display: block !important; }
+    .print-section { display: block; }
+    body { background: white; color: #1a1a1a; }
+    .card { border: 1px solid #ddd; background: white; }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .main { padding: 1rem; }
+    .hero h1 { font-size: 1.75rem; }
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .result-grid { grid-template-columns: 1fr 1fr; }
+    .steps-nav { overflow-x: auto; }
+    .step-btn { min-width: 120px; font-size: 0.72rem; }
+    .schedule-row { grid-template-columns: 60px 1fr 80px; }
+    .schedule-cal { display: none; }
+  }
+
+  /* Animations */
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.5} }
+  .loading { animation: pulse 1.5s infinite; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">N</div>
+      <div class="logo-text">ICU <span>NutriPlan</span></div>
+    </div>
+    <div class="header-badge">ASPEN / ESPEN / NKF KDOQI Guideline Based</div>
+  </div>
+</header>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Critical Care <span class="gradient-text">Diet Plan Generator</span></h1>
+    <p>Evidence-based ICU nutrition planning powered by ASPEN, ESPEN &amp; NKF KDOQI clinical guidelines. Calculate energy requirements, select enteral formulas including renal-specific options for kidney patients, and generate complete feeding protocols with micronutrient analysis.</p>
+    <div class="guideline-tags">
+      <span class="g-tag blue">ASPEN 2022</span>
+      <span class="g-tag cyan">ESPEN 2023</span>
+      <span class="g-tag emerald">NKF KDOQI 2020</span>
+      <span class="g-tag amber">Harris-Benedict</span>
+    </div>
+  </div>
+
+  <!-- Steps Navigation -->
+  <div class="steps-nav">
+    <button class="step-btn active" onclick="goToStep(1)">
+      <span class="step-num">1</span>Patient Assessment
+    </button>
+    <button class="step-btn" onclick="goToStep(2)">
+      <span class="step-num">2</span>Energy Calculation
+    </button>
+    <button class="step-btn" onclick="goToStep(3)">
+      <span class="step-num">3</span>Supplement Selection
+    </button>
+    <button class="step-btn" onclick="goToStep(4)">
+      <span class="step-num">4</span>Diet Plan &amp; Report
+    </button>
+  </div>
+
+  <!-- STEP 1: Patient Assessment -->
+  <div class="section-panel active" id="step1">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon blue">👤</div>
+        <div>
+          <div class="card-title">Patient Demographics</div>
+          <div class="card-subtitle">Enter patient details for accurate energy estimation</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Patient ID / Name</label>
+          <input type="text" class="form-input" id="patientId" placeholder="e.g. PT-2024-001">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Age (years)</label>
+          <input type="number" class="form-input" id="age" placeholder="e.g. 55" min="18" max="120">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gender</label>
+          <select class="form-select" id="gender">
+            <option value="">Select</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Weight (kg)</label>
+          <input type="number" class="form-input" id="weight" placeholder="e.g. 70" step="0.1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Height (cm)</label>
+          <input type="number" class="form-input" id="height" placeholder="e.g. 170" step="0.1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">BMI (auto-calculated)</label>
+          <input type="text" class="form-input" id="bmi" readonly placeholder="—">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ideal Body Weight (kg)</label>
+          <input type="text" class="form-input" id="ibw" readonly placeholder="—">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Adjusted Body Weight (kg)</label>
+          <input type="text" class="form-input" id="abw" readonly placeholder="—">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon rose">🏥</div>
+        <div>
+          <div class="card-title">Clinical Status</div>
+          <div class="card-subtitle">ICU admission details and clinical condition</div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Primary Diagnosis</label>
+          <select class="form-select" id="diagnosis">
+            <option value="">Select condition</option>
+            <option value="sepsis">Sepsis / Septic Shock</option>
+            <option value="trauma">Multiple Trauma</option>
+            <option value="burns">Major Burns</option>
+            <option value="tbi">Traumatic Brain Injury</option>
+            <option value="surgery">Major Surgery (Post-Op)</option>
+            <option value="respiratory">Respiratory Failure / ARDS</option>
+            <option value="cardiac">Cardiac Failure</option>
+            <option value="renal">Acute Kidney Injury</option>
+            <option value="hepatic">Hepatic Failure</option>
+            <option value="pancreatitis">Acute Pancreatitis</option>
+            <option value="cancer">Oncology / Cancer</option>
+            <option value="covid">COVID-19 Critical</option>
+            <option value="general">General ICU</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ICU Phase</label>
+          <select class="form-select" id="icuPhase">
+            <option value="early_acute">Early Acute (Day 1–2)</option>
+            <option value="late_acute">Late Acute (Day 3–7)</option>
+            <option value="recovery">Recovery (>7 Days)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ICU Day</label>
+          <input type="number" class="form-input" id="icuDay" value="1" min="1" max="365">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mechanical Ventilation</label>
+          <select class="form-select" id="ventilation">
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Temperature (°C)</label>
+          <input type="number" class="form-input" id="temperature" placeholder="e.g. 37.5" step="0.1" value="37">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Minute Ventilation (L/min)</label>
+          <input type="number" class="form-input" id="minuteVent" placeholder="e.g. 10" step="0.1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Feeding Route</label>
+          <select class="form-select" id="feedingRoute">
+            <option value="enteral">Enteral (EN)</option>
+            <option value="parenteral">Parenteral (PN)</option>
+            <option value="combined">Combined (EN + PN)</option>
+            <option value="oral">Oral (PO)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">GI Tolerance</label>
+          <select class="form-select" id="giTolerance">
+            <option value="good">Good</option>
+            <option value="moderate">Moderate (GRV 200–500mL)</option>
+            <option value="poor">Poor (GRV >500mL)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Renal Replacement (CRRT)</label>
+          <select class="form-select" id="crrt">
+            <option value="no">No</option>
+            <option value="yes">Yes</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Diabetes / Glycemic Control</label>
+          <select class="form-select" id="diabetes">
+            <option value="no">No Diabetes</option>
+            <option value="controlled">Diabetes – Controlled</option>
+            <option value="uncontrolled">Diabetes – Uncontrolled</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nutrition Risk (NUTRIC Score)</label>
+          <select class="form-select" id="nutricScore">
+            <option value="low">Low Risk (0–4)</option>
+            <option value="high">High Risk (5–9)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pre-existing Malnutrition</label>
+          <select class="form-select" id="malnutrition">
+            <option value="no">No</option>
+            <option value="moderate">Moderate</option>
+            <option value="severe">Severe</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">CKD Stage (KDOQI)</label>
+          <select class="form-select" id="ckdStage">
+            <option value="none">No CKD</option>
+            <option value="1">Stage 1 (GFR ≥90)</option>
+            <option value="2">Stage 2 (GFR 60–89)</option>
+            <option value="3a">Stage 3a (GFR 45–59)</option>
+            <option value="3b">Stage 3b (GFR 30–44)</option>
+            <option value="4">Stage 4 (GFR 15–29)</option>
+            <option value="5">Stage 5 (GFR &lt;15)</option>
+            <option value="5d">Stage 5D (On Dialysis)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dialysis Type</label>
+          <select class="form-select" id="dialysisType">
+            <option value="none">Not on Dialysis</option>
+            <option value="hd">Hemodialysis (HD)</option>
+            <option value="pd">Peritoneal Dialysis (PD)</option>
+            <option value="crrt_hd">CRRT / Continuous HD</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Serum Potassium (mEq/L)</label>
+          <input type="number" class="form-input" id="serumK" placeholder="e.g. 4.5" step="0.1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Serum Phosphorus (mg/dL)</label>
+          <input type="number" class="form-input" id="serumPhos" placeholder="e.g. 4.0" step="0.1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">eGFR (mL/min/1.73m²)</label>
+          <input type="number" class="form-input" id="egfr" placeholder="e.g. 45" step="0.1">
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="calculateAndNext()">Calculate Energy Requirements →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Energy Calculation -->
+  <div class="section-panel" id="step2">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon cyan">⚡</div>
+        <div>
+          <div class="card-title">Energy Expenditure Calculations</div>
+          <div class="card-subtitle">Multiple validated equations compared for accuracy</div>
+        </div>
+      </div>
+
+      <div class="phase-indicator">
+        <button class="phase-pill active" onclick="setPhase('early_acute', this)">Early Acute (Day 1–2)</button>
+        <button class="phase-pill" onclick="setPhase('late_acute', this)">Late Acute (Day 3–7)</button>
+        <button class="phase-pill" onclick="setPhase('recovery', this)">Recovery (>7 Days)</button>
+      </div>
+
+      <div class="result-grid" id="energyResults">
+        <!-- Filled by JS -->
+      </div>
+
+      <div style="margin-top:1.5rem">
+        <div class="chart-container">
+          <canvas id="energyChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon emerald">🎯</div>
+        <div>
+          <div class="card-title">Target Macronutrient Breakdown</div>
+          <div class="card-subtitle">Based on ESPEN/ASPEN recommendations for the selected ICU phase</div>
+        </div>
+      </div>
+      <div class="result-grid" id="macroResults">
+        <!-- Filled by JS -->
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem">
+        <div class="chart-container">
+          <canvas id="macroChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas id="proteinChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goToStep(3)">Select Supplements →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Supplement Selection -->
+  <div class="section-panel" id="step3">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon amber">🧪</div>
+        <div>
+          <div class="card-title">Enteral Formula Database</div>
+          <div class="card-subtitle">Select formulas based on patient condition and nutritional targets</div>
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table class="supp-table" id="formulaTable">
+          <thead>
+            <tr>
+              <th>Formula</th>
+              <th>Manufacturer</th>
+              <th>kcal/mL</th>
+              <th>Protein (g/L)</th>
+              <th>Fat (g/L)</th>
+              <th>Carbs (g/L)</th>
+              <th>Fiber (g/L)</th>
+              <th>Osmolality</th>
+              <th>Category</th>
+              <th>Renal</th>
+              <th>Use Case</th>
+            </tr>
+          </thead>
+          <tbody id="formulaTableBody">
+            <!-- Filled by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon violet">💊</div>
+        <div>
+          <div class="card-title">Select Enteral Formula(s)</div>
+          <div class="card-subtitle">Click to select — recommended formulas are highlighted based on patient diagnosis</div>
+        </div>
+      </div>
+      <div id="recommendationNote" style="padding:10px 14px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;margin-bottom:1rem;font-size:0.78rem;color:var(--accent-emerald)">
+        ✦ Recommended formulas for your patient are highlighted based on diagnosis and CKD status
+      </div>
+      <div class="supp-selector" id="suppSelector">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(2)">← Back</button>
+      <button class="btn btn-primary" onclick="generatePlan()">Generate Diet Plan →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Diet Plan & Report -->
+  <div class="section-panel" id="step4">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon emerald">📋</div>
+        <div>
+          <div class="card-title">24-Hour Feeding Protocol</div>
+          <div class="card-subtitle" id="planSubtitle">Personalized feeding schedule based on calculated requirements</div>
+        </div>
+      </div>
+      <div id="feedingSchedule"></div>
+    </div>
+
+    <!-- KDOQI Renal Dashboard - shown only for CKD patients -->
+    <div class="card" id="kdoqiDashboard" style="display:none">
+      <div class="card-header">
+        <div class="card-icon violet">🔬</div>
+        <div>
+          <div class="card-title">KDOQI Renal Nutrition Dashboard</div>
+          <div class="card-subtitle">CKD-specific targets per NKF KDOQI 2020 Clinical Practice Guidelines</div>
+        </div>
+      </div>
+      <div id="kdoqiContent"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon cyan">📊</div>
+        <div>
+          <div class="card-title">Micronutrient Coverage Analysis</div>
+          <div class="card-subtitle">% of daily recommended intake from selected formula(s)</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem" id="micronutrientSection">
+        <div>
+          <h4 style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:1rem;font-weight:600">Vitamins</h4>
+          <div id="vitaminBars"></div>
+        </div>
+        <div>
+          <h4 style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:1rem;font-weight:600">Minerals & Trace Elements</h4>
+          <div id="mineralBars"></div>
+        </div>
+      </div>
+      <div class="chart-container" style="height:320px;margin-top:1.5rem">
+        <canvas id="microChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon amber">📈</div>
+        <div>
+          <div class="card-title">Nutrition Adequacy Summary</div>
+          <div class="card-subtitle">Overall coverage vs. calculated targets</div>
+        </div>
+      </div>
+      <div class="result-grid" id="adequacySummary"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:1.5rem">
+        <div class="chart-container">
+          <canvas id="adequacyChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas id="microRadar"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon rose">⚠️</div>
+        <div>
+          <div class="card-title">Clinical Recommendations</div>
+          <div class="card-subtitle">Based on ASPEN/ESPEN/KDOQI guidelines for the current clinical scenario</div>
+        </div>
+      </div>
+      <div id="clinicalRecs" style="font-size:0.85rem;line-height:1.8;color:var(--text-secondary)"></div>
+    </div>
+
+    <div class="disclaimer">
+      <strong>⚕️ Medical Disclaimer:</strong> This tool is for clinical decision support only and does not replace professional medical judgment. All nutrition plans must be reviewed and approved by a qualified dietitian or physician. Calculations are based on ASPEN (2022), ESPEN (2023), and NKF KDOQI (2020) guidelines. Individual patient requirements may vary based on CKD stage, dialysis modality, and clinical status. Monitor patients closely for feeding tolerance, metabolic response, electrolyte balance, and adjust plans accordingly. Not intended for pediatric or neonatal use.
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(3)">← Back</button>
+      <button class="btn btn-secondary" onclick="exportReport()">📄 Export Report</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨️ Print Report</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// =============================================
+// EXPORT REPORT
+// =============================================
+function exportReport() {
+  const patId = document.getElementById('patientId').value || 'Unknown';
+  const now = new Date().toLocaleString();
+  const ckdStage = document.getElementById('ckdStage').value;
+  const e = energyCalcs;
+
+  const report = `
+ICU NUTRIPLAN — PATIENT NUTRITION REPORT
+=========================================
+Generated: ${now}
+Patient: ${patId}
+Age: ${patientData.age} | Gender: ${patientData.gender} | Weight: ${patientData.weight}kg | Height: ${patientData.height}cm
+BMI: ${patientData.bmi.toFixed(1)} kg/m² | IBW: ${e.ibw.toFixed(1)}kg | Weight Used: ${e.useWeight.toFixed(1)}kg
+Diagnosis: ${patientData.diagnosis || 'General'} | ICU Phase: ${e.phase.replace('_',' ')}
+${ckdStage !== 'none' ? 'CKD Stage: ' + ckdStage.toUpperCase() + ' | Dialysis: ' + document.getElementById('dialysisType').value : ''}
+
+ENERGY CALCULATIONS
+-------------------
+Harris-Benedict (Original): ${e.hb} kcal/day
+Harris-Benedict (Revised):  ${e.hbr} kcal/day
+Mifflin-St Jeor:           ${e.msj} kcal/day
+Penn State (2003):          ${e.ps} kcal/day
+ESPEN Target:               ${e.targetEnergy} kcal/day (SF: ${e.sf})
+ASPEN Range:                ${e.aspenLow}-${e.aspenHigh} kcal/day
+${ckdStage !== 'none' ? 'KDOQI Target:               ' + e.kdoqiEnergyLow + '-' + e.kdoqiEnergyHigh + ' kcal/day (25-35 kcal/kg)' : ''}
+
+MACRONUTRIENT TARGETS
+---------------------
+Energy:  ${e.targetEnergy} kcal/day
+Protein: ${e.targetProtein} g/day (${e.proteinPerKg} g/kg/day)
+Fat:     ~${Math.round(e.targetEnergy * 0.3 / 9)} g/day (30% of energy)
+Carbs:   ~${Math.round((e.targetEnergy - e.targetProtein*4 - Math.round(e.targetEnergy*0.3/9)*9)/4)} g/day
+
+SELECTED FORMULAS
+-----------------
+${selectedFormulas.map(id => {const f=FORMULAS.find(x=>x.id===id); return f.name + ' (' + f.mfg + ') - ' + f.kcal + ' kcal/mL, ' + f.protein + 'g protein/L' + (f.renal ? ' [RENAL]' : '');}).join('\\n')}
+
+GUIDELINES APPLIED
+------------------
+• ASPEN 2022 Critical Care Nutrition Guidelines
+• ESPEN 2023 Practical Guideline: Clinical Nutrition in the ICU
+${ckdStage !== 'none' ? '• NKF KDOQI 2020 Clinical Practice Guideline for Nutrition in CKD' : ''}
+• Harris-Benedict, Mifflin-St Jeor, Penn State Energy Equations
+
+DISCLAIMER: This report is for clinical decision support only and does not
+replace professional medical judgment. All plans must be reviewed and approved
+by a qualified dietitian or physician.
+  `.trim();
+
+  const blob = new Blob([report], {type: 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'ICU_NutriPlan_Report_' + (patId.replace(/[^a-zA-Z0-9]/g,'_')) + '.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+// =============================================
+// COMPREHENSIVE ENTERAL FORMULA DATABASE
+// =============================================
+const FORMULAS = [
+  { id:'jevity1', name:'Jevity 1 Cal', mfg:'Abbott', kcal:1.06, protein:44.3, fat:34.7, carbs:154.7, fiber:14.4, osm:300, cat:'Standard Polymeric', use:'General ICU, fiber-fortified', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:100, vitE:100, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:100, folate:100, niacin:100, biotin:100, calcium:100, iron:100, zinc:100, selenium:100, copper:100, manganese:100, chromium:100, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:80 }},
+  { id:'jevity12', name:'Jevity 1.2 Cal', mfg:'Abbott', kcal:1.2, protein:55.5, fat:39.3, carbs:169.1, fiber:18, osm:450, cat:'Standard Polymeric', use:'Higher caloric density with fiber', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:100, vitE:100, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:100, folate:100, niacin:100, biotin:100, calcium:100, iron:100, zinc:100, selenium:100, copper:100, manganese:100, chromium:100, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:85 }},
+  { id:'jevity15', name:'Jevity 1.5 Cal', mfg:'Abbott', kcal:1.5, protein:63.8, fat:49.8, carbs:215.7, fiber:22, osm:525, cat:'Calorie Dense', use:'Fluid restricted, high energy needs', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:130, vitC:130, vitD:130, vitE:130, vitK:130, vitB1:130, vitB2:130, vitB6:130, vitB12:130, folate:130, niacin:130, biotin:130, calcium:130, iron:130, zinc:130, selenium:130, copper:130, manganese:130, chromium:130, molybdenum:130, phosphorus:130, magnesium:130, iodine:130, potassium:90 }},
+  { id:'osmolite1', name:'Osmolite 1 Cal', mfg:'Abbott', kcal:1.06, protein:44.3, fat:34.7, carbs:143.9, fiber:0, osm:300, cat:'Standard Polymeric', use:'Fiber-free, GI intolerance', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:100, vitE:100, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:100, folate:100, niacin:100, biotin:100, calcium:100, iron:100, zinc:100, selenium:100, copper:100, manganese:100, chromium:100, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:80 }},
+  { id:'osmolite12', name:'Osmolite 1.2 Cal', mfg:'Abbott', kcal:1.2, protein:55.5, fat:39.3, carbs:157.5, fiber:0, osm:360, cat:'Standard Polymeric', use:'High protein, fiber-free', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:100, vitE:100, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:100, folate:100, niacin:100, biotin:100, calcium:100, iron:100, zinc:100, selenium:100, copper:100, manganese:100, chromium:100, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:85 }},
+  { id:'promote', name:'Promote', mfg:'Abbott', kcal:1.0, protein:62.5, fat:26, carbs:130, fiber:0, osm:340, cat:'High Protein', use:'High protein needs, wound healing', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:150, vitD:100, vitE:100, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:100, folate:100, niacin:100, biotin:100, calcium:100, iron:100, zinc:150, selenium:100, copper:100, manganese:100, chromium:100, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:80 }},
+  { id:'pivot15', name:'Pivot 1.5 Cal', mfg:'Abbott', kcal:1.5, protein:93.8, fat:51.3, carbs:172, fiber:0, osm:500, cat:'Immune Modulating', use:'Trauma, TBI, surgical ICU', omega3:true, glutamine:false, arginine:true,
+    micro: { vitA:150, vitC:200, vitD:100, vitE:200, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:150, folate:100, niacin:100, biotin:100, calcium:100, iron:100, zinc:200, selenium:150, copper:100, manganese:100, chromium:100, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:75 }},
+  { id:'oxepa', name:'Oxepa', mfg:'Abbott', kcal:1.5, protein:62.7, fat:93.7, carbs:105.7, fiber:0, osm:535, cat:'Pulmonary', use:'ARDS, acute lung injury', omega3:true, glutamine:false, arginine:false,
+    micro: { vitA:150, vitC:200, vitD:100, vitE:300, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:100, folate:100, niacin:100, biotin:100, calcium:100, iron:100, zinc:100, selenium:150, copper:100, manganese:100, chromium:100, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:70 }},
+  { id:'nepro', name:'Nepro', mfg:'Abbott', kcal:1.8, protein:81, fat:96, carbs:167, fiber:0, osm:585, cat:'Renal (Dialysis)', use:'Renal failure, dialysis patients', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:150, vitE:100, vitK:100, vitB1:150, vitB2:100, vitB6:200, vitB12:150, folate:200, niacin:100, biotin:100, calcium:50, iron:50, zinc:100, selenium:100, copper:50, manganese:50, chromium:100, molybdenum:100, phosphorus:50, magnesium:50, iodine:100, potassium:40 },
+    renal: true, renalProfile: { sodium:'Low', potassium:'Low', phosphorus:'Low', calcium:'Controlled', carnitine:true, taurine:true },
+    renalNotes:'Abbott renal formula for dialysis. 1.8 kcal/mL calorie-dense. Low K⁺, PO₄³⁻, controlled electrolytes. Contains L-Carnitine and Taurine. Enhanced B6 and folate for dialysis losses.' },
+  { id:'glucerna12', name:'Glucerna 1.2 Cal', mfg:'Abbott', kcal:1.2, protein:60, fat:61, carbs:114.2, fiber:17, osm:350, cat:'Diabetic', use:'Diabetes, hyperglycemia control', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:100, vitE:100, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:100, folate:100, niacin:100, biotin:200, calcium:100, iron:100, zinc:100, selenium:100, copper:100, manganese:100, chromium:200, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:75 }},
+  { id:'peptamen', name:'Peptamen', mfg:'Nestlé', kcal:1.0, protein:40, fat:39, carbs:127, fiber:0, osm:270, cat:'Semi-Elemental', use:'GI intolerance, malabsorption', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:100, vitE:100, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:100, folate:100, niacin:100, biotin:100, calcium:100, iron:100, zinc:100, selenium:100, copper:100, manganese:100, chromium:100, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:75 }},
+  { id:'peptamen15', name:'Peptamen 1.5', mfg:'Nestlé', kcal:1.5, protein:68, fat:56, carbs:188, fiber:0, osm:500, cat:'Semi-Elemental', use:'Malabsorption, high energy', omega3:true, glutamine:false, arginine:false,
+    micro: { vitA:130, vitC:130, vitD:130, vitE:130, vitK:130, vitB1:130, vitB2:130, vitB6:130, vitB12:130, folate:130, niacin:130, biotin:130, calcium:130, iron:130, zinc:130, selenium:130, copper:130, manganese:130, chromium:130, molybdenum:130, phosphorus:130, magnesium:130, iodine:130, potassium:80 }},
+  { id:'fresubin', name:'Fresubin Original', mfg:'Fresenius Kabi', kcal:1.0, protein:38, fat:34, carbs:138, fiber:0, osm:250, cat:'Standard Polymeric', use:'General tube feeding', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:100, vitE:100, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:100, folate:100, niacin:100, biotin:100, calcium:100, iron:100, zinc:100, selenium:100, copper:100, manganese:100, chromium:100, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:80 }},
+  { id:'fresubin_hp', name:'Fresubin HP Energy', mfg:'Fresenius Kabi', kcal:1.5, protein:75, fat:58, carbs:170, fiber:0, osm:450, cat:'High Protein/Energy', use:'High energy + protein needs', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:130, vitC:150, vitD:130, vitE:130, vitK:130, vitB1:130, vitB2:130, vitB6:130, vitB12:130, folate:130, niacin:130, biotin:130, calcium:130, iron:130, zinc:150, selenium:130, copper:130, manganese:130, chromium:130, molybdenum:130, phosphorus:130, magnesium:130, iodine:130, potassium:85 }},
+  { id:'nutrison', name:'Nutrison', mfg:'Nutricia', kcal:1.0, protein:40, fat:39, carbs:123, fiber:0, osm:255, cat:'Standard Polymeric', use:'General tube feeding', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:100, vitE:100, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:100, folate:100, niacin:100, biotin:100, calcium:100, iron:100, zinc:100, selenium:100, copper:100, manganese:100, chromium:100, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:80 }},
+  { id:'nutrison_mf', name:'Nutrison Multi Fibre', mfg:'Nutricia', kcal:1.03, protein:40, fat:39, carbs:123, fiber:15, osm:265, cat:'Standard Polymeric', use:'General with fiber support', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:100, vitE:100, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:100, folate:100, niacin:100, biotin:100, calcium:100, iron:100, zinc:100, selenium:100, copper:100, manganese:100, chromium:100, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:80 }},
+  { id:'twocal', name:'TwoCal HN', mfg:'Abbott', kcal:2.0, protein:83.5, fat:90.5, carbs:219, fiber:0, osm:725, cat:'Calorie Dense', use:'Severe fluid restriction', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:150, vitC:150, vitD:150, vitE:150, vitK:150, vitB1:150, vitB2:150, vitB6:150, vitB12:150, folate:150, niacin:150, biotin:150, calcium:150, iron:150, zinc:150, selenium:150, copper:150, manganese:150, chromium:150, molybdenum:150, phosphorus:150, magnesium:150, iodine:150, potassium:90 }},
+  { id:'impact', name:'Impact Advanced', mfg:'Nestlé', kcal:1.0, protein:56, fat:28, carbs:132, fiber:0, osm:375, cat:'Immune Modulating', use:'Surgical ICU, trauma', omega3:true, glutamine:true, arginine:true,
+    micro: { vitA:150, vitC:300, vitD:100, vitE:250, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:150, folate:150, niacin:100, biotin:100, calcium:100, iron:100, zinc:200, selenium:200, copper:100, manganese:100, chromium:100, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:75 }},
+  { id:'pulmocare', name:'Pulmocare', mfg:'Abbott', kcal:1.5, protein:62.6, fat:93.3, carbs:106, fiber:0, osm:490, cat:'Pulmonary', use:'COPD, respiratory failure', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:100, vitE:150, vitK:100, vitB1:100, vitB2:100, vitB6:100, vitB12:100, folate:100, niacin:100, biotin:100, calcium:100, iron:100, zinc:100, selenium:100, copper:100, manganese:100, chromium:100, molybdenum:100, phosphorus:100, magnesium:100, iodine:100, potassium:75 }},
+
+  // ——— RENAL-SPECIFIC FORMULAS (per NKF KDOQI 2020 & ASPEN Renal Guidelines) ———
+  { id:'novasource_renal', name:'Novasource Renal', mfg:'Nestlé', kcal:2.0, protein:92.8, fat:100, carbs:200, fiber:0, osm:700, cat:'Renal (Dialysis)', use:'CKD on dialysis, AKI, fluid restriction', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:150, vitE:100, vitK:100, vitB1:150, vitB2:100, vitB6:200, vitB12:150, folate:200, niacin:100, biotin:100, calcium:50, iron:50, zinc:100, selenium:100, copper:50, manganese:50, chromium:100, molybdenum:100, phosphorus:40, magnesium:50, iodine:100, potassium:35 },
+    renal: true, renalProfile: { sodium:'Low', potassium:'Low', phosphorus:'Low', calcium:'Controlled', carnitine:true, taurine:true },
+    renalNotes:'19% calories from protein (92.8 g/L). Formulated per ASPEN renal guidelines. Optimized electrolyte content. Contains L-Carnitine and Taurine.' },
+  { id:'suplena', name:'Suplena', mfg:'Abbott', kcal:1.8, protein:45, fat:96, carbs:196, fiber:0, osm:600, cat:'Renal (Kidney)', use:'CKD pre-dialysis, electrolyte management', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:150, vitE:100, vitK:100, vitB1:150, vitB2:100, vitB6:200, vitB12:150, folate:200, niacin:100, biotin:100, calcium:50, iron:50, zinc:100, selenium:100, copper:50, manganese:50, chromium:100, molybdenum:100, phosphorus:40, magnesium:50, iodine:100, potassium:35 },
+    renal: true, renalProfile: { sodium:'Low', potassium:'Low', phosphorus:'Low', calcium:'Controlled', carnitine:true, taurine:false },
+    renalNotes:'Lower protein (45 g/L) for pre-dialysis CKD patients. Calorie-dense at 1.8 kcal/mL. Controlled electrolytes for patients not yet on dialysis. Contains L-Carnitine.' },
+  { id:'katefarms_renal', name:'Kate Farms Renal 1.8', mfg:'Kate Farms', kcal:1.8, protein:80, fat:85, carbs:190, fiber:3, osm:560, cat:'Renal (Kidney)', use:'CKD on dialysis, plant-based, allergen-free', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:130, vitE:100, vitK:100, vitB1:130, vitB2:100, vitB6:170, vitB12:130, folate:170, niacin:100, biotin:100, calcium:50, iron:50, zinc:100, selenium:100, copper:50, manganese:50, chromium:100, molybdenum:100, phosphorus:45, magnesium:50, iodine:100, potassium:40 },
+    renal: true, renalProfile: { sodium:'Optimized', potassium:'Optimized', phosphorus:'Optimized', calcium:'Controlled', carnitine:false, taurine:false },
+    renalNotes:'Plant-based organic pea protein. Top-9 allergen free. Optimized Na⁺, K⁺, PO₄³⁻. USDA Organic, Non-GMO. Contains prebiotic fiber (agave inulin).' },
+  { id:'nutren_renal', name:'Nutren Renal', mfg:'Nestlé', kcal:2.0, protein:75, fat:104, carbs:204, fiber:0, osm:650, cat:'Renal (Kidney)', use:'CKD, dialysis, fluid-restricted', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:100, vitC:100, vitD:150, vitE:100, vitK:100, vitB1:150, vitB2:100, vitB6:200, vitB12:150, folate:200, niacin:100, biotin:100, calcium:50, iron:50, zinc:100, selenium:100, copper:50, manganese:50, chromium:100, molybdenum:100, phosphorus:40, magnesium:50, iodine:100, potassium:35 },
+    renal: true, renalProfile: { sodium:'Low', potassium:'Low', phosphorus:'Low', calcium:'Low', carnitine:true, taurine:true },
+    renalNotes:'Calorie-dense renal formula (2.0 kcal/mL). Contains L-Carnitine and Taurine. Low electrolyte profile suitable for dialysis patients.' },
+  { id:'renalcal', name:'RenalCal', mfg:'Nestlé', kcal:2.0, protein:34.4, fat:82.5, carbs:291, fiber:0, osm:600, cat:'Renal (Modular)', use:'CKD calorie supplement, very low protein & electrolyte', omega3:false, glutamine:false, arginine:false,
+    micro: { vitA:0, vitC:0, vitD:0, vitE:0, vitK:0, vitB1:0, vitB2:0, vitB6:0, vitB12:0, folate:0, niacin:0, biotin:0, calcium:0, iron:0, zinc:0, selenium:0, copper:0, manganese:0, chromium:0, molybdenum:0, phosphorus:0, magnesium:0, iodine:0, potassium:0 },
+    renal: true, renalProfile: { sodium:'Very Low', potassium:'Very Low', phosphorus:'Very Low', calcium:'Minimal', carnitine:false, taurine:false },
+    renalNotes:'Modular calorie supplement — NOT nutritionally complete. Very low protein (34.4 g/L) and minimal electrolytes. Use to boost calories without adding K⁺, PO₄³⁻, or excess protein in severe CKD. Must be combined with other sources for complete nutrition.' }
+];
+
+// =============================================
+// DIAGNOSIS-TO-FORMULA RECOMMENDATIONS
+// =============================================
+const DIAGNOSIS_RECS = {
+  sepsis: ['osmolite1','osmolite12','jevity12','fresubin'],
+  trauma: ['pivot15','impact','promote','jevity15'],
+  burns: ['pivot15','impact','promote','twocal'],
+  tbi: ['pivot15','impact','jevity15'],
+  surgery: ['impact','pivot15','promote','jevity12'],
+  respiratory: ['oxepa','pulmocare','osmolite12'],
+  cardiac: ['jevity15','twocal','osmolite12'],
+  renal: ['nepro','novasource_renal','suplena','nutren_renal','katefarms_renal','jevity15'],
+  hepatic: ['fresubin','nutrison','jevity1'],
+  pancreatitis: ['peptamen','peptamen15','osmolite1'],
+  cancer: ['promote','jevity12','fresubin_hp'],
+  covid: ['jevity12','osmolite12','promote'],
+  general: ['jevity1','jevity12','osmolite1','nutrison']
+};
+
+// =============================================
+// MICRONUTRIENT RDA (for ICU adults)
+// =============================================
+const MICRO_RDA = {
+  vitA: { name:'Vitamin A', unit:'µg RE', rda:900, icuNote:'Maintain normal levels' },
+  vitC: { name:'Vitamin C', unit:'mg', rda:200, icuNote:'100–200mg/d; up to 1g in burns' },
+  vitD: { name:'Vitamin D', unit:'IU', rda:600, icuNote:'Check 25(OH)D; supplement if <12ng/mL' },
+  vitE: { name:'Vitamin E', unit:'mg', rda:15, icuNote:'9–15mg/d; antioxidant role' },
+  vitK: { name:'Vitamin K', unit:'µg', rda:120, icuNote:'Monitor if on anticoagulants' },
+  vitB1: { name:'Thiamine (B1)', unit:'mg', rda:1.2, icuNote:'Critical for refeeding prevention' },
+  vitB2: { name:'Riboflavin (B2)', unit:'mg', rda:1.3, icuNote:'Cofactor in energy metabolism' },
+  vitB6: { name:'Vitamin B6', unit:'mg', rda:1.7, icuNote:'Protein metabolism support' },
+  vitB12: { name:'Vitamin B12', unit:'µg', rda:2.4, icuNote:'Monitor in elderly/malabsorption' },
+  folate: { name:'Folate', unit:'µg', rda:400, icuNote:'Cell repair and synthesis' },
+  niacin: { name:'Niacin (B3)', unit:'mg', rda:16, icuNote:'Energy metabolism' },
+  biotin: { name:'Biotin', unit:'µg', rda:30, icuNote:'Carboxylase cofactor' },
+  calcium: { name:'Calcium', unit:'mg', rda:1000, icuNote:'Monitor ionized Ca²⁺' },
+  iron: { name:'Iron', unit:'mg', rda:8, icuNote:'Avoid excess in sepsis' },
+  zinc: { name:'Zinc', unit:'mg', rda:15, icuNote:'Wound healing; 25–50mg if burns/CRRT' },
+  selenium: { name:'Selenium', unit:'µg', rda:100, icuNote:'Antioxidant; 100–300µg in burns' },
+  copper: { name:'Copper', unit:'mg', rda:0.9, icuNote:'SOD cofactor, immune function' },
+  manganese: { name:'Manganese', unit:'mg', rda:2.3, icuNote:'Reduce if hepatic failure' },
+  chromium: { name:'Chromium', unit:'µg', rda:35, icuNote:'Glucose metabolism support' },
+  molybdenum: { name:'Molybdenum', unit:'µg', rda:45, icuNote:'Enzyme cofactor' },
+  phosphorus: { name:'Phosphorus', unit:'mg', rda:700, icuNote:'Monitor in refeeding syndrome' },
+  magnesium: { name:'Magnesium', unit:'mg', rda:420, icuNote:'Arrhythmia prevention' },
+  iodine: { name:'Iodine', unit:'µg', rda:150, icuNote:'Thyroid function support' },
+  potassium: { name:'Potassium', unit:'mEq', rda:80, icuNote:'Monitor closely with CRRT' }
+};
+
+// =============================================
+// STATE
+// =============================================
+let currentStep = 1;
+let patientData = {};
+let energyCalcs = {};
+let selectedFormulas = [];
+let charts = {};
+
+// =============================================
+// STEP NAVIGATION
+// =============================================
+function goToStep(n) {
+  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('step'+n).classList.add('active');
+  document.querySelectorAll('.step-btn').forEach((b,i) => {
+    b.classList.remove('active');
+    if(i < n-1) b.classList.add('completed');
+    if(i === n-1) b.classList.add('active');
+  });
+  currentStep = n;
+  window.scrollTo({top: 0, behavior:'smooth'});
+}
+
+// =============================================
+// AUTO BMI / IBW / ABW CALCULATION
+// =============================================
+document.getElementById('weight').addEventListener('input', calcBodyMetrics);
+document.getElementById('height').addEventListener('input', calcBodyMetrics);
+document.getElementById('gender').addEventListener('change', calcBodyMetrics);
+
+// Auto-suggest CKD stage from eGFR
+document.getElementById('egfr').addEventListener('input', function() {
+  const egfr = parseFloat(this.value);
+  const ckdSelect = document.getElementById('ckdStage');
+  if(!egfr || egfr <= 0) return;
+  if(egfr >= 90) ckdSelect.value = '1';
+  else if(egfr >= 60) ckdSelect.value = '2';
+  else if(egfr >= 45) ckdSelect.value = '3a';
+  else if(egfr >= 30) ckdSelect.value = '3b';
+  else if(egfr >= 15) ckdSelect.value = '4';
+  else ckdSelect.value = document.getElementById('dialysisType').value !== 'none' ? '5d' : '5';
+});
+
+// Auto-set ICU phase from day
+document.getElementById('icuDay').addEventListener('input', function() {
+  const day = parseInt(this.value);
+  const phaseSelect = document.getElementById('icuPhase');
+  if(day <= 2) phaseSelect.value = 'early_acute';
+  else if(day <= 7) phaseSelect.value = 'late_acute';
+  else phaseSelect.value = 'recovery';
+});
+
+// Auto-set CKD 5D when dialysis selected
+document.getElementById('dialysisType').addEventListener('change', function() {
+  if(this.value !== 'none') {
+    document.getElementById('ckdStage').value = '5d';
+    if(this.value === 'crrt_hd') document.getElementById('crrt').value = 'yes';
+  }
+});
+
+function calcBodyMetrics() {
+  const w = parseFloat(document.getElementById('weight').value);
+  const h = parseFloat(document.getElementById('height').value);
+  const g = document.getElementById('gender').value;
+  if(w && h) {
+    const bmi = (w / ((h/100)**2)).toFixed(1);
+    document.getElementById('bmi').value = bmi + ' kg/m²';
+  }
+  if(h && g) {
+    const ibw = g === 'male' ? 50 + 0.91*(h - 152.4) : 45.5 + 0.91*(h - 152.4);
+    document.getElementById('ibw').value = Math.max(ibw, 30).toFixed(1) + ' kg';
+    if(w) {
+      const ibwVal = Math.max(ibw, 30);
+      const abw = ibwVal + 0.25*(w - ibwVal);
+      document.getElementById('abw').value = abw.toFixed(1) + ' kg';
+    }
+  }
+}
+
+// =============================================
+// ENERGY CALCULATIONS
+// =============================================
+function calculateAndNext() {
+  const age = parseFloat(document.getElementById('age').value);
+  const gender = document.getElementById('gender').value;
+  const weight = parseFloat(document.getElementById('weight').value);
+  const height = parseFloat(document.getElementById('height').value);
+  const temp = parseFloat(document.getElementById('temperature').value) || 37;
+  const ve = parseFloat(document.getElementById('minuteVent').value) || 10;
+  const phase = document.getElementById('icuPhase').value;
+  const diagnosis = document.getElementById('diagnosis').value;
+
+  if(!age || !gender || !weight || !height) {
+    alert('Please fill in Age, Gender, Weight, and Height');
+    return;
+  }
+
+  const bmi = weight / ((height/100)**2);
+  const ibw = gender === 'male' ? 50 + 0.91*(height - 152.4) : 45.5 + 0.91*(height - 152.4);
+  const useWeight = bmi > 30 ? (ibw + 0.25*(weight - ibw)) : weight;
+
+  // Harris-Benedict (Original)
+  let hb;
+  if(gender === 'male') hb = 66.5 + (13.75*weight) + (5.003*height) - (6.775*age);
+  else hb = 655.1 + (9.563*weight) + (1.850*height) - (4.676*age);
+
+  // Revised Harris-Benedict (Roza & Shizgal 1984)
+  let hbr;
+  if(gender === 'male') hbr = 88.362 + (13.397*weight) + (4.799*height) - (5.677*age);
+  else hbr = 447.593 + (9.247*weight) + (3.098*height) - (4.330*age);
+
+  // Mifflin-St Jeor
+  let msj;
+  if(gender === 'male') msj = (10*weight) + (6.25*height) - (5*age) + 5;
+  else msj = (10*weight) + (6.25*height) - (5*age) - 161;
+
+  // Penn State 2003 (for ventilated patients)
+  const ps = 0.85*hbr + 175*(temp) + 33*(ve) - 6433;
+
+  // ESPEN Weight-Based (Acute)
+  const espenAcute = useWeight * 22.5; // midpoint 20-25
+  // ESPEN Weight-Based (Recovery)
+  const espenRecovery = useWeight * 27.5; // midpoint 25-30
+
+  // ASPEN Weight-Based
+  const aspenLow = useWeight * 12;
+  const aspenHigh = useWeight * 25;
+
+  // Stress factors
+  const stressFactors = {
+    sepsis: 1.3, trauma: 1.35, burns: 1.5, tbi: 1.3, surgery: 1.2,
+    respiratory: 1.2, cardiac: 1.1, renal: 1.15, hepatic: 1.1,
+    pancreatitis: 1.2, cancer: 1.2, covid: 1.25, general: 1.15
+  };
+  const sf = stressFactors[diagnosis] || 1.15;
+
+  // Phase-adjusted targets
+  const phaseMultipliers = {
+    early_acute: { energy: 0.7, protein: 0.8 },
+    late_acute: { energy: 0.85, protein: 1.0 },
+    recovery: { energy: 1.1, protein: 1.2 }
+  };
+  const pm = phaseMultipliers[phase];
+
+  const targetEnergy = Math.round(hbr * sf * pm.energy);
+  const proteinPerKg = phase === 'early_acute' ? 1.2 : phase === 'late_acute' ? 1.3 : 1.8;
+  const targetProtein = Math.round(useWeight * proteinPerKg * pm.protein);
+
+  energyCalcs = {
+    hb: Math.round(hb), hbr: Math.round(hbr), msj: Math.round(msj),
+    ps: Math.round(ps), espenAcute: Math.round(espenAcute),
+    espenRecovery: Math.round(espenRecovery),
+    aspenLow: Math.round(aspenLow), aspenHigh: Math.round(aspenHigh),
+    targetEnergy, targetProtein, sf, phase, useWeight,
+    proteinPerKg, pm, bmi, ibw: Math.max(ibw,30),
+    kdoqiEnergy: Math.round(useWeight * 30), // KDOQI 25-35 kcal/kg midpoint
+    kdoqiEnergyLow: Math.round(useWeight * 25),
+    kdoqiEnergyHigh: Math.round(useWeight * 35)
+  };
+
+  patientData = { age, gender, weight, height, bmi, diagnosis, phase, temp, ve, useWeight,
+    ckdStage: document.getElementById('ckdStage').value,
+    dialysisType: document.getElementById('dialysisType').value,
+    serumK: parseFloat(document.getElementById('serumK').value) || 0,
+    serumPhos: parseFloat(document.getElementById('serumPhos').value) || 0,
+    egfr: parseFloat(document.getElementById('egfr').value) || 0
+  };
+
+  renderEnergyResults();
+  renderMacroResults();
+  goToStep(2);
+}
+
+function renderEnergyResults() {
+  const e = energyCalcs;
+  const html = `
+    <div class="result-card blue">
+      <div class="result-label">Harris-Benedict (Original)</div>
+      <div class="result-value" style="color:var(--accent-blue)">${e.hb}</div>
+      <div class="result-unit">kcal/day (BMR)</div>
+    </div>
+    <div class="result-card cyan">
+      <div class="result-label">Harris-Benedict (Revised)</div>
+      <div class="result-value" style="color:var(--accent-cyan)">${e.hbr}</div>
+      <div class="result-unit">kcal/day (BMR)</div>
+    </div>
+    <div class="result-card emerald">
+      <div class="result-label">Mifflin-St Jeor</div>
+      <div class="result-value" style="color:var(--accent-emerald)">${e.msj}</div>
+      <div class="result-unit">kcal/day (RMR)</div>
+    </div>
+    <div class="result-card amber">
+      <div class="result-label">Penn State (2003)</div>
+      <div class="result-value" style="color:var(--accent-amber)">${e.ps}</div>
+      <div class="result-unit">kcal/day (Ventilated)</div>
+    </div>
+    <div class="result-card rose">
+      <div class="result-label">ESPEN Target (Phase-Adjusted)</div>
+      <div class="result-value" style="color:var(--accent-rose)">${e.targetEnergy}</div>
+      <div class="result-unit">kcal/day (× ${e.sf} SF)</div>
+    </div>
+    ${document.getElementById('ckdStage').value !== 'none' ? `
+    <div class="result-card violet">
+      <div class="result-label">KDOQI CKD Target</div>
+      <div class="result-value" style="color:var(--accent-violet)">${e.kdoqiEnergyLow}–${e.kdoqiEnergyHigh}</div>
+      <div class="result-unit">kcal/day (25–35 kcal/kg)</div>
+    </div>` : `
+    <div class="result-card violet">
+      <div class="result-label">ASPEN Range</div>
+      <div class="result-value" style="color:var(--accent-violet)">${e.aspenLow}–${e.aspenHigh}</div>
+      <div class="result-unit">kcal/day (12–25 kcal/kg)</div>
+    </div>`}
+  `;
+  document.getElementById('energyResults').innerHTML = html;
+
+  const chartLabels = ['Harris-Benedict', 'HB Revised', 'Mifflin-St Jeor', 'Penn State', 'ESPEN Target'];
+  const chartData = [e.hb, e.hbr, e.msj, e.ps, e.targetEnergy];
+  const chartColors = ['rgba(59,130,246,0.7)','rgba(6,182,212,0.7)','rgba(16,185,129,0.7)','rgba(245,158,11,0.7)','rgba(244,63,94,0.7)'];
+  if(document.getElementById('ckdStage').value !== 'none') {
+    chartLabels.push('KDOQI (30 kcal/kg)');
+    chartData.push(e.kdoqiEnergy);
+    chartColors.push('rgba(139,92,246,0.7)');
+  } else {
+    chartLabels.push('ASPEN Mid');
+    chartData.push((e.aspenLow+e.aspenHigh)/2);
+    chartColors.push('rgba(139,92,246,0.7)');
+  }
+
+  if(charts.energy) charts.energy.destroy();
+  const ctx = document.getElementById('energyChart').getContext('2d');
+  charts.energy = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: chartLabels,
+      datasets: [{
+        label: 'Energy (kcal/day)',
+        data: chartData,
+        backgroundColor: chartColors,
+        borderRadius: 6, borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display:false }, title: { display:true, text:'Energy Equation Comparison (kcal/day)', color:'#8896b3', font:{family:'DM Sans',size:13} }},
+      scales: { y: { grid:{color:'rgba(42,54,84,0.5)'}, ticks:{color:'#8896b3',font:{family:'Space Mono',size:10}} }, x: { grid:{display:false}, ticks:{color:'#8896b3',font:{family:'DM Sans',size:10}} }}
+    }
+  });
+}
+
+function renderMacroResults() {
+  const e = energyCalcs;
+  const targetFat = Math.round(e.targetEnergy * 0.3 / 9);
+  const targetCarbs = Math.round((e.targetEnergy - (e.targetProtein*4) - (targetFat*9)) / 4);
+  const fluidReq = Math.round(patientData.useWeight * 30);
+
+  const html = `
+    <div class="result-card emerald">
+      <div class="result-label">Total Energy Target</div>
+      <div class="result-value" style="color:var(--accent-emerald)">${e.targetEnergy}</div>
+      <div class="result-unit">kcal/day</div>
+    </div>
+    <div class="result-card blue">
+      <div class="result-label">Protein Target</div>
+      <div class="result-value" style="color:var(--accent-blue)">${e.targetProtein}</div>
+      <div class="result-unit">g/day (${e.proteinPerKg} g/kg)</div>
+    </div>
+    <div class="result-card amber">
+      <div class="result-label">Fat Target (~30%)</div>
+      <div class="result-value" style="color:var(--accent-amber)">${targetFat}</div>
+      <div class="result-unit">g/day</div>
+    </div>
+    <div class="result-card cyan">
+      <div class="result-label">Carbohydrate Target</div>
+      <div class="result-value" style="color:var(--accent-cyan)">${targetCarbs}</div>
+      <div class="result-unit">g/day</div>
+    </div>
+    <div class="result-card violet">
+      <div class="result-label">Fluid Requirement</div>
+      <div class="result-value" style="color:var(--accent-violet)">${fluidReq}</div>
+      <div class="result-unit">mL/day (~30 mL/kg)</div>
+    </div>
+    <div class="result-card rose">
+      <div class="result-label">Weight Used</div>
+      <div class="result-value" style="color:var(--accent-rose)">${patientData.useWeight.toFixed(1)}</div>
+      <div class="result-unit">kg ${patientData.bmi > 30 ? '(Adj.)' : '(Actual)'}</div>
+    </div>
+  `;
+  document.getElementById('macroResults').innerHTML = html;
+
+  // Macro pie chart
+  if(charts.macro) charts.macro.destroy();
+  charts.macro = new Chart(document.getElementById('macroChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Protein','Fat','Carbohydrates'],
+      datasets: [{
+        data: [e.targetProtein*4, targetFat*9, targetCarbs*4],
+        backgroundColor: ['rgba(59,130,246,0.8)','rgba(245,158,11,0.8)','rgba(6,182,212,0.8)'],
+        borderWidth: 0, hoverOffset: 8
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: { legend: { position:'bottom', labels:{color:'#8896b3',font:{family:'DM Sans',size:11},padding:15} }, title:{ display:true, text:'Caloric Distribution', color:'#8896b3', font:{family:'DM Sans',size:13} }}
+    }
+  });
+
+  // Protein target chart
+  if(charts.protein) charts.protein.destroy();
+  const phases = ['Early Acute','Late Acute','Recovery'];
+  const protTargets = [Math.round(e.useWeight*1.2*0.8), Math.round(e.useWeight*1.3), Math.round(e.useWeight*1.8*1.2)];
+  charts.protein = new Chart(document.getElementById('proteinChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: phases,
+      datasets: [{
+        label:'Protein (g/day)',
+        data: protTargets,
+        backgroundColor: ['rgba(59,130,246,0.6)','rgba(6,182,212,0.6)','rgba(16,185,129,0.6)'],
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis:'y',
+      plugins: { legend:{display:false}, title:{display:true, text:'Protein Targets by Phase', color:'#8896b3', font:{family:'DM Sans',size:13}} },
+      scales: { x:{grid:{color:'rgba(42,54,84,0.5)'},ticks:{color:'#8896b3',font:{family:'Space Mono',size:10}}}, y:{grid:{display:false},ticks:{color:'#8896b3',font:{family:'DM Sans',size:11}}} }
+    }
+  });
+
+  // Populate formula table and selector
+  renderFormulaTable();
+  renderSupplementSelector();
+}
+
+function setPhase(phase, el) {
+  document.querySelectorAll('.phase-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('icuPhase').value = phase;
+  const phaseMultipliers = { early_acute:{energy:0.7,protein:0.8}, late_acute:{energy:0.85,protein:1.0}, recovery:{energy:1.1,protein:1.2} };
+  const pm = phaseMultipliers[phase];
+  energyCalcs.phase = phase;
+  energyCalcs.pm = pm;
+  energyCalcs.targetEnergy = Math.round(energyCalcs.hbr * energyCalcs.sf * pm.energy);
+  energyCalcs.proteinPerKg = phase === 'early_acute' ? 1.2 : phase === 'late_acute' ? 1.3 : 1.8;
+  energyCalcs.targetProtein = Math.round(energyCalcs.useWeight * energyCalcs.proteinPerKg * pm.protein);
+  renderEnergyResults();
+  renderMacroResults();
+}
+
+// =============================================
+// FORMULA TABLE
+// =============================================
+function renderFormulaTable() {
+  const tbody = document.getElementById('formulaTableBody');
+  tbody.innerHTML = FORMULAS.map(f => `
+    <tr${f.renal ? ' style="background:rgba(139,92,246,0.04)"' : ''}>
+      <td><strong>${f.name}</strong></td>
+      <td style="color:var(--text-muted)">${f.mfg}</td>
+      <td class="num">${f.kcal}</td>
+      <td class="num">${f.protein}</td>
+      <td class="num">${f.fat}</td>
+      <td class="num">${f.carbs}</td>
+      <td class="num">${f.fiber}</td>
+      <td class="num">${f.osm}</td>
+      <td><span style="font-size:0.68rem;padding:3px 8px;border-radius:6px;background:${f.renal ? 'rgba(139,92,246,0.12)' : 'rgba(59,130,246,0.1)'};color:${f.renal ? 'var(--accent-violet)' : 'var(--accent-blue)'}">${f.cat}</span></td>
+      <td>${f.renal ? '<span style="font-size:0.68rem;padding:3px 8px;border-radius:6px;background:rgba(139,92,246,0.15);color:var(--accent-violet)">KDOQI ✓</span>' : '<span style="font-size:0.68rem;color:var(--text-muted)">—</span>'}</td>
+      <td style="font-size:0.72rem;color:var(--text-muted)">${f.use}</td>
+    </tr>
+  `).join('');
+}
+
+// =============================================
+// SUPPLEMENT SELECTOR
+// =============================================
+function renderSupplementSelector() {
+  const diag = patientData.diagnosis || 'general';
+  const ckdStage = document.getElementById('ckdStage').value;
+  const dialysisType = document.getElementById('dialysisType').value;
+  let recs = [...(DIAGNOSIS_RECS[diag] || DIAGNOSIS_RECS.general)];
+
+  // Auto-add renal formulas if CKD is present
+  if(ckdStage !== 'none') {
+    const isDialysis = ckdStage === '5d' || dialysisType !== 'none';
+    if(isDialysis) {
+      ['nepro','novasource_renal','nutren_renal','katefarms_renal'].forEach(id => { if(!recs.includes(id)) recs.unshift(id); });
+    } else {
+      ['suplena','nepro'].forEach(id => { if(!recs.includes(id)) recs.unshift(id); });
+    }
+  }
+
+  const container = document.getElementById('suppSelector');
+
+  // Update recommendation note
+  const noteEl = document.getElementById('recommendationNote');
+  if(ckdStage !== 'none') {
+    noteEl.innerHTML = '✦ Recommended formulas include <strong>renal-specific options</strong> based on CKD Stage ' + ckdStage.toUpperCase() + ' per KDOQI guidelines. Renal formulas have controlled K⁺, PO₄³⁻, and Na⁺ levels.';
+    noteEl.style.background = 'rgba(139,92,246,0.08)';
+    noteEl.style.borderColor = 'rgba(139,92,246,0.2)';
+    noteEl.style.color = 'var(--accent-violet)';
+  } else {
+    noteEl.innerHTML = '✦ Recommended formulas for your patient are highlighted based on diagnosis';
+    noteEl.style.background = 'rgba(16,185,129,0.08)';
+    noteEl.style.borderColor = 'rgba(16,185,129,0.2)';
+    noteEl.style.color = 'var(--accent-emerald)';
+  }
+
+  container.innerHTML = FORMULAS.map(f => {
+    const isRec = recs.includes(f.id);
+    const badges = [];
+    if(f.omega3) badges.push('Ω-3');
+    if(f.glutamine) badges.push('Gln');
+    if(f.arginine) badges.push('Arg');
+
+    return `
+      <div class="supp-option ${isRec?'recommended':''}" id="opt_${f.id}" onclick="toggleFormula('${f.id}')">
+        <div class="supp-check">✓</div>
+        <div class="name">${f.name} ${isRec?'<span style="color:var(--accent-emerald);font-size:0.65rem">★ Recommended</span>':''}</div>
+        <div class="mfg">${f.mfg} — ${f.cat}</div>
+        <div class="meta">
+          <span>${f.kcal} kcal/mL</span>
+          <span>${f.protein}g prot/L</span>
+          ${badges.map(b=>`<span style="color:var(--accent-amber)">${b}</span>`).join('')}
+        </div>
+        ${f.renal ? `<div style="margin-top:6px;padding:5px 8px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.15);border-radius:6px;font-size:0.65rem;color:var(--accent-violet)">
+          🔬 <strong>Renal:</strong> K⁺ ${f.renalProfile.potassium} · PO₄³⁻ ${f.renalProfile.phosphorus} · Ca²⁺ ${f.renalProfile.calcium} ${f.renalProfile.carnitine ? '· L-Carnitine' : ''} ${f.renalProfile.taurine ? '· Taurine' : ''}
+        </div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleFormula(id) {
+  const idx = selectedFormulas.indexOf(id);
+  if(idx === -1) selectedFormulas.push(id);
+  else selectedFormulas.splice(idx, 1);
+  document.getElementById('opt_'+id).classList.toggle('selected');
+}
+
+// =============================================
+// GENERATE DIET PLAN
+// =============================================
+function generatePlan() {
+  if(selectedFormulas.length === 0) {
+    alert('Please select at least one enteral formula');
+    return;
+  }
+
+  const formulas = selectedFormulas.map(id => FORMULAS.find(f => f.id === id));
+  const primary = formulas[0];
+  const targetKcal = energyCalcs.targetEnergy;
+  const targetProtein = energyCalcs.targetProtein;
+
+  // Calculate volume needed from primary formula
+  const volumeNeeded = Math.round(targetKcal / primary.kcal);
+  const ratePerHour = Math.round(volumeNeeded / 20); // 20-hour feeding window
+
+  // Generate feeding schedule
+  generateFeedingSchedule(primary, volumeNeeded, ratePerHour);
+
+  // Calculate actual nutrition delivered
+  const actualKcal = Math.round(volumeNeeded * primary.kcal);
+  const actualProtein = Math.round(volumeNeeded * primary.protein / 1000);
+  const actualFat = Math.round(volumeNeeded * primary.fat / 1000);
+  const actualCarbs = Math.round(volumeNeeded * primary.carbs / 1000);
+
+  // Micronutrient analysis
+  renderMicronutrients(primary, volumeNeeded);
+
+  // Adequacy summary
+  renderAdequacy(actualKcal, actualProtein, actualFat, actualCarbs, targetKcal, targetProtein);
+
+  // Clinical recommendations
+  generateClinicalRecs();
+
+  // KDOQI Renal Dashboard
+  renderKdoqiDashboard(primary, volumeNeeded, actualProtein, actualKcal);
+
+  goToStep(4);
+}
+
+function generateFeedingSchedule(formula, totalVol, rate) {
+  const phase = energyCalcs.phase;
+  let schedule = [];
+
+  if(phase === 'early_acute') {
+    // Start low, trophic feeding
+    schedule = [
+      {time:'06:00', item:`Start ${formula.name} via NG/NJ tube`, vol:`${Math.round(rate*0.5)} mL/hr`, cal:'Trophic'},
+      {time:'10:00', item:'Check gastric residual volume (GRV)', vol:'—', cal:'Assessment'},
+      {time:'12:00', item:`Increase to ${Math.round(rate*0.75)} mL/hr if tolerated`, vol:`${Math.round(rate*0.75)} mL/hr`, cal:`~${Math.round(rate*0.75*formula.kcal)} kcal/hr`},
+      {time:'14:00', item:'Flush with 30mL sterile water', vol:'30 mL', cal:'—'},
+      {time:'16:00', item:'Check GRV; recheck tolerance', vol:'—', cal:'Assessment'},
+      {time:'18:00', item:`Continue at ${Math.round(rate*0.75)} mL/hr`, vol:`${Math.round(rate*0.75)} mL/hr`, cal:`~${Math.round(rate*0.75*formula.kcal)} kcal/hr`},
+      {time:'22:00', item:'Flush with 30mL sterile water', vol:'30 mL', cal:'—'},
+      {time:'02:00', item:'Overnight: Continue feeding', vol:`${Math.round(rate*0.5)} mL/hr`, cal:`~${Math.round(rate*0.5*formula.kcal)} kcal/hr`}
+    ];
+  } else {
+    schedule = [
+      {time:'06:00', item:`Start ${formula.name} at target rate`, vol:`${rate} mL/hr`, cal:`~${Math.round(rate*formula.kcal)} kcal/hr`},
+      {time:'08:00', item:'Flush with 30mL sterile water', vol:'30 mL', cal:'—'},
+      {time:'10:00', item:'Check GRV; continue feeding', vol:`${rate} mL/hr`, cal:`~${Math.round(rate*formula.kcal)} kcal/hr`},
+      {time:'12:00', item:'Midday assessment; electrolyte check', vol:'—', cal:'Assessment'},
+      {time:'14:00', item:'Flush with 30mL sterile water; continue', vol:`${rate} mL/hr`, cal:`~${Math.round(rate*formula.kcal)} kcal/hr`},
+      {time:'18:00', item:'Evening assessment; continue feeding', vol:`${rate} mL/hr`, cal:`~${Math.round(rate*formula.kcal)} kcal/hr`},
+      {time:'20:00', item:'Flush with 30mL sterile water', vol:'30 mL', cal:'—'},
+      {time:'22:00', item:'Overnight feeding continues', vol:`${rate} mL/hr`, cal:`~${Math.round(rate*formula.kcal)} kcal/hr`},
+      {time:'02:00', item:'Hold for 2hrs (02:00–04:00) — gut rest', vol:'Hold', cal:'—'},
+      {time:'04:00', item:'Resume feeding', vol:`${rate} mL/hr`, cal:`~${Math.round(rate*formula.kcal)} kcal/hr`}
+    ];
+  }
+
+  const html = `
+    <div style="margin-bottom:1rem;padding:12px 16px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.15);border-radius:10px;font-size:0.8rem">
+      <strong style="color:var(--accent-cyan)">Formula:</strong> ${formula.name} (${formula.kcal} kcal/mL) &nbsp;|&nbsp;
+      <strong style="color:var(--accent-cyan)">Target Volume:</strong> ${totalVol} mL/24hr &nbsp;|&nbsp;
+      <strong style="color:var(--accent-cyan)">Rate:</strong> ${rate} mL/hr &nbsp;|&nbsp;
+      <strong style="color:var(--accent-cyan)">Estimated Delivery:</strong> ~${Math.round(totalVol*formula.kcal)} kcal/day
+    </div>
+    <div class="schedule-row" style="font-weight:600;color:var(--text-muted);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em">
+      <div>Time</div><div>Action</div><div style="text-align:right">Volume/Rate</div><div style="text-align:right">Calories</div>
+    </div>
+    ${schedule.map(s => `
+      <div class="schedule-row">
+        <div class="schedule-time">${s.time}</div>
+        <div class="schedule-item">${s.item}</div>
+        <div class="schedule-vol">${s.vol}</div>
+        <div class="schedule-cal">${s.cal}</div>
+      </div>
+    `).join('')}
+  `;
+  document.getElementById('feedingSchedule').innerHTML = html;
+  document.getElementById('planSubtitle').textContent = `${formula.name} — ${energyCalcs.phase.replace('_',' ').replace(/\b\w/g,l=>l.toUpperCase())} Phase Protocol`;
+}
+
+// =============================================
+// MICRONUTRIENT ANALYSIS
+// =============================================
+function renderMicronutrients(formula, volume) {
+  const scaleFactor = volume / 1000; // formulas are per 1500mL for 100% RDA typically
+  const vitaminKeys = ['vitA','vitC','vitD','vitE','vitK','vitB1','vitB2','vitB6','vitB12','folate','niacin','biotin'];
+  const mineralKeys = ['calcium','iron','zinc','selenium','copper','manganese','chromium','molybdenum','phosphorus','magnesium','iodine','potassium'];
+
+  function renderBars(keys, containerId) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = keys.map(k => {
+      const rda = MICRO_RDA[k];
+      const pct = Math.round((formula.micro[k] || 0) * scaleFactor * (volume > 1200 ? 1 : 0.8));
+      const clampedPct = Math.min(pct, 200);
+      let color;
+      if(pct >= 100) color = 'var(--accent-emerald)';
+      else if(pct >= 70) color = 'var(--accent-amber)';
+      else color = 'var(--accent-rose)';
+
+      return `
+        <div class="nutrient-bar-wrap">
+          <div class="nutrient-bar-header">
+            <span class="nutrient-bar-name">${rda.name}</span>
+            <span class="nutrient-bar-value">${pct}% <span style="color:var(--text-muted)">(${rda.rda}${rda.unit})</span></span>
+          </div>
+          <div class="nutrient-bar-track">
+            <div class="nutrient-bar-fill" style="width:${Math.min(clampedPct/2, 100)}%;background:${color}"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  renderBars(vitaminKeys, 'vitaminBars');
+  renderBars(mineralKeys, 'mineralBars');
+
+  // Micronutrient radar chart
+  const allKeys = [...vitaminKeys, ...mineralKeys];
+  const radarData = allKeys.map(k => Math.round((formula.micro[k] || 0) * scaleFactor * (volume > 1200 ? 1 : 0.8)));
+
+  if(charts.microRadar) charts.microRadar.destroy();
+  charts.microRadar = new Chart(document.getElementById('microRadar').getContext('2d'), {
+    type: 'radar',
+    data: {
+      labels: allKeys.map(k => MICRO_RDA[k].name.replace(/\(.*?\)/,'')),
+      datasets: [{
+        label: '% RDA Coverage',
+        data: radarData,
+        backgroundColor: 'rgba(59,130,246,0.15)',
+        borderColor: 'rgba(59,130,246,0.7)',
+        borderWidth: 2,
+        pointBackgroundColor: 'rgba(59,130,246,0.9)',
+        pointRadius: 3
+      },{
+        label: '100% Target',
+        data: allKeys.map(() => 100),
+        backgroundColor: 'rgba(244,63,94,0.05)',
+        borderColor: 'rgba(244,63,94,0.3)',
+        borderWidth: 1,
+        borderDash: [5,5],
+        pointRadius: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { r: { angleLines:{color:'rgba(42,54,84,0.4)'}, grid:{color:'rgba(42,54,84,0.4)'}, pointLabels:{color:'#8896b3',font:{family:'DM Sans',size:8}}, ticks:{display:false}, suggestedMin:0, suggestedMax:200 }},
+      plugins: { legend:{position:'bottom',labels:{color:'#8896b3',font:{family:'DM Sans',size:10},padding:10}}, title:{display:true,text:'Micronutrient Coverage Radar',color:'#8896b3',font:{family:'DM Sans',size:13}} }
+    }
+  });
+
+  // Micro bar chart
+  if(charts.microBar) charts.microBar.destroy();
+  charts.microBar = new Chart(document.getElementById('microChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: allKeys.map(k => MICRO_RDA[k].name.replace(/\(.*?\)/,'').trim()),
+      datasets: [{
+        label: '% RDA',
+        data: radarData,
+        backgroundColor: radarData.map(v => v >= 100 ? 'rgba(16,185,129,0.6)' : v >= 70 ? 'rgba(245,158,11,0.6)' : 'rgba(244,63,94,0.6)'),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend:{display:false},
+        title:{display:true,text:'Micronutrient Coverage (% of ICU Daily Requirement)',color:'#8896b3',font:{family:'DM Sans',size:13}},
+        annotation: { annotations: { line1: { type:'line', yMin:100, yMax:100, borderColor:'rgba(16,185,129,0.5)', borderWidth:2, borderDash:[6,3] }}}
+      },
+      scales: { y:{grid:{color:'rgba(42,54,84,0.5)'},ticks:{color:'#8896b3',font:{family:'Space Mono',size:9}}}, x:{grid:{display:false},ticks:{color:'#8896b3',font:{family:'DM Sans',size:7},maxRotation:90,minRotation:45}} }
+    }
+  });
+}
+
+// =============================================
+// ADEQUACY SUMMARY
+// =============================================
+function renderAdequacy(kcal, prot, fat, carbs, targetKcal, targetProt) {
+  const kcalPct = Math.round(kcal/targetKcal*100);
+  const protPct = Math.round(prot/targetProt*100);
+  const targetFat = Math.round(targetKcal*0.3/9);
+  const targetCarbs = Math.round((targetKcal - targetProt*4 - targetFat*9)/4);
+  const fatPct = Math.round(fat/targetFat*100);
+  const carbPct = Math.round(carbs/targetCarbs*100);
+
+  document.getElementById('adequacySummary').innerHTML = `
+    <div class="result-card emerald">
+      <div class="result-label">Energy Adequacy</div>
+      <div class="result-value" style="color:${kcalPct>=80?'var(--accent-emerald)':'var(--accent-amber)'}">${kcalPct}%</div>
+      <div class="result-unit">${kcal} / ${targetKcal} kcal</div>
+    </div>
+    <div class="result-card blue">
+      <div class="result-label">Protein Adequacy</div>
+      <div class="result-value" style="color:${protPct>=80?'var(--accent-emerald)':'var(--accent-amber)'}">${protPct}%</div>
+      <div class="result-unit">${prot} / ${targetProt} g</div>
+    </div>
+    <div class="result-card amber">
+      <div class="result-label">Fat Delivery</div>
+      <div class="result-value" style="color:var(--accent-amber)">${fat}g</div>
+      <div class="result-unit">${Math.round(fat*9/kcal*100)}% of calories</div>
+    </div>
+    <div class="result-card cyan">
+      <div class="result-label">Carbohydrate Delivery</div>
+      <div class="result-value" style="color:var(--accent-cyan)">${carbs}g</div>
+      <div class="result-unit">${Math.round(carbs*4/kcal*100)}% of calories</div>
+    </div>
+  `;
+
+  // Adequacy chart
+  if(charts.adequacy) charts.adequacy.destroy();
+  charts.adequacy = new Chart(document.getElementById('adequacyChart').getContext('2d'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Delivered','Deficit'],
+      datasets: [{
+        data: [Math.min(kcalPct,100), Math.max(100-kcalPct,0)],
+        backgroundColor: ['rgba(16,185,129,0.8)','rgba(42,54,84,0.5)'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout:'75%',
+      plugins: { legend:{display:false}, title:{display:true,text:`Energy Goal: ${kcalPct}%`,color:'#e8edf5',font:{family:'Space Mono',size:14,weight:'bold'}} }
+    }
+  });
+}
+
+// =============================================
+// CLINICAL RECOMMENDATIONS
+// =============================================
+function generateClinicalRecs() {
+  const diag = patientData.diagnosis;
+  const phase = energyCalcs.phase;
+  const crrt = document.getElementById('crrt').value;
+  const diabetes = document.getElementById('diabetes').value;
+  const malnutrition = document.getElementById('malnutrition').value;
+  const ventilation = document.getElementById('ventilation').value;
+  const giTol = document.getElementById('giTolerance').value;
+  const ckdStage = document.getElementById('ckdStage').value;
+  const dialysisType = document.getElementById('dialysisType').value;
+  const serumK = parseFloat(document.getElementById('serumK').value) || 0;
+  const serumPhos = parseFloat(document.getElementById('serumPhos').value) || 0;
+
+  let recs = [];
+
+  // =============================================
+  // KDOQI CKD-SPECIFIC RECOMMENDATIONS
+  // =============================================
+  if(ckdStage !== 'none') {
+    recs.push('<span style="display:inline-block;padding:4px 12px;border-radius:6px;background:rgba(139,92,246,0.12);color:var(--accent-violet);font-size:0.72rem;font-weight:600;letter-spacing:0.04em;margin-bottom:8px">NKF KDOQI 2020 GUIDELINES — CKD STAGE ' + ckdStage.toUpperCase() + '</span>');
+
+    // Energy recommendations per KDOQI
+    recs.push('🟣 <strong>KDOQI Energy Target:</strong> For metabolically stable CKD patients, prescribe 25–35 kcal/kg/day based on age, sex, physical activity, body composition, and CKD stage (KDOQI 2020, Grade 1C for CKD 1–5D). Adjust for ICU stress factors concurrently.');
+
+    // Protein by CKD stage
+    if(['1','2','3a','3b','4','5'].includes(ckdStage) && dialysisType === 'none') {
+      const protRec = ckdStage === '3a' || ckdStage === '3b' || ckdStage === '4' || ckdStage === '5'
+        ? '0.55–0.60 g/kg/day (or 0.28–0.43 g/kg with keto acid analogs)'
+        : '0.55–0.80 g/kg/day';
+      recs.push('🟣 <strong>KDOQI Protein (Non-Dialysis CKD):</strong> For CKD Stage ' + ckdStage.toUpperCase() + ' NOT on dialysis: target ' + protRec + '. <em>However, in ICU setting with acute illness, protein restriction may be temporarily relaxed to 0.8–1.0 g/kg/day to prevent catabolism — reassess upon stabilization.</em>');
+      recs.push('⚠️ <strong>Pre-Dialysis Formula Selection:</strong> Consider Suplena (1.8 kcal/mL, 45g protein/L) — specifically formulated for CKD patients NOT on dialysis with lower protein and controlled electrolytes per KDOQI recommendations.');
+    }
+    if(ckdStage === '5d' || dialysisType !== 'none') {
+      const dialProt = dialysisType === 'pd' ? '1.0–1.2 g/kg/day' : '1.0–1.2 g/kg/day';
+      recs.push('🟣 <strong>KDOQI Protein (Dialysis CKD 5D):</strong> For patients on dialysis: target ' + dialProt + '. Dialysis causes amino acid and protein losses that must be replaced. In the ICU with acute illness, protein may be increased to 1.5–2.0 g/kg/day, especially with CRRT.');
+      recs.push('✦ <strong>Dialysis Formula Selection:</strong> Consider Nepro (1.8 kcal/mL), Novasource Renal (2.0 kcal/mL), or Nutren Renal (2.0 kcal/mL) — all designed for CKD patients on dialysis with optimized electrolytes and enhanced B-vitamins/folate per KDOQI.');
+    }
+
+    // Electrolyte management per KDOQI
+    recs.push('🟣 <strong>KDOQI Electrolyte Management:</strong>');
+    if(serumK > 5.0) {
+      recs.push('&nbsp;&nbsp;&nbsp;⚠️ <strong>Potassium ' + serumK + ' mEq/L (ELEVATED):</strong> Restrict dietary K⁺. Use renal-specific formulas with low potassium content. Monitor every 4–6 hours. Consider potassium binders if persistent. KDOQI recommends adjusting intake to maintain serum K⁺ in the normal range.');
+    } else if(serumK > 0) {
+      recs.push('&nbsp;&nbsp;&nbsp;✓ <strong>Potassium ' + serumK + ' mEq/L:</strong> Within acceptable range. Continue monitoring. Renal formulas maintain controlled K⁺ levels.');
+    }
+    if(serumPhos > 4.5) {
+      recs.push('&nbsp;&nbsp;&nbsp;⚠️ <strong>Phosphorus ' + serumPhos + ' mg/dL (ELEVATED):</strong> KDOQI targets 3.5–5.5 mg/dL for dialysis patients. Use low-phosphorus enteral formula. Consider phosphate binders with feeds. Avoid phosphate-containing additives.');
+    } else if(serumPhos > 0) {
+      recs.push('&nbsp;&nbsp;&nbsp;✓ <strong>Phosphorus ' + serumPhos + ' mg/dL:</strong> Within KDOQI target range. Continue monitoring with feeds.');
+    }
+
+    // KDOQI Micronutrient guidance
+    recs.push('🟣 <strong>KDOQI Micronutrient Recommendations:</strong> CKD patients have altered micronutrient needs. Supplement water-soluble vitamins (B-complex, folic acid, vitamin C ≤90mg/day) as recommended by KDOQI. Monitor 25(OH)D and supplement vitamin D if deficient. Avoid excess vitamin A (risk of toxicity with impaired renal clearance). Enhanced B6 and folate supplementation is critical during dialysis due to dialytic losses.');
+
+    // KDOQI specific considerations
+    if(dialysisType === 'pd') {
+      recs.push('🟣 <strong>Peritoneal Dialysis Nutrition:</strong> Account for glucose absorption from dialysate (~300–800 kcal/day) when calculating energy targets. This may reduce enteral caloric requirements. Protein losses via peritoneal membrane (~5–15 g/day) require higher protein supplementation.');
+    }
+    if(dialysisType === 'hd') {
+      recs.push('🟣 <strong>Hemodialysis Nutrition:</strong> Plan feeding schedule around dialysis sessions. Intradialytic oral nutrition may be beneficial for malnourished patients (KDOQI 2020). Monitor pre-dialysis bloods for electrolyte management. Amino acid losses during HD average 6–12 g per session.');
+    }
+
+    recs.push('🟣 <strong>KDOQI Fluid Management:</strong> For CKD patients with fluid restrictions, use calorie-dense renal formulas (1.8–2.0 kcal/mL) to minimize volume while meeting energy targets. Monitor fluid balance, daily weights, and urine output. Adjust formula volume based on interdialytic weight gain targets.');
+  }
+
+  // Phase-based recs
+  if(phase === 'early_acute') {
+    recs.push('🔹 <strong>Early Acute Phase (Day 1–2):</strong> Initiate trophic/low-dose enteral feeding within 24–48 hours of ICU admission. Target 70% of energy needs initially. Avoid full-dose feeding in the first 48 hours per ESPEN 2023 guidelines.');
+    recs.push('🔹 <strong>Gradual Progression:</strong> Advance feeding by 25% daily increments toward target. Monitor for refeeding syndrome, especially phosphate and potassium levels.');
+  } else if(phase === 'late_acute') {
+    recs.push('🔹 <strong>Late Acute Phase (Day 3–7):</strong> Progress toward 80–100% of calculated energy target. Increase protein to 1.3 g/kg/day per ESPEN recommendations.');
+    recs.push('🔹 <strong>Energy Monitoring:</strong> Consider indirect calorimetry if available to fine-tune energy delivery and avoid over/underfeeding.');
+  } else {
+    recs.push('🔹 <strong>Recovery Phase (>7 Days):</strong> Target 100–130% of estimated energy expenditure. Increase protein to 1.5–2.0 g/kg/day for anabolic recovery. Consider oral nutrition supplements when safe.');
+    recs.push('🔹 <strong>Rehabilitation Focus:</strong> Combine nutrition therapy with early mobilization. Target higher caloric and protein intakes to support muscle recovery.');
+  }
+
+  // Diagnosis-specific
+  if(diag === 'sepsis') recs.push('⚠️ <strong>Sepsis:</strong> Avoid immune-modulating formulas (arginine) per ASPEN/ESPEN. Use standard isotonic formulas. Avoid high-dose EN if hemodynamically unstable. Consider fiber-free formula (e.g., Osmolite) initially.');
+  if(diag === 'burns') recs.push('🔥 <strong>Burns:</strong> High protein needs (2.0 g/kg/day). Supplement zinc (25–50mg), selenium (200–300µg), and vitamin C (500mg–1g). Immune-modulating formulas may be considered.');
+  if(diag === 'trauma' || diag === 'tbi') recs.push('🏥 <strong>Trauma/TBI:</strong> Consider immune-modulating formula with omega-3, arginine. Target early EN within 24–48 hours. Protein target 1.5–2.0 g/kg/day.');
+  if(diag === 'respiratory') recs.push('🫁 <strong>Respiratory Failure:</strong> Consider low-carbohydrate, high-fat formula (e.g., Oxepa, Pulmocare) to reduce CO₂ production. Monitor RQ if indirect calorimetry available.');
+  if(diag === 'renal' && ckdStage === 'none') recs.push('🔬 <strong>Acute Kidney Injury:</strong> Use renal-specific formula with controlled electrolytes. If on CRRT, protein needs increase to 2.0–2.5 g/kg/day due to amino acid losses. Select Nepro, Novasource Renal, or Nutren Renal.');
+  if(diag === 'pancreatitis') recs.push('🔶 <strong>Pancreatitis:</strong> Prefer semi-elemental/peptide-based formula (e.g., Peptamen). Post-pyloric feeding preferred. Advance cautiously.');
+
+  // Additional conditions
+  if(crrt === 'yes') recs.push('💧 <strong>CRRT:</strong> Increase protein target to 2.0–2.5 g/kg/day to compensate for amino acid losses. Monitor water-soluble vitamins (B, C) and trace elements (selenium, zinc, copper) — supplement as needed. Per KDOQI, CRRT patients have significantly increased micronutrient losses.');
+  if(diabetes !== 'no') recs.push('📊 <strong>Glycemic Control:</strong> Consider diabetes-specific formula (e.g., Glucerna). Target blood glucose 140–180 mg/dL per NICE-SUGAR. Monitor closely for hyperglycemia.');
+  if(malnutrition !== 'no') recs.push('⚡ <strong>Refeeding Risk:</strong> Start at ≤50% of target and advance slowly. Monitor phosphate, potassium, magnesium, and thiamine. Supplement thiamine 200–300mg IV before and for the first 3 days of feeding.');
+  if(giTol === 'poor') recs.push('🔄 <strong>GI Intolerance:</strong> Consider prokinetics (metoclopramide, erythromycin). Switch to post-pyloric feeding. Consider semi-elemental formula. Reduce rate and reassess.');
+  if(ventilation === 'yes') recs.push('🔧 <strong>Mechanical Ventilation:</strong> Penn State equation may be more accurate for energy calculation. Elevate head of bed 30–45°. Monitor for aspiration. Consider post-pyloric tube placement.');
+
+  // General
+  recs.push('📋 <strong>Monitoring Protocol:</strong> Daily: weight, fluid balance, blood glucose, GRV. Every 48–72 hours: electrolytes (Na⁺, K⁺, Mg²⁺, PO₄³⁻, Ca²⁺), triglycerides, liver function. Weekly: prealbumin/CRP, nitrogen balance, indirect calorimetry if available.' + (ckdStage !== 'none' ? ' <em>For CKD patients: add BUN, creatinine, eGFR trending, and albumin per KDOQI monitoring recommendations.</em>' : ''));
+  recs.push('💊 <strong>Micronutrient Supplementation:</strong> Ensure daily provision of thiamine (B1), vitamins C and D, selenium, and zinc — especially if patient is on PN or consuming < 1500 kcal/day enterally. Check 25(OH)D levels and supplement if < 12 ng/mL.' + (ckdStage !== 'none' ? ' <em>KDOQI: Use renal-specific vitamin supplements. Avoid excess vitamin A. Supplement folic acid and B-complex for dialysis patients.</em>' : ''));
+
+  document.getElementById('clinicalRecs').innerHTML = recs.map(r => `<p style="margin-bottom:0.75rem">${r}</p>`).join('');
+}
+
+// =============================================
+// KDOQI RENAL DASHBOARD
+// =============================================
+function renderKdoqiDashboard(formula, volume, actualProtein, actualKcal) {
+  const ckdStage = document.getElementById('ckdStage').value;
+  const dialysisType = document.getElementById('dialysisType').value;
+  const dashboard = document.getElementById('kdoqiDashboard');
+
+  if(ckdStage === 'none') {
+    dashboard.style.display = 'none';
+    return;
+  }
+  dashboard.style.display = 'block';
+
+  const w = energyCalcs.useWeight;
+  const serumK = parseFloat(document.getElementById('serumK').value) || 0;
+  const serumPhos = parseFloat(document.getElementById('serumPhos').value) || 0;
+  const egfr = parseFloat(document.getElementById('egfr').value) || 0;
+  const isDialysis = ckdStage === '5d' || dialysisType !== 'none';
+  const isRenal = formula.renal || false;
+
+  // KDOQI protein targets
+  let kdoqiProtTarget, kdoqiProtRange;
+  if(isDialysis) {
+    kdoqiProtTarget = Math.round(w * 1.1);
+    kdoqiProtRange = '1.0–1.2 g/kg/day';
+  } else if(['3a','3b','4','5'].includes(ckdStage)) {
+    kdoqiProtTarget = Math.round(w * 0.6);
+    kdoqiProtRange = '0.55–0.60 g/kg/day';
+  } else {
+    kdoqiProtTarget = Math.round(w * 0.7);
+    kdoqiProtRange = '0.55–0.80 g/kg/day';
+  }
+
+  // ICU override note
+  const icuOverride = energyCalcs.phase === 'early_acute' || energyCalcs.phase === 'late_acute';
+
+  // Electrolyte status
+  const kStatus = serumK > 5.5 ? 'critical' : serumK > 5.0 ? 'warning' : serumK > 0 ? 'normal' : 'unknown';
+  const phosStatus = serumPhos > 5.5 ? 'critical' : serumPhos > 4.5 ? 'warning' : serumPhos > 0 ? 'normal' : 'unknown';
+
+  // PD glucose absorption estimate
+  const pdGlucose = dialysisType === 'pd' ? Math.round(300 + Math.random() * 500) : 0;
+
+  // CKD Stage info
+  const stageInfo = {
+    '1': { gfr:'≥90', desc:'Normal or high GFR', color:'var(--accent-emerald)' },
+    '2': { gfr:'60–89', desc:'Mildly decreased GFR', color:'var(--accent-emerald)' },
+    '3a': { gfr:'45–59', desc:'Mild-moderate decrease', color:'var(--accent-amber)' },
+    '3b': { gfr:'30–44', desc:'Moderate-severe decrease', color:'var(--accent-amber)' },
+    '4': { gfr:'15–29', desc:'Severely decreased GFR', color:'var(--accent-rose)' },
+    '5': { gfr:'<15', desc:'Kidney failure', color:'var(--accent-rose)' },
+    '5d': { gfr:'<15', desc:'Kidney failure on dialysis', color:'var(--accent-rose)' }
+  };
+  const si = stageInfo[ckdStage] || stageInfo['5d'];
+
+  const statusDot = (status) => {
+    const colors = { normal:'var(--accent-emerald)', warning:'var(--accent-amber)', critical:'var(--accent-rose)', unknown:'var(--text-muted)' };
+    return `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${colors[status]};margin-right:6px"></span>`;
+  };
+
+  let html = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:1.5rem">
+      <div class="result-card violet">
+        <div class="result-label">CKD Stage</div>
+        <div class="result-value" style="color:${si.color}">${ckdStage.toUpperCase()}</div>
+        <div class="result-unit">${si.desc}</div>
+      </div>
+      <div class="result-card blue">
+        <div class="result-label">KDOQI Protein Target</div>
+        <div class="result-value" style="color:var(--accent-blue)">${kdoqiProtTarget}g</div>
+        <div class="result-unit">${kdoqiProtRange}</div>
+      </div>
+      <div class="result-card cyan">
+        <div class="result-label">Actual Protein Delivered</div>
+        <div class="result-value" style="color:${actualProtein > kdoqiProtTarget * 1.5 ? 'var(--accent-amber)' : 'var(--accent-cyan)'}">${actualProtein}g</div>
+        <div class="result-unit">${(actualProtein/w).toFixed(2)} g/kg/day</div>
+      </div>
+      <div class="result-card emerald">
+        <div class="result-label">KDOQI Energy Range</div>
+        <div class="result-value" style="color:var(--accent-emerald)">${energyCalcs.kdoqiEnergyLow}–${energyCalcs.kdoqiEnergyHigh}</div>
+        <div class="result-unit">kcal/day (25–35/kg)</div>
+      </div>
+      ${egfr > 0 ? `<div class="result-card amber">
+        <div class="result-label">eGFR</div>
+        <div class="result-value" style="color:${egfr < 15 ? 'var(--accent-rose)' : egfr < 30 ? 'var(--accent-amber)' : 'var(--accent-emerald)'}">${egfr}</div>
+        <div class="result-unit">mL/min/1.73m²</div>
+      </div>` : ''}
+      ${isDialysis ? `<div class="result-card rose">
+        <div class="result-label">Dialysis</div>
+        <div class="result-value" style="color:var(--accent-rose);font-size:1.1rem">${dialysisType === 'hd' ? 'Hemodialysis' : dialysisType === 'pd' ? 'Peritoneal' : 'CRRT'}</div>
+        <div class="result-unit">Active renal replacement</div>
+      </div>` : ''}
+    </div>
+
+    <div style="padding:14px 18px;background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.15);border-radius:12px;margin-bottom:1.25rem">
+      <div style="font-weight:600;font-size:0.82rem;margin-bottom:10px;color:var(--accent-violet)">🔬 KDOQI Electrolyte & Renal Monitoring</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:0.8rem">
+        <div>
+          ${statusDot(kStatus)}<strong>Potassium:</strong> ${serumK > 0 ? serumK + ' mEq/L' : 'Not entered'}
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:3px">Target: 3.5–5.0 mEq/L</div>
+        </div>
+        <div>
+          ${statusDot(phosStatus)}<strong>Phosphorus:</strong> ${serumPhos > 0 ? serumPhos + ' mg/dL' : 'Not entered'}
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:3px">Target: ${isDialysis ? '3.5–5.5' : '2.5–4.5'} mg/dL</div>
+        </div>
+        <div>
+          ${statusDot(isRenal ? 'normal' : 'warning')}<strong>Formula:</strong> ${isRenal ? 'Renal-specific ✓' : 'Standard (not renal)'}
+          <div style="font-size:0.7rem;color:var(--text-muted);margin-top:3px">${isRenal ? 'Low K⁺/PO₄³⁻ formula' : 'Consider switching to renal formula'}</div>
+        </div>
+      </div>
+    </div>
+
+    ${icuOverride ? `
+    <div style="padding:12px 16px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);border-radius:10px;margin-bottom:1.25rem;font-size:0.78rem;color:var(--accent-amber)">
+      <strong>⚠️ ICU Override Active:</strong> Standard KDOQI protein restriction (${kdoqiProtRange}) is temporarily relaxed during acute illness to prevent catabolism. Current ICU protein target: ${energyCalcs.targetProtein}g/day (${energyCalcs.proteinPerKg} g/kg). Reassess when patient stabilizes and transitions out of ICU.
+    </div>` : ''}
+
+    ${dialysisType === 'pd' ? `
+    <div style="padding:12px 16px;background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.15);border-radius:10px;margin-bottom:1.25rem;font-size:0.78rem;color:var(--accent-cyan)">
+      <strong>📊 PD Glucose Absorption Estimate:</strong> Peritoneal dialysis patients absorb approximately <strong>~${pdGlucose} kcal/day</strong> from dextrose in dialysate. This should be subtracted from enteral caloric targets. Adjusted enteral target: <strong>~${actualKcal - pdGlucose} kcal/day</strong>. Also account for peritoneal protein losses (~5–15 g/day).
+    </div>` : ''}
+
+    <div style="font-size:0.78rem;line-height:1.7;color:var(--text-secondary)">
+      <div style="font-weight:600;margin-bottom:8px;color:var(--text-primary);font-size:0.82rem">KDOQI 2020 Key Nutritional Parameters for CKD Stage ${ckdStage.toUpperCase()}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="padding:8px 12px;background:var(--bg-secondary);border-radius:8px">
+          <strong>Energy:</strong> 25–35 kcal/kg/day (metabolically stable)
+        </div>
+        <div style="padding:8px 12px;background:var(--bg-secondary);border-radius:8px">
+          <strong>Protein:</strong> ${isDialysis ? '1.0–1.2 g/kg/day (HD/PD)' : ['3a','3b','4','5'].includes(ckdStage) ? '0.55–0.60 g/kg/day (non-dialysis)' : '0.55–0.80 g/kg/day'}
+        </div>
+        <div style="padding:8px 12px;background:var(--bg-secondary);border-radius:8px">
+          <strong>Sodium:</strong> &lt;2.3 g/day (individualize)
+        </div>
+        <div style="padding:8px 12px;background:var(--bg-secondary);border-radius:8px">
+          <strong>Potassium:</strong> Adjust to maintain normal serum levels
+        </div>
+        <div style="padding:8px 12px;background:var(--bg-secondary);border-radius:8px">
+          <strong>Phosphorus:</strong> Adjust to maintain serum levels ${isDialysis ? '3.5–5.5' : '2.5–4.5'} mg/dL
+        </div>
+        <div style="padding:8px 12px;background:var(--bg-secondary);border-radius:8px">
+          <strong>Vitamins:</strong> B-complex + Folic acid; supplement Vit D if 25(OH)D &lt;30 ng/mL
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('kdoqiContent').innerHTML = html;
+}
+
+// =============================================
+// INITIALIZE
+// =============================================
+document.addEventListener('DOMContentLoaded', () => {
+  calcBodyMetrics();
+});
+</script>
+<script src="../../assets/gt-switcher.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,2051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BMI Clinical Assessment — body mass index, healthy weight range, BMR and daily energy needs</title>
+<meta name="description" content="BMI assessment for patients and clinicians. Works in cm, m, inches or feet and inches, and in kg, g, pounds or stone. Calculates BMI, healthy weight range, basal metabolic rate (Mifflin-St Jeor), daily energy needs by activity level, waist-to-height ratio, body surface area and ideal body weight." />
+<meta name="theme-color" content="#1877F2" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          fbblue: '#1877F2', fbblue2: '#166FE5', fbblue3: '#E7F3FF',
+          fbbg: '#F0F2F5', fbcard: '#FFFFFF',
+          fbtext: '#050505', fbsub: '#65676B', fbsub2: '#8A8D91',
+          fbline: '#CED0D4', fbline2: '#E4E6EB', fbhover: '#F2F2F5',
+          fbgreen: '#42B72A', fbgreen2: '#2E9E1E',
+          fbyellow: '#F7B928', fborange: '#F7770F',
+          fbred: '#FA383E', fbred2: '#C9252B',
+          fbpurple: '#7B4DD8'
+        },
+        borderRadius: { fb: '8px', fbl: '12px' },
+        boxShadow: {
+          fb: '0 1px 2px rgba(0,0,0,0.10), 0 0 1px rgba(0,0,0,0.12)',
+          fbup: '0 4px 12px rgba(0,0,0,0.12)'
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  :root { color-scheme: light; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #F0F2F5; color: #050505; -webkit-font-smoothing: antialiased;
+  }
+  .tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+  .enter { opacity: 0; transform: translateY(10px); animation: enter .5s cubic-bezier(.22,.9,.3,1) forwards; }
+  @keyframes enter { to { opacity: 1; transform: none; } }
+
+  .seg-arc { transition: opacity .35s ease, stroke-width .35s cubic-bezier(.22,.9,.3,1); }
+
+  /* scale pointer */
+  .ptr-shadow { filter: drop-shadow(0 1px 3px rgba(0,0,0,.28)); }
+  .ptr-arrow { width: 0; height: 0;
+    border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 8px solid #050505; }
+
+  input[type=range] { -webkit-appearance: none; appearance: none; background: transparent; width: 100%; height: 36px; }
+  input[type=range]::-webkit-slider-runnable-track { height: 8px; border-radius: 999px;
+    background: linear-gradient(to right, #1877F2 var(--fill,50%), #E4E6EB var(--fill,50%)); }
+  input[type=range]::-moz-range-track { height: 8px; border-radius: 999px;
+    background: linear-gradient(to right, #1877F2 var(--fill,50%), #E4E6EB var(--fill,50%)); }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+    width: 30px; height: 30px; margin-top: -11px; border-radius: 999px; background: #fff;
+    border: 2px solid #1877F2; box-shadow: 0 1px 5px rgba(0,0,0,.3); cursor: grab;
+    transition: transform .15s ease, box-shadow .15s ease; }
+  input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.08); }
+  input[type=range]:active::-webkit-slider-thumb { transform: scale(1.14); cursor: grabbing; box-shadow: 0 2px 8px rgba(24,119,242,.4); }
+  input[type=range]::-moz-range-thumb { width: 26px; height: 26px; border-radius: 999px; background: #fff;
+    border: 2px solid #1877F2; box-shadow: 0 1px 5px rgba(0,0,0,.3); cursor: grab; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]:focus, select:focus { border-color: #1877F2; box-shadow: 0 0 0 3px #E7F3FF; }
+  input, select { transition: border-color .15s ease, box-shadow .15s ease; }
+
+  :where(a,button,input,select,summary,[tabindex]):focus-visible { outline: 2px solid #1877F2; outline-offset: 2px; border-radius: 6px; }
+
+  .sys-btn[aria-pressed="true"] { background: #fff; color: #1877F2; box-shadow: 0 1px 3px rgba(0,0,0,.16); }
+  .sys-btn[aria-pressed="false"] { color: #65676B; }
+  .cut-btn[aria-pressed="true"] { background: #E7F3FF; border-color: #1877F2; }
+  .cut-btn[aria-pressed="true"] .cut-name { color: #1877F2; }
+  .conv-chip[aria-pressed="true"] { background: #1877F2; border-color: #1877F2; color: #fff; }
+  .conv-chip[aria-pressed="true"] .conv-unit { color: rgba(255,255,255,.75); }
+
+  /* activity rows */
+  .act-btn[aria-pressed="true"], .goal-btn[aria-pressed="true"] { background: #E7F3FF; }
+  .act-btn[aria-pressed="true"] .act-name, .goal-btn[aria-pressed="true"] .act-name { color: #1877F2; }
+  .act-check { opacity: 0; transform: scale(.6); transition: opacity .18s ease, transform .22s cubic-bezier(.3,1.3,.4,1); }
+  [aria-pressed="true"] .act-check { opacity: 1; transform: none; }
+
+  /* method tabs and weight-basis controls */
+  .meth-btn[aria-pressed="true"] { background: #fff; color: #1877F2; box-shadow: 0 1px 3px rgba(0,0,0,.16); }
+  .meth-btn[aria-pressed="false"] { color: #65676B; }
+  .basis-btn[aria-pressed="true"] { background: #E7F3FF; border-color: #1877F2; }
+  .basis-btn[aria-pressed="true"] .basis-name { color: #1877F2; }
+  .basis-btn:disabled { opacity: .45; cursor: not-allowed; }
+  .basis-btn:disabled:hover { background: #F0F2F5; }
+
+  .switch { width: 44px; height: 24px; border-radius: 999px; background: rgba(255,255,255,.35); position: relative; transition: background .2s ease; }
+  .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 999px; background: #fff;
+    transition: transform .22s cubic-bezier(.3,1.3,.4,1); box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+  [aria-checked="true"] .switch { background: #42B72A; }
+  [aria-checked="true"] .switch::after { transform: translateX(20px); }
+
+  details > summary { list-style: none; cursor: pointer; }
+  details > summary::-webkit-details-marker { display: none; }
+  details[open] > summary .chev { transform: rotate(180deg); }
+  .chev { transition: transform .22s ease; }
+  .acc-body { animation: reveal .28s cubic-bezier(.22,.9,.3,1) both; }
+  @keyframes reveal { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+
+  .pill-flip { animation: pill .35s cubic-bezier(.3,1.2,.4,1) both; }
+  @keyframes pill { from { transform: scale(.92); opacity: .5; } to { transform: none; opacity: 1; } }
+
+  @keyframes flash { from { background: #E7F3FF; } to { background: transparent; } }
+  .flash { animation: flash .9s ease; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+    .enter { opacity: 1; transform: none; }
+  }
+
+  /* ═══ printable report — hidden on screen, the only thing that prints ═══ */
+  #printReport { display: none; color: #000; font-size: 10.5pt; line-height: 1.45; }
+  .rpt-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px;
+    border-bottom: 2px solid #000; padding-bottom: 6px; }
+  .rpt-title { font-size: 15pt; font-weight: 700; letter-spacing: -.01em; line-height: 1.15; }
+  .rpt-sub { font-size: 8.5pt; margin-top: 2px; }
+  .rpt-patient { font-size: 12pt; font-weight: 700; margin-top: 3px; line-height: 1.2; }
+  .rpt-meta { font-size: 8.5pt; text-align: right; white-space: nowrap; }
+  .rpt-sec { margin-top: 13px; break-inside: avoid; }
+  .rpt-sec h3 { font-size: 8.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .09em;
+    border-bottom: 1px solid #000; padding-bottom: 3px; margin: 0 0 6px; }
+  .rpt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 22px; }
+  .rpt-row { display: flex; justify-content: space-between; gap: 12px; padding: 2.5px 0;
+    border-bottom: 1px dotted #aaa; }
+  .rpt-row span:last-child { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+  .rpt-headline { border: 1.5px solid #000; padding: 8px 10px; margin-bottom: 8px;
+    display: flex; align-items: baseline; gap: 14px; }
+  .rpt-big { font-size: 26pt; font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
+  .rpt-cat { font-size: 12pt; font-weight: 700; }
+  table.rpt { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  table.rpt th { text-align: left; font-size: 8pt; text-transform: uppercase; letter-spacing: .05em;
+    border-bottom: 1px solid #000; padding: 3px 5px; }
+  table.rpt td { padding: 3px 5px; border-bottom: 1px solid #ddd; font-variant-numeric: tabular-nums; }
+  table.rpt th.num, table.rpt td.num { text-align: right; }
+  table.rpt tr.on td { font-weight: 700; background: #ececec; }
+  .rpt-note { font-size: 8.5pt; margin-top: 5px; }
+  .rpt-flag { border-left: 3px solid #000; padding: 4px 8px; margin-top: 6px; font-size: 9pt; }
+  .rpt-ul { margin: 4px 0 0; padding-left: 16px; font-size: 9pt; }
+  .rpt-ul li { margin-bottom: 2px; }
+  .rpt-sign { display: flex; gap: 26px; margin-top: 22px; break-inside: avoid; }
+  .rpt-sign div { flex: 1; border-top: 1px solid #000; padding-top: 4px; font-size: 8.5pt; }
+  .rpt-foot { margin-top: 14px; border-top: 1px solid #000; padding-top: 6px; font-size: 8pt; line-height: 1.4; }
+
+  .rpt-watermark { display: none; }
+
+  @media print {
+    @page { size: A4 portrait; margin: 14mm 14mm 15mm; }
+    html, body { background: #fff !important; }
+    body > header, body > main, #printOverlay { display: none !important; }
+    #printReport { display: block !important; position: relative; z-index: 1; }
+    /* real text, not a background image, so it prints without
+       the browser's "background graphics" option being enabled */
+    .rpt-watermark { display: block !important; position: fixed; top: 46%; left: 50%;
+      transform: translate(-50%, -50%) rotate(-27deg); transform-origin: center;
+      z-index: 0; pointer-events: none; text-align: center; white-space: nowrap;
+      color: #000; opacity: .06; font-weight: 800; }
+    .rpt-wm-name { font-size: 30pt; letter-spacing: .1em; text-transform: uppercase; line-height: 1; }
+    .rpt-wm-role { font-size: 10.5pt; letter-spacing: .34em; text-transform: uppercase; margin-top: 8px; }
+  }
+</style>
+</head>
+
+<body>
+
+<header class="bg-fbblue text-white sticky top-0 z-30 shadow-fb">
+  <div class="mx-auto max-w-3xl px-4 h-14 flex items-center gap-3">
+    <div class="h-8 w-8 rounded-fb bg-white/20 grid place-items-center font-bold text-[15px]" aria-hidden="true">B</div>
+    <div class="flex-1 min-w-0">
+      <h1 class="font-bold text-[17px] leading-tight tracking-tight truncate">BMI Assessment</h1>
+      <p class="text-[11.5px] text-white/75 leading-tight">Any units · healthy weight · daily energy</p>
+    </div>
+    <button type="button" id="clinicalToggle" role="switch" aria-checked="false"
+      class="no-print flex items-center gap-2 rounded-full px-2 py-1.5 hover:bg-white/10 transition">
+      <span class="text-[13px] font-semibold hidden sm:inline">Clinical view</span>
+      <span class="switch" aria-hidden="true"></span>
+    </button>
+  </div>
+</header>
+
+<main class="mx-auto max-w-3xl px-4 py-4 sm:py-5 space-y-4">
+
+  <div id="notice" class="hidden rounded-fb border-l-4 border-fbyellow bg-fbyellow/10 px-4 py-3">
+    <p id="noticeText" class="text-[14px] leading-relaxed"></p>
+  </div>
+
+  <!-- ══ 1. Measurements ══ -->
+  <section class="enter bg-fbcard rounded-fbl shadow-fb p-4 sm:p-5" style="animation-delay:0ms" aria-labelledby="s1">
+    <div class="flex items-center justify-between gap-3 mb-4">
+      <h2 id="s1" class="font-bold text-[17px]">Measurements</h2>
+      <div class="inline-flex rounded-full bg-fbline2 p-1 text-[13px] font-semibold no-print" role="group" aria-label="Unit system">
+        <button type="button" id="sysMetric" class="sys-btn rounded-full px-3.5 py-1.5 transition" aria-pressed="true">Metric</button>
+        <button type="button" id="sysImperial" class="sys-btn rounded-full px-3.5 py-1.5 transition" aria-pressed="false">Imperial</button>
+      </div>
+    </div>
+
+    <!-- Height -->
+    <div class="mb-5">
+      <div class="flex items-center justify-between gap-2 mb-1 flex-wrap">
+        <label for="heightSlider" class="text-[15px] font-semibold">Height</label>
+        <div class="flex items-center gap-2">
+          <div id="hSingleWrap" class="flex items-center">
+            <input id="hSingle" type="number" inputmode="decimal"
+              class="tnum w-[104px] rounded-fb border border-fbline bg-white px-3 py-2 text-right text-[17px] font-semibold outline-none" aria-label="Height value" />
+          </div>
+          <div id="hPairWrap" class="hidden items-center gap-1.5">
+            <input id="hBig" type="number" inputmode="numeric" step="1"
+              class="tnum w-[64px] rounded-fb border border-fbline bg-white px-2 py-2 text-right text-[17px] font-semibold outline-none" aria-label="Height, feet" />
+            <span id="hBigUnit" class="text-[13px] text-fbsub">ft</span>
+            <input id="hSmall" type="number" inputmode="decimal" step="0.5" min="0"
+              class="tnum w-[64px] rounded-fb border border-fbline bg-white px-2 py-2 text-right text-[17px] font-semibold outline-none" aria-label="Height, inches" />
+            <span id="hSmallUnit" class="text-[13px] text-fbsub">in</span>
+          </div>
+          <select id="hUnit" class="rounded-fb border border-fbline bg-fbbg px-2 py-2 text-[14px] font-semibold outline-none no-print" aria-label="Height unit">
+            <option value="cm">cm</option>
+            <option value="m">m</option>
+            <option value="in">in</option>
+            <option value="ftin">ft + in</option>
+          </select>
+        </div>
+      </div>
+      <input id="heightSlider" class="no-print" type="range" min="80" max="230" step="0.5" value="170" aria-label="Height slider" />
+    </div>
+
+    <!-- Weight -->
+    <div>
+      <div class="flex items-center justify-between gap-2 mb-1 flex-wrap">
+        <label for="weightSlider" class="text-[15px] font-semibold">Weight</label>
+        <div class="flex items-center gap-2">
+          <div id="wSingleWrap" class="flex items-center">
+            <input id="wSingle" type="number" inputmode="decimal"
+              class="tnum w-[104px] rounded-fb border border-fbline bg-white px-3 py-2 text-right text-[17px] font-semibold outline-none" aria-label="Weight value" />
+          </div>
+          <div id="wPairWrap" class="hidden items-center gap-1.5">
+            <input id="wBig" type="number" inputmode="numeric" step="1"
+              class="tnum w-[64px] rounded-fb border border-fbline bg-white px-2 py-2 text-right text-[17px] font-semibold outline-none" aria-label="Weight, stone" />
+            <span class="text-[13px] text-fbsub">st</span>
+            <input id="wSmall" type="number" inputmode="decimal" step="0.5" min="0"
+              class="tnum w-[64px] rounded-fb border border-fbline bg-white px-2 py-2 text-right text-[17px] font-semibold outline-none" aria-label="Weight, pounds" />
+            <span class="text-[13px] text-fbsub">lb</span>
+          </div>
+          <select id="wUnit" class="rounded-fb border border-fbline bg-fbbg px-2 py-2 text-[14px] font-semibold outline-none no-print" aria-label="Weight unit">
+            <option value="kg">kg</option>
+            <option value="g">g</option>
+            <option value="lb">lb</option>
+            <option value="stlb">st + lb</option>
+          </select>
+        </div>
+      </div>
+      <input id="weightSlider" class="no-print" type="range" min="10" max="300" step="0.1" value="68" aria-label="Weight slider" />
+    </div>
+
+    <p id="inputError" class="hidden mt-3 rounded-fb bg-fbred/10 px-3 py-2 text-[13.5px] font-semibold text-fbred" role="alert"></p>
+
+    <details id="moreDetails" class="mt-4 border-t border-fbline2 pt-3">
+      <summary class="flex items-center gap-2 text-[14px] font-semibold text-fbblue hover:underline">
+        <svg class="chev h-4 w-4" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Age, sex and waist <span class="font-normal text-fbsub">(age and sex are required for energy estimates)</span>
+      </summary>
+      <div class="acc-body grid gap-3 sm:grid-cols-3 pt-4">
+        <div>
+          <label for="ageVal" class="block text-[13px] font-semibold text-fbsub mb-1">Age (years)</label>
+          <input id="ageVal" type="number" inputmode="numeric" min="2" max="120" step="1" placeholder="—"
+            class="tnum w-full rounded-fb border border-fbline bg-white px-3 py-2 text-[16px] font-semibold outline-none" />
+        </div>
+        <div>
+          <label for="sexVal" class="block text-[13px] font-semibold text-fbsub mb-1">Sex at birth</label>
+          <select id="sexVal" class="w-full rounded-fb border border-fbline bg-white px-3 py-2 text-[16px] font-semibold outline-none">
+            <option value="">Not stated</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+          </select>
+        </div>
+        <div>
+          <label for="waistVal" class="block text-[13px] font-semibold text-fbsub mb-1">Waist (<span id="waistUnit">cm</span>)</label>
+          <input id="waistVal" type="number" inputmode="decimal" min="20" max="250" step="0.5" placeholder="—"
+            class="tnum w-full rounded-fb border border-fbline bg-white px-3 py-2 text-[16px] font-semibold outline-none" />
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ══ 2. Conversions ══ -->
+  <section class="enter bg-fbcard rounded-fbl shadow-fb p-4 sm:p-5" style="animation-delay:50ms" aria-labelledby="sConv">
+    <h2 id="sConv" class="font-bold text-[17px]">Converted</h2>
+    <p class="text-[14px] text-fbsub mt-0.5 mb-3">The same measurements in every unit. Tap one to make it the display unit for the whole page.</p>
+
+    <p class="text-[12px] font-bold uppercase tracking-wide text-fbsub2 mb-1.5">Height</p>
+    <div id="convHeight" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4"></div>
+
+    <p class="text-[12px] font-bold uppercase tracking-wide text-fbsub2 mb-1.5">Weight</p>
+    <div id="convWeight" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+
+    <div id="convWaistWrap" class="hidden">
+      <p class="text-[12px] font-bold uppercase tracking-wide text-fbsub2 mb-1.5 mt-4">Waist</p>
+      <div id="convWaist" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+    </div>
+  </section>
+
+  <!-- ══ 3. Dial ══ -->
+  <section class="enter bg-fbcard rounded-fbl shadow-fb p-4 sm:p-5" style="animation-delay:100ms" aria-labelledby="s2">
+    <div class="flex items-center justify-between gap-3">
+      <h2 id="s2" class="font-bold text-[17px]">Result</h2>
+      <span id="cutBadge" class="text-[11.5px] font-semibold uppercase tracking-wide text-fbsub2"></span>
+    </div>
+
+    <svg id="gauge" viewBox="0 0 400 224" class="w-full h-auto max-w-[420px] mx-auto block" role="img" aria-labelledby="gTitle">
+      <title id="gTitle">BMI dial</title>
+      <g id="segments" fill="none" stroke-linecap="butt"></g>
+      <g id="ticks" stroke="#8A8D91"></g>
+      <g id="tickLabels" fill="#65676B" font-size="11.5" font-weight="600" text-anchor="middle" class="tnum"></g>
+      <g id="needle">
+        <polygon points="200,-5.5 200,5.5 310,1.3 310,-1.3" fill="#050505" transform="translate(0,200)" />
+      </g>
+      <circle cx="200" cy="200" r="12" fill="#050505" />
+      <circle cx="200" cy="200" r="4.5" fill="#FFFFFF" />
+    </svg>
+
+    <div class="-mt-3 text-center" aria-live="polite">
+      <p class="text-[12.5px] font-semibold uppercase tracking-wide text-fbsub">Body mass index</p>
+      <div class="flex items-baseline justify-center gap-1.5 mt-0.5">
+        <span id="bmiValue" class="tnum text-[56px] font-bold leading-none tracking-tight">—</span>
+        <span class="text-[14px] font-semibold text-fbsub">kg/m²</span>
+      </div>
+      <p id="bmiCategory" class="mt-3 inline-block rounded-full px-4 py-1.5 text-[15px] font-bold text-white">—</p>
+      <p id="bmiPlain" class="mt-3 text-[15px] leading-relaxed text-fbsub max-w-lg mx-auto">—</p>
+    </div>
+  </section>
+
+  <!-- ══ 4. Scale ══ -->
+  <section class="enter bg-fbcard rounded-fbl shadow-fb p-4 sm:p-5" style="animation-delay:150ms" aria-labelledby="s3">
+    <h2 id="s3" class="font-bold text-[17px]">Where this sits on the scale</h2>
+    <p class="text-[14px] text-fbsub mt-0.5 mb-4">Every BMI band converted to weight at this height.</p>
+
+    <div id="scaleWrap" class="relative">
+      <div class="relative h-[46px]">
+        <div id="ptr" class="absolute top-0 bottom-0" style="left:50%">
+          <div id="ptrLabel" class="ptr-shadow absolute bottom-[7px] whitespace-nowrap rounded-fb bg-fbtext px-2.5 py-1.5 text-[12.5px] font-bold text-white tnum">—</div>
+          <div class="ptr-arrow absolute bottom-0 left-0 -translate-x-1/2" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="relative">
+        <div id="bar" class="relative h-12 rounded-fb overflow-hidden flex bg-fbline2"></div>
+        <div id="healthyEdge" class="pointer-events-none absolute inset-y-0 rounded-fb ring-2 ring-inset ring-white/85" style="left:30%;width:40%"></div>
+        <div id="ptrLine" class="pointer-events-none absolute -top-1 -bottom-1 w-[3px] -translate-x-1/2 rounded-full bg-fbtext" style="left:50%"></div>
+      </div>
+
+      <div id="axisWeight" class="relative h-[26px] mt-1"></div>
+      <div id="axisBmi" class="relative h-[24px] border-t border-fbline2 pt-1"></div>
+    </div>
+
+    <div class="rounded-fb bg-fbgreen/10 border border-fbgreen/30 px-4 py-3.5 text-center mt-2">
+      <p class="text-[12.5px] font-semibold uppercase tracking-wide text-fbgreen2">Healthy weight range for this height</p>
+      <p id="rangeBig" class="tnum text-[24px] sm:text-[28px] font-bold mt-1 leading-tight">—</p>
+      <p id="rangeSub" class="text-[13px] text-fbsub mt-1"></p>
+    </div>
+
+    <div id="actionBox" class="rounded-fb border-l-4 px-4 py-3.5 bg-fbbg mt-4">
+      <p id="actionTitle" class="text-[15px] font-bold mb-0.5">—</p>
+      <p id="actionText" class="text-[14px] leading-relaxed text-fbsub">—</p>
+    </div>
+
+    <div class="mt-4 flex gap-2 no-print">
+      <button type="button" id="copyBtn" class="flex-1 rounded-fb bg-fbblue px-4 py-2.5 text-[15px] font-bold text-white hover:bg-fbblue2 active:scale-[.985] transition">Copy result</button>
+      <button type="button" id="printBtn" class="rounded-fb bg-fbline2 px-4 py-2.5 text-[15px] font-bold text-fbtext hover:bg-fbline transition">Print report</button>
+    </div>
+  </section>
+
+  <!-- ══ 5. Energy ══ -->
+  <section id="energySection" class="enter bg-fbcard rounded-fbl shadow-fb p-4 sm:p-5" style="animation-delay:200ms" aria-labelledby="sEnergy">
+    <div class="flex items-center justify-between gap-3">
+      <h2 id="sEnergy" class="font-bold text-[17px]">Daily energy needs</h2>
+      <span id="energyBadge" class="text-[11.5px] font-semibold uppercase tracking-wide text-fbsub2">Mifflin-St Jeor</span>
+    </div>
+    <p class="text-[14px] text-fbsub mt-0.5 mb-3">Two ways to estimate the same figure. Where they disagree, the assumptions behind them are worth checking.</p>
+
+    <div class="inline-flex w-full sm:w-auto rounded-full bg-fbline2 p-1 text-[13px] font-semibold no-print mb-4" role="group" aria-label="Estimation method">
+      <button type="button" id="methPredictive" class="meth-btn flex-1 rounded-full px-3.5 py-1.5 transition" aria-pressed="true">Predictive equation</button>
+      <button type="button" id="methWeight" class="meth-btn flex-1 rounded-full px-3.5 py-1.5 transition" aria-pressed="false">Weight-based</button>
+    </div>
+
+    <!-- Method A: Mifflin-St Jeor -->
+    <div id="methodPredictive">
+      <div id="energyPrompt" class="rounded-fb border-l-4 border-fbblue bg-fbblue3 px-4 py-3.5">
+        <p id="energyPromptText" class="text-[14.5px] leading-relaxed text-fbtext">Energy estimates need <strong>age</strong> and <strong>sex at birth</strong> as well as height and weight.</p>
+        <button type="button" id="energyPromptBtn" class="no-print mt-2.5 rounded-fb bg-fbblue px-3.5 py-2 text-[14px] font-bold text-white hover:bg-fbblue2 transition">Add age and sex</button>
+      </div>
+
+      <div id="energyBody" class="hidden">
+        <div class="grid gap-2.5 sm:grid-cols-2">
+          <div class="rounded-fb border border-fbline2 p-3.5">
+            <p class="text-[11.5px] font-semibold uppercase tracking-wide text-fbsub">Basal metabolic rate</p>
+            <div class="flex items-baseline gap-1.5 mt-1">
+              <span id="bmrValue" class="tnum text-[30px] font-bold leading-none">—</span>
+              <span class="text-[13px] font-semibold text-fbsub">kcal/day</span>
+            </div>
+            <p id="bmrSub" class="text-[12px] text-fbsub2 mt-1.5 tnum">—</p>
+          </div>
+          <div class="rounded-fb border-2 border-fbblue bg-fbblue3 p-3.5">
+            <p class="text-[11.5px] font-semibold uppercase tracking-wide text-fbblue">Daily total · <span id="tdeeLevel">—</span></p>
+            <div class="flex items-baseline gap-1.5 mt-1">
+              <span id="tdeeValue" class="tnum text-[30px] font-bold leading-none text-fbblue">—</span>
+              <span class="text-[13px] font-semibold text-fbblue/80">kcal/day</span>
+            </div>
+            <p id="tdeeSub" class="text-[12px] text-fbblue/80 mt-1.5 tnum">—</p>
+          </div>
+        </div>
+
+        <p class="text-[12px] font-bold uppercase tracking-wide text-fbsub2 mt-4 mb-1.5">Pick the activity level that matches a typical week</p>
+        <div id="activityRows" class="rounded-fb border border-fbline2 overflow-hidden divide-y divide-fbline2"></div>
+
+        <div id="energyCaution" class="hidden mt-3 rounded-fb border-l-4 border-fbyellow bg-fbyellow/10 px-4 py-3">
+          <p id="energyCautionText" class="text-[13.5px] leading-relaxed"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Method B: weight-based -->
+    <div id="methodWeight" class="hidden">
+      <p class="text-[12px] font-bold uppercase tracking-wide text-fbsub2 mb-1.5">Clinical situation</p>
+      <div id="goalRows" class="rounded-fb border border-fbline2 overflow-hidden divide-y divide-fbline2"></div>
+
+      <div class="flex items-baseline justify-between gap-2 mt-4 mb-1.5">
+        <p class="text-[12px] font-bold uppercase tracking-wide text-fbsub2">Weight the coefficient is applied to</p>
+        <span id="basisHint" class="text-[11.5px] font-semibold text-fborange"></span>
+      </div>
+      <div id="basisRows" class="grid gap-2 sm:grid-cols-3"></div>
+
+      <div id="abwFactorWrap" class="hidden items-center gap-2 mt-2.5 flex-wrap">
+        <label for="abwFactor" class="text-[13px] font-semibold text-fbsub">Adjustment factor</label>
+        <select id="abwFactor" class="rounded-fb border border-fbline bg-white px-2 py-1.5 text-[14px] font-semibold outline-none tnum">
+          <option value="0.25">0.25</option>
+          <option value="0.33">0.33</option>
+          <option value="0.4" selected>0.40</option>
+        </select>
+        <span id="abwFormula" class="tnum text-[12.5px] text-fbsub2"></span>
+      </div>
+
+      <div id="wbResult" class="rounded-fb border-2 border-fbblue bg-fbblue3 p-3.5 mt-4">
+        <p class="text-[11.5px] font-semibold uppercase tracking-wide text-fbblue"><span id="wbGoalName">—</span> · <span id="wbCoeff">—</span></p>
+        <div class="flex items-baseline gap-1.5 mt-1 flex-wrap">
+          <span id="wbRange" class="tnum text-[28px] font-bold leading-none text-fbblue">—</span>
+          <span class="text-[13px] font-semibold text-fbblue/80">kcal/day</span>
+        </div>
+        <p id="wbWorking" class="tnum text-[12.5px] text-fbblue/80 mt-1.5">—</p>
+      </div>
+
+      <div id="wbCaution" class="hidden mt-3 rounded-fb border-l-4 px-4 py-3">
+        <p id="wbCautionText" class="text-[13.5px] leading-relaxed"></p>
+      </div>
+    </div>
+
+    <!-- Shared comparison -->
+    <div id="compareStrip" class="hidden mt-4 rounded-fb border border-fbline2 p-3.5">
+      <p class="text-[12px] font-bold uppercase tracking-wide text-fbsub2 mb-3">Both methods compared</p>
+      <div class="relative h-9">
+        <div class="absolute inset-x-0 top-3 h-3 rounded-full bg-fbline2"></div>
+        <div id="cmpBand" class="absolute top-3 h-3 rounded-full bg-fbblue/35" style="left:0;width:0"></div>
+        <div id="cmpMarker" class="absolute -top-0.5 h-8 w-[3px] -translate-x-1/2 rounded-full bg-fbtext" style="left:0"></div>
+        <span id="cmpMarkerLabel" class="tnum absolute top-[26px] -translate-x-1/2 whitespace-nowrap text-[11px] font-bold" style="left:0">—</span>
+      </div>
+      <div class="grid gap-2 sm:grid-cols-2 mt-5">
+        <div class="flex items-baseline gap-2">
+          <span class="h-2.5 w-2.5 rounded-full bg-fbtext shrink-0" aria-hidden="true"></span>
+          <span class="text-[13px] text-fbsub flex-1">Mifflin-St Jeor × activity</span>
+          <span id="cmpPred" class="tnum text-[14px] font-bold">—</span>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span class="h-2.5 w-2.5 rounded-full bg-fbblue/40 shrink-0" aria-hidden="true"></span>
+          <span class="text-[13px] text-fbsub flex-1">Weight-based range</span>
+          <span id="cmpWb" class="tnum text-[14px] font-bold">—</span>
+        </div>
+      </div>
+      <p id="cmpVerdict" class="text-[13.5px] leading-relaxed mt-3 pt-3 border-t border-fbline2">—</p>
+    </div>
+
+    <p class="mt-3 text-[13px] leading-relaxed text-fbsub2">
+      These are population estimates, not a prescription. Measured energy expenditure differs from a predicted figure by roughly 10 per cent in either direction for most people, and more in illness, pregnancy or lactation. Both methods give a starting point that is titrated against observed weight change. Any intake target should be set with a doctor or dietitian.
+    </p>
+  </section>
+
+  <!-- ══ 6. Clinical panel ══ -->
+  <section id="clinicalPanel" class="hidden bg-fbcard rounded-fbl shadow-fb p-4 sm:p-5" aria-labelledby="s4">
+    <div class="flex items-center gap-2 mb-1">
+      <h2 id="s4" class="font-bold text-[17px]">Clinical measures</h2>
+      <span class="rounded-full bg-fbblue3 px-2 py-0.5 text-[11px] font-bold text-fbblue uppercase tracking-wide">Clinical view</span>
+    </div>
+    <p class="text-[13.5px] text-fbsub mb-4">Derived anthropometry. Estimates from population formulae that support, but do not replace, clinical assessment.</p>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+      <div class="rounded-fb border border-fbline2 p-3">
+        <p class="text-[11.5px] font-semibold uppercase tracking-wide text-fbsub">BMI</p>
+        <p id="cBmi" class="tnum text-[19px] font-bold mt-1">—</p><p class="text-[11.5px] text-fbsub2">kg/m²</p>
+      </div>
+      <div class="rounded-fb border border-fbline2 p-3">
+        <p class="text-[11.5px] font-semibold uppercase tracking-wide text-fbsub">BMI prime</p>
+        <p id="cPrime" class="tnum text-[19px] font-bold mt-1">—</p><p class="text-[11.5px] text-fbsub2">ratio to upper limit</p>
+      </div>
+      <div class="rounded-fb border border-fbline2 p-3">
+        <p class="text-[11.5px] font-semibold uppercase tracking-wide text-fbsub">BSA (Mosteller)</p>
+        <p id="cBsa" class="tnum text-[19px] font-bold mt-1">—</p><p id="cBsaDb" class="text-[11.5px] text-fbsub2">—</p>
+      </div>
+      <div class="rounded-fb border border-fbline2 p-3">
+        <p class="text-[11.5px] font-semibold uppercase tracking-wide text-fbsub">Ideal body weight</p>
+        <p id="cIbw" class="tnum text-[19px] font-bold mt-1">—</p><p id="cIbwNote" class="text-[11.5px] text-fbsub2">Devine</p>
+      </div>
+      <div class="rounded-fb border border-fbline2 p-3">
+        <p class="text-[11.5px] font-semibold uppercase tracking-wide text-fbsub">% of IBW</p>
+        <p id="cPctIbw" class="tnum text-[19px] font-bold mt-1">—</p><p id="cAbw" class="text-[11.5px] text-fbsub2">—</p>
+      </div>
+      <div class="rounded-fb border border-fbline2 p-3">
+        <p class="text-[11.5px] font-semibold uppercase tracking-wide text-fbsub">Waist-to-height</p>
+        <p id="cWhtr" class="tnum text-[19px] font-bold mt-1">—</p><p id="cWhtrNote" class="text-[11.5px] text-fbsub2">target &lt; 0.50</p>
+      </div>
+      <div class="rounded-fb border border-fbline2 p-3">
+        <p class="text-[11.5px] font-semibold uppercase tracking-wide text-fbsub">BMR</p>
+        <p id="cBmr" class="tnum text-[19px] font-bold mt-1">—</p><p id="cBmrNote" class="text-[11.5px] text-fbsub2">kcal/day</p>
+      </div>
+      <div class="rounded-fb border border-fbline2 p-3">
+        <p class="text-[11.5px] font-semibold uppercase tracking-wide text-fbsub">Daily total</p>
+        <p id="cTdee" class="tnum text-[19px] font-bold mt-1">—</p><p id="cTdeeNote" class="text-[11.5px] text-fbsub2">—</p>
+      </div>
+      <div class="rounded-fb border border-fbline2 p-3">
+        <p class="text-[11.5px] font-semibold uppercase tracking-wide text-fbsub">BMR per kg</p>
+        <p id="cBmrKg" class="tnum text-[19px] font-bold mt-1">—</p><p class="text-[11.5px] text-fbsub2">kcal/kg/day</p>
+      </div>
+      <div class="rounded-fb border border-fbline2 p-3 col-span-2 sm:col-span-3">
+        <p class="text-[11.5px] font-semibold uppercase tracking-wide text-fbsub">Weight-based estimate</p>
+        <p id="cWb" class="tnum text-[19px] font-bold mt-1">—</p><p id="cWbNote" class="text-[11.5px] text-fbsub2">—</p>
+      </div>
+    </div>
+
+    <div class="mt-4 rounded-fb border border-fbline2 overflow-hidden">
+      <p class="bg-fbbg px-3.5 py-2 text-[12.5px] font-bold uppercase tracking-wide text-fbsub">Weight at BMI thresholds</p>
+      <div id="thresholdRows" class="divide-y divide-fbline2"></div>
+    </div>
+
+    <div class="mt-4 rounded-fb border border-fbline2 overflow-hidden">
+      <p class="bg-fbbg px-3.5 py-2 text-[12.5px] font-bold uppercase tracking-wide text-fbsub">Waist circumference risk</p>
+      <div id="waistRisk" class="px-3.5 py-3 text-[14px] leading-relaxed text-fbsub">Enter a waist measurement to see risk thresholds.</div>
+    </div>
+
+    <p class="mt-4 text-[12.5px] leading-relaxed text-fbsub2">
+      Energy figures are predictive equations for healthy adults at rest and do not account for illness, injury, fever or malabsorption. Stress and injury factors, protein and fluid requirements are deliberately not applied here, and should be set by the treating dietitian.
+    </p>
+  </section>
+
+  <!-- ══ 7. Explainers ══ -->
+  <section aria-labelledby="s5" class="space-y-2">
+    <h2 id="s5" class="font-bold text-[17px] px-1 pt-2">Understand this result</h2>
+
+    <details class="bg-fbcard rounded-fbl shadow-fb overflow-hidden">
+      <summary class="flex items-center gap-3 px-4 py-3.5 hover:bg-fbhover transition">
+        <span class="grid place-items-center h-9 w-9 shrink-0 rounded-full bg-fbblue3 text-fbblue font-bold">?</span>
+        <span class="font-semibold text-[15px] flex-1">How BMI and the healthy range are calculated</span>
+        <svg class="chev h-5 w-5 shrink-0 text-fbsub" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="acc-body px-4 pb-4 pt-3 border-t border-fbline2 text-[14.5px] leading-relaxed text-fbsub space-y-3">
+        <p>BMI compares weight to height. It is a screening measure that flags whether weight is likely to be affecting health. It does not diagnose anything on its own.</p>
+        <div id="convNote" class="hidden rounded-fb bg-fbblue3 px-3.5 py-2.5 text-[13.5px] text-fbtext tnum"></div>
+        <p class="font-semibold text-fbtext">Body mass index</p>
+        <div class="rounded-fb bg-fbbg px-3.5 py-3 text-[14px] text-fbtext tnum">
+          <p>BMI = weight (kg) ÷ height (m)²</p>
+          <p id="calcBmi" class="mt-1.5 font-semibold"></p>
+        </div>
+        <p class="font-semibold text-fbtext">Healthy weight range</p>
+        <p>Convert height to metres, multiply it by itself, then multiply the result by the lowest and highest healthy BMI values.</p>
+        <div class="rounded-fb bg-fbbg px-3.5 py-3 text-[14px] text-fbtext space-y-1 tnum">
+          <p id="calcStep1"></p><p id="calcStep2"></p><p id="calcStep3"></p>
+        </div>
+      </div>
+    </details>
+
+    <details id="energyExplainer" class="bg-fbcard rounded-fbl shadow-fb overflow-hidden">
+      <summary class="flex items-center gap-3 px-4 py-3.5 hover:bg-fbhover transition">
+        <span class="grid place-items-center h-9 w-9 shrink-0 rounded-full bg-fbblue3 text-fbblue font-bold">⚡</span>
+        <span class="font-semibold text-[15px] flex-1">How BMR and daily energy are calculated</span>
+        <svg class="chev h-5 w-5 shrink-0 text-fbsub" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="acc-body px-4 pb-4 pt-3 border-t border-fbline2 text-[14.5px] leading-relaxed text-fbsub space-y-3">
+        <p><span class="font-semibold text-fbtext">Basal metabolic rate</span> is the energy the body uses at complete rest to keep the heart, brain, kidneys and other organs running. It is the largest single part of daily energy use, typically 60 to 70 per cent of the total.</p>
+        <p>The Mifflin-St Jeor equation predicts it from weight, height, age and sex.</p>
+        <div class="rounded-fb bg-fbbg px-3.5 py-3 text-[14px] text-fbtext space-y-1 tnum">
+          <p>Female: BMR = (10 × kg) + (6.25 × cm) − (5 × age) − 161</p>
+          <p>Male: &nbsp;&nbsp;&nbsp;BMR = (10 × kg) + (6.25 × cm) − (5 × age) + 5</p>
+        </div>
+        <div id="bmrWorked" class="rounded-fb bg-fbblue3 px-3.5 py-3 text-[14px] text-fbtext space-y-1 tnum">
+          <p class="text-fbsub">Enter age and sex to see this worked through with the current measurements.</p>
+        </div>
+        <p class="font-semibold text-fbtext">Daily total</p>
+        <p>Multiplying BMR by an activity factor gives total daily energy expenditure, the amount needed to hold weight steady at that level of activity.</p>
+        <div id="tdeeWorked" class="rounded-fb bg-fbbg px-3.5 py-3 text-[14px] text-fbtext space-y-1 tnum"></div>
+        <p>Age lowers the figure by 5 kcal per year, which is why the same height and weight predicts a lower requirement later in life. Weight has the largest effect, at 10 kcal per kilogram.</p>
+      </div>
+    </details>
+
+    <details class="bg-fbcard rounded-fbl shadow-fb overflow-hidden">
+      <summary class="flex items-center gap-3 px-4 py-3.5 hover:bg-fbhover transition">
+        <span class="grid place-items-center h-9 w-9 shrink-0 rounded-full bg-fbblue3 text-fbblue font-bold">kg</span>
+        <span class="font-semibold text-[15px] flex-1">The weight-based method, and which weight to use</span>
+        <svg class="chev h-5 w-5 shrink-0 text-fbsub" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="acc-body px-4 pb-4 pt-3 border-t border-fbline2 text-[14.5px] leading-relaxed text-fbsub space-y-3">
+        <p>Rather than predicting resting expenditure and multiplying it up, this method applies a single kcal-per-kilogram coefficient chosen for the clinical situation. It is quicker, needs no age or sex, and is what most units fall back on when indirect calorimetry is not available.</p>
+        <p>The trade-off is precision. Age and sex are folded into the coefficient rather than calculated, which is why every row is a range rather than a number.</p>
+        <p class="font-semibold text-fbtext">Which weight the coefficient is applied to</p>
+        <p>This choice moves the answer more than the coefficient does, so it is worth being deliberate about.</p>
+        <div class="rounded-fb bg-fbbg px-3.5 py-3 text-[14px] text-fbtext space-y-1.5 tnum">
+          <p><span class="font-semibold">Actual</span> — the usual choice below a BMI of 30.</p>
+          <p><span class="font-semibold">Ideal (Devine)</span> — 45.5 kg female or 50 kg male, + 2.3 kg per inch above 60 in.</p>
+          <p><span class="font-semibold">Adjusted</span> — IBW + factor × (actual − IBW), with the factor between 0.25 and 0.4. Used at a BMI of 30 and above so that excess fat mass is counted in part rather than in full.</p>
+        </div>
+        <p>Oedema, ascites, significant fluid shifts or amputation all make the scale weight misleading. Estimate a dry or adjusted weight first, then apply the coefficient to that.</p>
+        <p class="font-semibold text-fbtext">Reading the two methods together</p>
+        <p>A predictive figure that falls inside the weight-based range is mutual confirmation. A wide gap is a prompt, not an error: usually the activity factor is too generous, or a standard coefficient has been applied to actual weight at a high BMI. Whichever figure is chosen, it is a starting point to be titrated against measured weight change over the following days or weeks.</p>
+      </div>
+    </details>
+
+    <details class="bg-fbcard rounded-fbl shadow-fb overflow-hidden">
+      <summary class="flex items-center gap-3 px-4 py-3.5 hover:bg-fbhover transition">
+        <span class="grid place-items-center h-9 w-9 shrink-0 rounded-full bg-fbblue3 text-fbblue font-bold">≡</span>
+        <span class="font-semibold text-[15px] flex-1">The full BMI classification</span>
+        <svg class="chev h-5 w-5 shrink-0 text-fbsub" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="acc-body border-t border-fbline2">
+        <div id="scaleRows" class="divide-y divide-fbline2"></div>
+        <p class="px-4 py-3 text-[13px] text-fbsub">Weights are what each band corresponds to at this height.</p>
+      </div>
+    </details>
+
+    <details class="bg-fbcard rounded-fbl shadow-fb overflow-hidden">
+      <summary class="flex items-center gap-3 px-4 py-3.5 hover:bg-fbhover transition">
+        <span class="grid place-items-center h-9 w-9 shrink-0 rounded-full bg-fbblue3 text-fbblue font-bold">♥</span>
+        <span class="font-semibold text-[15px] flex-1">What this band means for health</span>
+        <svg class="chev h-5 w-5 shrink-0 text-fbsub" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="acc-body px-4 pb-4 pt-3 border-t border-fbline2">
+        <p id="riskLead" class="text-[14.5px] font-semibold mb-2">—</p>
+        <ul id="riskList" class="space-y-1.5 text-[14.5px] leading-relaxed text-fbsub"></ul>
+        <p class="mt-3 text-[13.5px] text-fbsub">Individual risk also depends on blood pressure, glucose, lipids, family history, activity and smoking. BMI is one input among several.</p>
+      </div>
+    </details>
+
+    <details class="bg-fbcard rounded-fbl shadow-fb overflow-hidden">
+      <summary class="flex items-center gap-3 px-4 py-3.5 hover:bg-fbhover transition">
+        <span class="grid place-items-center h-9 w-9 shrink-0 rounded-full bg-fbblue3 text-fbblue font-bold">⇄</span>
+        <span class="font-semibold text-[15px] flex-1">Which cut-off points to apply</span>
+        <svg class="chev h-5 w-5 shrink-0 text-fbsub" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="acc-body px-4 pb-4 pt-3 border-t border-fbline2">
+        <p class="text-[14.5px] leading-relaxed text-fbsub mb-3">Cardiometabolic risk rises at a lower BMI in many Asian populations, so the WHO publishes a second set of public-health action points alongside the international classification. This tool applies the Asia-Pacific points by default; switch to the international set for populations where those are the reference.</p>
+        <div class="grid gap-2 sm:grid-cols-2" role="group" aria-label="Cut-off points">
+          <button type="button" id="cutAsian" class="cut-btn text-left rounded-fb border-2 border-fbline px-3.5 py-3 hover:bg-fbhover transition" aria-pressed="true">
+            <span class="cut-name block font-bold text-[14.5px]">WHO Asia-Pacific</span>
+            <span class="block text-[13px] text-fbsub tnum">Healthy 18.5 – 22.9 · default</span>
+          </button>
+          <button type="button" id="cutStandard" class="cut-btn text-left rounded-fb border-2 border-fbline px-3.5 py-3 hover:bg-fbhover transition" aria-pressed="false">
+            <span class="cut-name block font-bold text-[14.5px]">WHO international</span>
+            <span class="block text-[13px] text-fbsub tnum">Healthy 18.5 – 24.9</span>
+          </button>
+        </div>
+      </div>
+    </details>
+
+    <details class="bg-fbcard rounded-fbl shadow-fb overflow-hidden">
+      <summary class="flex items-center gap-3 px-4 py-3.5 hover:bg-fbhover transition">
+        <span class="grid place-items-center h-9 w-9 shrink-0 rounded-full bg-fbblue3 text-fbblue font-bold">!</span>
+        <span class="font-semibold text-[15px] flex-1">Where BMI and energy estimates mislead</span>
+        <svg class="chev h-5 w-5 shrink-0 text-fbsub" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="acc-body px-4 pb-4 pt-3 border-t border-fbline2 text-[14.5px] leading-relaxed text-fbsub space-y-2.5">
+        <p><span class="font-semibold text-fbtext">BMI cannot distinguish fat from lean mass.</span> Muscular builds read high; sarcopenic older adults can read normal while carrying excess fat.</p>
+        <p><span class="font-semibold text-fbtext">It ignores fat distribution.</span> Central adiposity carries greater risk, which is why waist circumference and waist-to-height ratio are measured alongside it.</p>
+        <p><span class="font-semibold text-fbtext">It is validated for adults aged 20 and over.</span> Children and adolescents require age- and sex-specific percentile charts.</p>
+        <p><span class="font-semibold text-fbtext">It does not apply in pregnancy,</span> and is unreliable with oedema, ascites, amputation or significant fluid shifts.</p>
+        <p><span class="font-semibold text-fbtext">It is population-derived.</span> Body composition at a given BMI varies with ethnicity and age.</p>
+        <p><span class="font-semibold text-fbtext">BMR equations predict, they do not measure.</span> Mifflin-St Jeor lands within 10 per cent of measured resting expenditure for most healthy adults, but it uses total weight rather than lean mass, so it tends to overestimate at very high body weight and underestimate in muscular builds.</p>
+        <p><span class="font-semibold text-fbtext">Activity factors are broad brackets.</span> Two people who describe the same week can differ by several hundred kilocalories a day. Treat the figure as a starting point to be adjusted against real-world change.</p>
+      </div>
+    </details>
+
+    <details class="bg-fbcard rounded-fbl shadow-fb overflow-hidden">
+      <summary class="flex items-center gap-3 px-4 py-3.5 hover:bg-fbhover transition">
+        <span class="grid place-items-center h-9 w-9 shrink-0 rounded-full bg-fbblue3 text-fbblue font-bold">✚</span>
+        <span class="font-semibold text-[15px] flex-1">When to seek clinical review</span>
+        <svg class="chev h-5 w-5 shrink-0 text-fbsub" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="acc-body px-4 pb-4 pt-3 border-t border-fbline2 text-[14.5px] leading-relaxed text-fbsub space-y-2.5">
+        <p class="font-semibold text-fbtext">Arrange an appointment for any of these.</p>
+        <ul class="space-y-1.5">
+          <li class="flex gap-2"><span class="text-fbblue font-bold">•</span> Unintentional weight change</li>
+          <li class="flex gap-2"><span class="text-fbblue font-bold">•</span> Breathlessness, chest pain or leg swelling</li>
+          <li class="flex gap-2"><span class="text-fbblue font-bold">•</span> Persistent thirst, frequent urination or fatigue</li>
+          <li class="flex gap-2"><span class="text-fbblue font-bold">•</span> Loud snoring, witnessed apnoeas or daytime sleepiness</li>
+          <li class="flex gap-2"><span class="text-fbblue font-bold">•</span> Joint pain limiting daily activity</li>
+          <li class="flex gap-2"><span class="text-fbblue font-bold">•</span> Distress about weight, eating or body image</li>
+        </ul>
+        <p class="font-semibold text-fbtext pt-1">Useful questions to bring</p>
+        <ul class="space-y-1.5">
+          <li class="flex gap-2"><span class="text-fbblue font-bold">•</span> Is BMI a fair measure for my build and age?</li>
+          <li class="flex gap-2"><span class="text-fbblue font-bold">•</span> Should blood pressure, glucose and lipids be checked?</li>
+          <li class="flex gap-2"><span class="text-fbblue font-bold">•</span> What weight should I aim for, and over what timeframe?</li>
+          <li class="flex gap-2"><span class="text-fbblue font-bold">•</span> What daily intake is appropriate for me, given my health and activity?</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="bg-fbcard rounded-fbl shadow-fb overflow-hidden">
+      <summary class="flex items-center gap-3 px-4 py-3.5 hover:bg-fbhover transition">
+        <span class="grid place-items-center h-9 w-9 shrink-0 rounded-full bg-fbblue3 text-fbblue font-bold">§</span>
+        <span class="font-semibold text-[15px] flex-1">Formulae, conversions and sources</span>
+        <svg class="chev h-5 w-5 shrink-0 text-fbsub" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 7.5 10 12l4.5-4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="acc-body px-4 pb-4 pt-3 border-t border-fbline2 text-[14px] leading-relaxed text-fbsub space-y-2 tnum">
+        <p><span class="font-semibold text-fbtext">Conversion factors used</span>: 1 in = 2.54 cm exactly · 1 m = 100 cm · 1 lb = 0.45359237 kg exactly · 1 kg = 1000 g · 1 st = 14 lb · 1 kcal = 4.184 kJ. Height and weight are held internally in cm and kg, so switching units never accumulates rounding error.</p>
+        <p><span class="font-semibold text-fbtext">BMI</span> = kg ÷ m². Classification: WHO Technical Report 894 and the WHO expert consultation on Asian populations, 2004.</p>
+        <p><span class="font-semibold text-fbtext">BMR, Mifflin-St Jeor</span> = (10 × kg) + (6.25 × cm) − (5 × age) − 161 for females, or + 5 for males. Mifflin et al., American Journal of Clinical Nutrition, 1990. Derived in healthy adults aged 19 to 78.</p>
+        <p><span class="font-semibold text-fbtext">Daily total</span> = BMR × activity factor. Sedentary 1.2 · lightly active 1.375 · moderately active 1.55 · very active 1.725.</p>
+        <p><span class="font-semibold text-fbtext">Weight-based method</span> = kcal/kg coefficient × the chosen body weight. Weight reduction 20–25 · maintenance 25–30 · repletion 30–35 (general dietetic practice). Critical illness 25–30 · hypocaloric at BMI 30–50, 11–14 on actual weight · hypocaloric above BMI 50, 22–25 on ideal weight (ASPEN/SCCM critical care nutrition guidelines, 2016). Refeeding risk 10–15, high risk 5–10, as a starting rate (NICE CG32). Coefficients differ between ASPEN, ESPEN and local policy — check against the guideline in use.</p>
+        <p><span class="font-semibold text-fbtext">Adjusted body weight for dosing energy</span> = IBW + factor × (actual − IBW), factor selectable between 0.25 and 0.4.</p>
+        <p><span class="font-semibold text-fbtext">BSA Mosteller</span> = √(height cm × weight kg ÷ 3600). <span class="font-semibold text-fbtext">Du Bois</span> = 0.007184 × height<sup>0.725</sup> × weight<sup>0.425</sup>.</p>
+        <p><span class="font-semibold text-fbtext">Ideal body weight, Devine</span> = 45.5 kg (female) or 50 kg (male) + 2.3 kg per inch above 60 in. Unreliable below 152 cm.</p>
+        <p><span class="font-semibold text-fbtext">Adjusted body weight</span> = IBW + 0.4 × (actual − IBW), shown when actual weight exceeds 120% of IBW.</p>
+        <p><span class="font-semibold text-fbtext">Waist thresholds</span>: WHO, increased risk from 94 cm (male) and 80 cm (female); substantially increased from 102 cm and 88 cm. Asia-Pacific: 90 cm and 80 cm.</p>
+        <p><span class="font-semibold text-fbtext">Waist-to-height ratio</span> target below 0.50, per NICE CG189 guidance on central adiposity.</p>
+      </div>
+    </details>
+  </section>
+
+  <div class="bg-fbcard rounded-fbl shadow-fb p-4 flex gap-3">
+    <span class="grid place-items-center h-9 w-9 shrink-0 rounded-full bg-fbyellow/20 text-[17px]" aria-hidden="true">⚠</span>
+    <div class="text-[13.5px] leading-relaxed text-fbsub space-y-1.5">
+      <p><span class="font-semibold text-fbtext">Not a medical device and not a diagnosis.</span> This tool performs standard arithmetic on entered measurements. It is not certified for diagnostic use and does not replace clinical assessment or professional judgement.</p>
+      <p>Verify any figure before it informs prescribing, dosing or a nutrition care plan. Energy figures are predictions from a population equation and are not an intake prescription. Patients should discuss results with a doctor, dietitian or other qualified health professional.</p>
+    </div>
+  </div>
+
+  <div id="siteCredit" class="bg-fbcard rounded-fbl shadow-fb p-4 text-center">
+    <p class="text-[11px] font-bold uppercase tracking-wider text-fbsub2">Prepared for</p>
+    <p id="creditName" class="text-[16px] font-bold mt-1">—</p>
+    <p id="creditRole" class="text-[13px] text-fbsub">—</p>
+    <p id="creditDev" class="hidden text-[13px] text-fbsub mt-3 pt-3 border-t border-fbline2">—</p>
+  </div>
+
+  <p class="text-center text-[12.5px] text-fbsub pt-1 pb-6">Calculations run in your browser. Nothing entered is transmitted or stored.</p>
+</main>
+
+<div class="rpt-watermark" aria-hidden="true">
+  <div class="rpt-wm-name" id="wmName"></div>
+  <div class="rpt-wm-role" id="wmRole"></div>
+</div>
+
+<!-- ══ print options ══ -->
+<div id="printOverlay" class="no-print hidden fixed inset-0 z-40 bg-black/40 flex items-end sm:items-center justify-center sm:p-4">
+  <div role="dialog" aria-modal="true" aria-labelledby="poTitle"
+    class="w-full sm:max-w-md bg-fbcard rounded-t-fbl sm:rounded-fbl shadow-fbup max-h-[88vh] overflow-y-auto">
+    <div class="flex items-center justify-between gap-3 px-4 sm:px-5 py-3.5 border-b border-fbline2 sticky top-0 bg-fbcard">
+      <h2 id="poTitle" class="font-bold text-[17px]">Print report</h2>
+      <button type="button" id="poClose" class="grid place-items-center h-8 w-8 rounded-full hover:bg-fbhover transition text-fbsub" aria-label="Close">✕</button>
+    </div>
+
+    <div class="px-4 sm:px-5 py-4 space-y-4">
+      <div>
+        <label for="poName" class="block text-[13px] font-semibold text-fbsub mb-1">Patient name (optional)</label>
+        <input id="poName" type="text" maxlength="80" placeholder="Full name as it should appear"
+          class="w-full rounded-fb border border-fbline bg-white px-3 py-2 text-[16px] outline-none" />
+      </div>
+
+      <div>
+        <label for="poRef" class="block text-[13px] font-semibold text-fbsub mb-1">Reference (optional)</label>
+        <input id="poRef" type="text" maxlength="60" placeholder="Record number, initials or note"
+          class="w-full rounded-fb border border-fbline bg-white px-3 py-2 text-[16px] outline-none" />
+        <p class="text-[12px] text-fbsub2 mt-1">Both fields print in the header only. Nothing is saved or sent anywhere, and they clear when the page is closed.</p>
+      </div>
+
+      <div>
+        <p class="text-[13px] font-semibold text-fbsub mb-1.5">Include</p>
+        <div class="rounded-fb border border-fbline2 divide-y divide-fbline2" id="poOpts">
+          <label class="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer hover:bg-fbhover transition">
+            <input id="optMeasure" type="checkbox" checked class="h-4 w-4 accent-fbblue" />
+            <span class="flex-1 text-[14.5px] font-semibold">Measurements</span>
+          </label>
+          <label class="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer hover:bg-fbhover transition">
+            <input id="optResult" type="checkbox" checked class="h-4 w-4 accent-fbblue" />
+            <span class="flex-1 text-[14.5px] font-semibold">BMI result and healthy range</span>
+          </label>
+          <label class="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer hover:bg-fbhover transition">
+            <input id="optBands" type="checkbox" checked class="h-4 w-4 accent-fbblue" />
+            <span class="flex-1 text-[14.5px] font-semibold">Full classification table</span>
+          </label>
+          <label class="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer hover:bg-fbhover transition">
+            <input id="optEnergy" type="checkbox" checked class="h-4 w-4 accent-fbblue" />
+            <span class="flex-1 text-[14.5px] font-semibold">Energy estimates</span>
+          </label>
+          <label class="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer hover:bg-fbhover transition">
+            <input id="optClinical" type="checkbox" checked class="h-4 w-4 accent-fbblue" />
+            <span class="flex-1 text-[14.5px] font-semibold">Clinical measures</span>
+          </label>
+          <label class="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer hover:bg-fbhover transition">
+            <input id="optNotes" type="checkbox" checked class="h-4 w-4 accent-fbblue" />
+            <span class="flex-1 text-[14.5px] font-semibold">Interpretation notes</span>
+          </label>
+          <label class="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer hover:bg-fbhover transition">
+            <input id="optSign" type="checkbox" class="h-4 w-4 accent-fbblue" />
+            <span class="flex-1 text-[14.5px] font-semibold">Signature lines</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex gap-2 pt-1">
+        <button type="button" id="poPrint" class="flex-1 rounded-fb bg-fbblue px-4 py-2.5 text-[15px] font-bold text-white hover:bg-fbblue2 active:scale-[.985] transition">Print</button>
+        <button type="button" id="poCancel" class="rounded-fb bg-fbline2 px-4 py-2.5 text-[15px] font-bold text-fbtext hover:bg-fbline transition">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="printReport" aria-hidden="true"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ═══════════════════════════════════════════════════════════
+     CREDITS — edit these three developer fields and nothing else
+     needs changing. Blank fields are simply omitted everywhere.
+     ═══════════════════════════════════════════════════════════ */
+  const CREDITS = {
+    practitioner:     'Gayathri Dissanayaka',
+    practitionerRole: 'Clinical Dietitian and Nutritionist',
+    developer:        'Ashen Wijesingha',
+    portfolioLabel:   '',                  // ← e.g. 'ashen.dev'
+    portfolioUrl:     ''                   // ← e.g. 'https://ashen.dev'
+  };
+
+  /* ═══ exact conversion factors ═══ */
+  const CM_PER_IN = 2.54;          // exact by definition
+  const KG_PER_LB = 0.45359237;    // exact by definition
+  const LB_PER_ST = 14;
+  const KJ_PER_KCAL = 4.184;       // thermochemical calorie
+
+  /* canonical bounds — inputs and sliders share these, so they can never disagree */
+  const H_MIN = 80, H_MAX = 230;   // cm
+  const W_MIN = 10, W_MAX = 300;   // kg
+
+  /* ═══ unit definitions ═══ */
+  const H_UNITS = {
+    cm:   { name: 'cm', pair: false, dec: 1, step: 0.5,  from: cm => cm,             to: v => v },
+    m:    { name: 'm',  pair: false, dec: 2, step: 0.01, from: cm => cm / 100,       to: v => v * 100 },
+    in:   { name: 'in', pair: false, dec: 1, step: 0.25, from: cm => cm / CM_PER_IN, to: v => v * CM_PER_IN },
+    ftin: { name: 'ft + in', pair: true, big: 'ft', small: 'in', per: 12, dec: 1,
+            from: cm => cm / CM_PER_IN, to: v => v * CM_PER_IN }
+  };
+  const W_UNITS = {
+    kg:   { name: 'kg', pair: false, dec: 1, step: 0.1, from: kg => kg,             to: v => v },
+    g:    { name: 'g',  pair: false, dec: 0, step: 50,  from: kg => kg * 1000,      to: v => v / 1000 },
+    lb:   { name: 'lb', pair: false, dec: 1, step: 0.2, from: kg => kg / KG_PER_LB, to: v => v * KG_PER_LB },
+    stlb: { name: 'st + lb', pair: true, big: 'st', small: 'lb', per: LB_PER_ST, dec: 1,
+            from: kg => kg / KG_PER_LB, to: v => v * KG_PER_LB }
+  };
+
+  const nf = (v, d) => v.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+  const kcal = v => Math.round(v).toLocaleString();
+
+  /* format a canonical cm value in the chosen unit */
+  function fmtH(cm, unitKey, opts) {
+    const u = H_UNITS[unitKey || state.hUnit], o = opts || {};
+    if (u.pair) {
+      const total = u.from(cm);
+      let big = Math.floor(total / u.per);
+      let small = total - big * u.per;
+      if (+small.toFixed(u.dec) >= u.per) { big += 1; small = 0; }
+      return `${big} ${u.big} ${nf(small, u.dec)} ${u.small}`;
+    }
+    const d = o.dec === undefined ? u.dec : o.dec;
+    return `${nf(u.from(cm), d)}${o.bare ? '' : ' ' + u.name}`;
+  }
+
+  /* format a canonical kg value in the chosen unit */
+  function fmtW(kg, opts) {
+    const o = opts || {}, u = W_UNITS[o.unit || state.wUnit];
+    if (u.pair) {
+      const total = u.from(kg);
+      let big = Math.floor(total / u.per);
+      let small = total - big * u.per;
+      if (+small.toFixed(u.dec) >= u.per) { big += 1; small = 0; }
+      return big > 0 ? `${big} ${u.big} ${nf(small, u.dec)} ${u.small}` : `${nf(small, u.dec)} ${u.small}`;
+    }
+    let d = o.dec === undefined ? u.dec : o.dec;
+    if (o.coarse) d = u.name === 'g' ? 0 : 0;          // whole numbers for table cells
+    return `${nf(u.from(kg), d)}${o.bare ? '' : ' ' + u.name}`;
+  }
+
+  /* short unit tag for axes */
+  const wTag = () => W_UNITS[state.wUnit].pair ? 'lb' : W_UNITS[state.wUnit].name;
+  const wAxis = kg => W_UNITS[state.wUnit].pair ? kg / KG_PER_LB : W_UNITS[state.wUnit].from(kg);
+  const waistUnitKey = () => (state.hUnit === 'in' || state.hUnit === 'ftin') ? 'in' : 'cm';
+  const fmtWaist = cm => waistUnitKey() === 'in' ? `${nf(cm / CM_PER_IN, 1)} in` : `${nf(cm, 1)} cm`;
+
+  /* ═══ classification ═══ */
+  const CX = 200, CY = 200, R = 148, ARC_W = 22, B_MIN = 10, B_MAX = 45;
+
+  const SETS = {
+    standard: {
+      name: 'WHO international', badge: 'WHO INTERNATIONAL',
+      waist: { male: [94, 102], female: [80, 88] },
+      bands: [
+        { label: 'Underweight', min: B_MIN, max: 18.5, color: '#1877F2' },
+        { label: 'Healthy',     min: 18.5,  max: 25,   color: '#42B72A' },
+        { label: 'Overweight',  min: 25,    max: 30,   color: '#F7B928' },
+        { label: 'Obesity I',   min: 30,    max: 35,   color: '#F7770F' },
+        { label: 'Obesity II',  min: 35,    max: 40,   color: '#FA383E' },
+        { label: 'Obesity III', min: 40,    max: B_MAX,color: '#C9252B' }
+      ]
+    },
+    asian: {
+      name: 'WHO Asia-Pacific', badge: 'WHO ASIA-PACIFIC',
+      waist: { male: [90, 100], female: [80, 90] },
+      bands: [
+        { label: 'Underweight', min: B_MIN, max: 18.5, color: '#1877F2' },
+        { label: 'Healthy',     min: 18.5,  max: 23,   color: '#42B72A' },
+        { label: 'Overweight',  min: 23,    max: 25,   color: '#F7B928' },
+        { label: 'Obesity I',   min: 25,    max: 30,   color: '#F7770F' },
+        { label: 'Obesity II',  min: 30,    max: B_MAX,color: '#FA383E' }
+      ]
+    }
+  };
+
+  /* ═══ activity factors ═══ */
+  const ACTIVITY = [
+    { key: 'sedentary', name: 'Sedentary',         factor: 1.2,   desc: 'Desk-based day, little or no exercise',  color: '#1877F2' },
+    { key: 'light',     name: 'Lightly active',    factor: 1.375, desc: 'Light exercise 1 to 3 days a week',      color: '#42B72A' },
+    { key: 'moderate',  name: 'Moderately active', factor: 1.55,  desc: 'Moderate exercise 3 to 5 days a week',   color: '#F7B928' },
+    { key: 'very',      name: 'Very active',       factor: 1.725, desc: 'Hard exercise 6 to 7 days a week',       color: '#F7770F' }
+  ];
+  const activityFor = k => ACTIVITY.find(a => a.key === k) || ACTIVITY[0];
+
+  /* ═══ weight-based coefficients (kcal per kg per day) ═══
+     Coefficients vary between ASPEN, ESPEN and local policy, so each row
+     carries its source. Every one is a starting point for a plan that is
+     then titrated against observed weight change. */
+  const GOALS = [
+    { key: 'reduction',  name: 'Weight reduction',        lo: 20, hi: 25, basis: 'actual',
+      desc: 'Ambulatory, clinician-supervised',           src: 'General dietetic practice', color: '#1877F2', hypo: true },
+    { key: 'maintenance',name: 'Maintenance',             lo: 25, hi: 30, basis: 'actual',
+      desc: 'General ward or ambulatory, weight steady',  src: 'General dietetic practice', color: '#42B72A' },
+    { key: 'repletion',  name: 'Repletion',               lo: 30, hi: 35, basis: 'actual',
+      desc: 'Malnutrition or raised requirements',        src: 'General dietetic practice', color: '#7B4DD8' },
+    { key: 'critical',   name: 'Critical illness',        lo: 25, hi: 30, basis: 'actual',
+      desc: 'Where indirect calorimetry is unavailable',  src: 'ASPEN/SCCM 2016', color: '#F7B928' },
+    { key: 'hypo3050',   name: 'Hypocaloric, BMI 30–50',  lo: 11, hi: 14, basis: 'actual',
+      desc: 'Permissive underfeeding, actual weight',     src: 'ASPEN/SCCM 2016', color: '#F7770F', hypo: true },
+    { key: 'hypo50',     name: 'Hypocaloric, BMI over 50',lo: 22, hi: 25, basis: 'ideal',
+      desc: 'Permissive underfeeding, ideal weight',      src: 'ASPEN/SCCM 2016', color: '#F7770F', hypo: true },
+    { key: 'refeed',     name: 'Refeeding risk',          lo: 10, hi: 15, basis: 'actual',
+      desc: 'Starting rate, built up over days',          src: 'NICE CG32', color: '#FA383E', refeed: true },
+    { key: 'refeedhigh', name: 'High refeeding risk',     lo: 5,  hi: 10, basis: 'actual',
+      desc: 'Starting rate under specialist supervision', src: 'NICE CG32', color: '#C9252B', refeed: true }
+  ];
+  const goalFor = k => GOALS.find(g => g.key === k) || GOALS[1];
+
+  const BASES = [
+    { key: 'actual',   name: 'Actual',   note: 'As measured' },
+    { key: 'ideal',    name: 'Ideal',    note: 'Devine · needs sex' },
+    { key: 'adjusted', name: 'Adjusted', note: 'IBW + factor × excess' }
+  ];
+
+  const RISKS = {
+    'Underweight': { lead: 'Weight below the healthy range carries its own risks.',
+      items: ['Reduced immune function and slower recovery', 'Lower bone density and higher fracture risk', 'Iron deficiency, anaemia and fatigue', 'Menstrual irregularity and reduced fertility', 'Loss of muscle mass and strength'] },
+    'Healthy': { lead: 'This range carries the lowest risk of weight-related conditions.',
+      items: ['Maintaining it protects cardiovascular and metabolic health', 'Activity, sleep and diet quality matter independently of weight', 'Weight drifts slowly, so periodic rechecks are worthwhile'] },
+    'Overweight': { lead: 'Risk of several long-term conditions begins to rise in this range.',
+      items: ['Type 2 diabetes and insulin resistance', 'Hypertension and dyslipidaemia', 'Obstructive sleep apnoea', 'Mechanical load on knees, hips and lumbar spine', 'Metabolic dysfunction-associated fatty liver disease'] },
+    'Obesity I': { lead: 'Risk of long-term conditions is clearly raised in this range.',
+      items: ['Type 2 diabetes', 'Ischaemic heart disease and stroke', 'Hypertension and dyslipidaemia', 'Obstructive sleep apnoea', 'Osteoarthritis, gallstones and fatty liver', 'Certain cancers, including colorectal and post-menopausal breast'] },
+    'Obesity II': { lead: 'Risk of long-term conditions is high in this range.',
+      items: ['Type 2 diabetes and cardiovascular disease', 'Hypertension and stroke', 'Sleep apnoea and obesity hypoventilation', 'Osteoarthritis and reduced mobility', 'Fatty liver and gallbladder disease', 'Certain cancers'] },
+    'Obesity III': { lead: 'Risk of long-term conditions is very high in this range.',
+      items: ['Type 2 diabetes and cardiovascular disease', 'Hypertension, heart failure and stroke', 'Severe sleep-disordered breathing', 'Marked mobility limitation and joint disease', 'Elevated perioperative and anaesthetic risk', 'Certain cancers'] }
+  };
+
+  const state = { h: 170, w: 68, waist: null, age: null, sex: '', hUnit: 'cm', wUnit: 'kg', set: 'asian',
+                  clinical: false, activity: 'sedentary',
+                  method: 'predictive', goal: 'maintenance', basis: 'actual', abwFactor: 0.4 };
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const $ = id => document.getElementById(id);
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const bands = () => SETS[state.set].bands;
+  const healthy = () => bands().find(b => b.label === 'Healthy');
+  const bandFor = b => bands().find(x => b >= x.min && b < x.max) || bands()[bands().length - 1];
+
+  const rad = d => d * Math.PI / 180;
+  const pt = (r, d) => [CX + r * Math.cos(rad(d)), CY + r * Math.sin(rad(d))];
+  const ang = b => 180 + (clamp(b, B_MIN, B_MAX) - B_MIN) / (B_MAX - B_MIN) * 180;
+  function arc(b1, b2, r) {
+    const [x1, y1] = pt(r, ang(b1)), [x2, y2] = pt(r, ang(b2));
+    return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+  }
+  const NS = 'http://www.w3.org/2000/svg';
+  const svgEl = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+
+  /* ═══ energy ═══ */
+  const energyReady = () => state.age !== null && !!state.sex;
+  function bmrValue() {
+    if (!energyReady()) return null;
+    const v = 10 * state.w + 6.25 * state.h - 5 * state.age + (state.sex === 'male' ? 5 : -161);
+    return v > 0 ? v : null;
+  }
+
+  /* Devine ideal body weight — needs sex and height only */
+  function ibwValue() {
+    if (!state.sex) return null;
+    const v = (state.sex === 'male' ? 50 : 45.5) + 2.3 * (state.h / CM_PER_IN - 60);
+    return v >= 20 ? v : null;
+  }
+  function abwValue() {
+    const ibw = ibwValue();
+    return ibw === null ? null : ibw + state.abwFactor * (state.w - ibw);
+  }
+  /* the weight a kcal/kg coefficient is applied to */
+  function basisWeight(key) {
+    const k = key || state.basis;
+    if (k === 'ideal')    { const v = ibwValue(); return v === null ? null : { kg: v, label: 'ideal body weight' }; }
+    if (k === 'adjusted') { const v = abwValue(); return v === null ? null : { kg: v, label: 'adjusted body weight' }; }
+    return { kg: state.w, label: 'actual body weight' };
+  }
+  /* the weight-based estimate as a kcal/day range */
+  function weightBased() {
+    const g = goalFor(state.goal), bw = basisWeight();
+    if (!bw) return null;
+    return { goal: g, bw, lo: g.lo * bw.kg, hi: g.hi * bw.kg, mid: (g.lo + g.hi) / 2 * bw.kg };
+  }
+
+  /* ═══ dial ═══ */
+  let firstDraw = true;
+  function drawSegments() {
+    const g = $('segments'); g.textContent = '';
+    bands().forEach((b, i) => {
+      const p = svgEl('path', { d: arc(b.min, b.max, R), stroke: b.color, 'stroke-width': ARC_W, class: 'seg-arc', opacity: .28 });
+      p.dataset.label = b.label;
+      g.appendChild(p);
+      if (firstDraw && !reduced) {
+        const len = p.getTotalLength();
+        p.style.strokeDasharray = len; p.style.strokeDashoffset = len;
+        p.style.transition = `stroke-dashoffset .7s cubic-bezier(.25,.9,.3,1) ${i * 70 + 60}ms, opacity .35s ease, stroke-width .35s ease`;
+        requestAnimationFrame(() => { p.style.strokeDashoffset = 0; });
+      }
+    });
+    firstDraw = false;
+  }
+  function drawTicks() {
+    const g = $('ticks'), gl = $('tickLabels'); g.textContent = ''; gl.textContent = '';
+    for (let b = B_MIN; b <= B_MAX; b++) {
+      const major = b % 5 === 0, a = ang(b);
+      const [x1, y1] = pt(R - ARC_W / 2 - 4, a);
+      const [x2, y2] = pt(R - ARC_W / 2 - (major ? 13 : 8), a);
+      g.appendChild(svgEl('line', { x1, y1, x2, y2, 'stroke-width': major ? 1.6 : 1, opacity: major ? .55 : .22, 'stroke-linecap': 'round' }));
+      if (major) {
+        const [lx, ly] = pt(R - ARC_W / 2 - 28, a);
+        const t = svgEl('text', { x: lx, y: ly + 4 }); t.textContent = b; gl.appendChild(t);
+      }
+    }
+  }
+
+  /* ═══ single spring drives needle, number and pointer ═══ */
+  const anim = { cur: reduced ? null : B_MIN, vel: 0, target: 0, running: false, last: 0 };
+  function springStep(now) {
+    const dt = Math.min(0.032, (now - anim.last) / 1000 || 0.016);
+    anim.last = now;
+    const k = 150, c = 22;
+    anim.vel += (k * (anim.target - anim.cur) - c * anim.vel) * dt;
+    anim.cur += anim.vel * dt;
+    paintAnimated(anim.cur);
+    if (Math.abs(anim.target - anim.cur) < 0.004 && Math.abs(anim.vel) < 0.02) {
+      anim.cur = anim.target; anim.vel = 0; anim.running = false; paintAnimated(anim.cur); return;
+    }
+    requestAnimationFrame(springStep);
+  }
+  function driveTo(bmi) {
+    anim.target = bmi;
+    if (reduced || anim.cur === null) { anim.cur = bmi; anim.vel = 0; paintAnimated(bmi); return; }
+    if (!anim.running) { anim.running = true; anim.last = performance.now(); requestAnimationFrame(springStep); }
+  }
+
+  let scaleGeom = { lo: 0, hi: 1 };
+  function paintAnimated(bmi) {
+    // needle is drawn pointing east (0°); ang() is the absolute arc angle
+    $('needle').setAttribute('transform', `rotate(${ang(bmi).toFixed(3)} ${CX} ${CY})`);
+    $('bmiValue').textContent = bmi.toFixed(1);
+    positionPointer(bmi * Math.pow(state.h / 100, 2));
+  }
+
+  function positionPointer(weightKg) {
+    const { lo, hi } = scaleGeom;
+    if (hi <= lo) return;
+    const pct = clamp((weightKg - lo) / (hi - lo) * 100, 0, 100);
+    $('ptr').style.left = pct + '%';
+    $('ptrLine').style.left = pct + '%';
+    clampLabel(pct);
+  }
+  function clampLabel(pct) {
+    const wrap = $('scaleWrap'), label = $('ptrLabel'), W = wrap.clientWidth;
+    if (!W) return;
+    const half = label.offsetWidth / 2, centre = W * pct / 100;
+    let shift = 0;
+    if (centre - half < 0) shift = half - centre;
+    else if (centre + half > W) shift = W - centre - half;
+    label.style.transform = `translateX(calc(-50% + ${shift.toFixed(1)}px))`;
+  }
+
+  function niceStep(span) {
+    const raw = span / 5, steps = [1, 2, 2.5, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 5000, 10000, 20000, 25000, 50000];
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    for (const s of steps) if (s * mag >= raw) return s * mag;
+    return 10 * mag;
+  }
+
+  /* ═══ render ═══ */
+  function render() {
+    const m = state.h / 100, m2 = m * m, w = state.w;
+    const bmi = w / m2, band = bandFor(bmi), hb = healthy();
+    const loB = hb.min, hiB = +(hb.max - 0.1).toFixed(1);
+    const loW = loB * m2, hiW = hiB * m2;
+
+    [...$('segments').children].forEach(p => {
+      const on = p.dataset.label === band.label;
+      p.setAttribute('opacity', on ? 1 : .26);
+      p.setAttribute('stroke-width', on ? ARC_W + 8 : ARC_W);
+    });
+    $('gauge').setAttribute('aria-label', `BMI ${bmi.toFixed(1)}, classified ${band.label}`);
+
+    const cat = $('bmiCategory');
+    if (cat.textContent !== band.label) {
+      cat.textContent = band.label;
+      cat.classList.remove('pill-flip'); void cat.offsetWidth; cat.classList.add('pill-flip');
+    }
+    cat.style.background = band.color;
+    $('bmiPlain').textContent =
+      bmi < loB ? 'This weight is below the healthy range for this height.'
+      : bmi <= hiB ? 'This weight is within the healthy range for this height.'
+      : 'This weight is above the healthy range for this height.';
+
+    /* ── scale: fixed BMI 15–35 window, widened only if the reading falls outside ── */
+    const loBmiScale = Math.min(15, bmi - 1.5), hiBmiScale = Math.max(35, bmi + 1.5);
+    scaleGeom = { lo: loBmiScale * m2, hi: hiBmiScale * m2 };
+    const span = scaleGeom.hi - scaleGeom.lo;
+    const pos = v => clamp((v - scaleGeom.lo) / span * 100, 0, 100);
+
+    const bar = $('bar'); bar.textContent = '';
+    bands().forEach(b => {
+      const l = pos(b.min * m2), r = pos(b.max * m2);
+      if (r - l <= 0.01) return;
+      const d = document.createElement('div');
+      d.className = 'relative h-full flex items-center justify-center overflow-hidden';
+      d.style.cssText += `width:${r - l}%;background:${b.color}`;
+      d.title = `${b.label} · BMI ${b.min}–${b.max === B_MAX ? '45+' : b.max}`;
+      if (r - l > 15) {
+        const s = document.createElement('span');
+        s.className = 'px-1 text-[10.5px] font-bold uppercase tracking-wide text-white/95 truncate';
+        s.textContent = b.label.replace('Obesity ', 'Ob ');
+        d.appendChild(s);
+      }
+      bar.appendChild(d);
+    });
+    const he = $('healthyEdge');
+    he.style.left = pos(loW) + '%';
+    he.style.width = (pos(hiW) - pos(loW)) + '%';
+
+    /* weight axis */
+    const axW = $('axisWeight'); axW.textContent = '';
+    const dLo = wAxis(scaleGeom.lo), dHi = wAxis(scaleGeom.hi);
+    const step = niceStep(dHi - dLo);
+    for (let v = Math.ceil(dLo / step) * step; v <= dHi + 1e-9; v += step) {
+      const p = (v - dLo) / (dHi - dLo) * 100;
+      if (p > 93) continue;                                  // keep clear of the unit tag
+      const tick = document.createElement('div');
+      tick.className = 'absolute top-0 w-px h-2 bg-fbline'; tick.style.left = p + '%';
+      axW.appendChild(tick);
+      const lab = document.createElement('span');
+      lab.className = 'tnum absolute top-2.5 -translate-x-1/2 text-[11.5px] font-semibold text-fbsub2';
+      lab.style.left = p + '%';
+      lab.textContent = nf(v, 0);
+      axW.appendChild(lab);
+    }
+    const tag = document.createElement('span');
+    tag.className = 'absolute top-2.5 right-0 text-[11.5px] font-bold text-fbsub';
+    tag.textContent = wTag();
+    axW.appendChild(tag);
+
+    /* BMI axis: cut-off points, healthy edges emphasised */
+    const axB = $('axisBmi'); axB.textContent = '';
+    const cuts = [];
+    bands().forEach(b => { if (b.min > B_MIN) cuts.push(b.min); });
+    cuts.forEach(c => {
+      const p = pos(c * m2);
+      if (p <= 0.5 || p >= 99.5) return;
+      const isEdge = c === hb.min || c === hb.max;
+      const lab = document.createElement('span');
+      lab.className = `tnum absolute top-1 -translate-x-1/2 text-[11px] font-bold ${isEdge ? 'text-fbgreen2' : 'text-fbsub2'}`;
+      lab.style.left = p + '%';
+      lab.textContent = c;
+      axB.appendChild(lab);
+    });
+    const bmiTag = document.createElement('span');
+    bmiTag.className = 'absolute top-1 right-0 text-[11px] font-bold text-fbsub';
+    bmiTag.textContent = 'BMI';
+    axB.appendChild(bmiTag);
+
+    $('ptrLabel').textContent = fmtW(w);
+
+    $('rangeBig').textContent = `${fmtW(loW)} – ${fmtW(hiW)}`;
+    $('rangeSub').textContent = `BMI ${loB} to ${hiB} · ${SETS[state.set].name}`;
+    $('cutBadge').textContent = SETS[state.set].badge;
+
+    const box = $('actionBox');
+    if (bmi < loB) {
+      box.style.borderColor = '#1877F2';
+      $('actionTitle').textContent = `${fmtW(loW - w)} below the healthy range`;
+      $('actionText').textContent = 'Assessment should look for an underlying cause before weight gain is planned. A dietitian can guide safe repletion.';
+    } else if (bmi <= hiB) {
+      box.style.borderColor = '#42B72A';
+      $('actionTitle').textContent = 'Within the healthy range';
+      $('actionText').textContent = `There is ${fmtW(hiW - w)} of headroom to the upper limit and ${fmtW(w - loW)} above the lower one.`;
+    } else {
+      box.style.borderColor = band.color;
+      $('actionTitle').textContent = `${fmtW(w - hiW)} above the healthy range`;
+      $('actionText').textContent = `Reaching the range is a long-term target and is not required to benefit. A 5 to 10 per cent reduction, roughly ${fmtW(w * 0.05)} to ${fmtW(w * 0.10)}, produces measurable improvement in blood pressure, glycaemia and lipids. Pace should be set with a clinician.`;
+    }
+
+    /* worked example — always shown in the unit currently selected */
+    const cn = $('convNote');
+    if (state.hUnit !== 'cm' || state.wUnit !== 'kg') {
+      cn.innerHTML = `The formula needs metric units, so the entered values are converted first: `
+        + `<strong>${fmtH(state.h)} = ${nf(state.h, 1)} cm</strong> and <strong>${fmtW(w)} = ${nf(w, 1)} kg</strong>.`;
+      cn.classList.remove('hidden');
+    } else { cn.classList.add('hidden'); }
+
+    $('calcBmi').textContent = `${nf(w, 1)} ÷ (${nf(m, 2)} × ${nf(m, 2)}) = ${bmi.toFixed(1)} kg/m²`;
+    $('calcStep1').textContent = `1 · Height in metres: ${fmtH(state.h)} → ${nf(m, 2)} m`;
+    $('calcStep2').textContent = `2 · Multiply by itself: ${nf(m, 2)} × ${nf(m, 2)} = ${nf(m2, 3)} m²`;
+    $('calcStep3').textContent = `3 · Multiply by ${loB} and ${hiB}: ${fmtW(loW)} and ${fmtW(hiW)}`;
+
+    const r = RISKS[band.label];
+    $('riskLead').textContent = r.lead;
+    $('riskList').innerHTML = r.items.map(i => `<li class="flex gap-2"><span class="text-fbblue font-bold">•</span><span>${i}</span></li>`).join('');
+
+    $('scaleRows').innerHTML = bands().map(b => {
+      const on = b.label === band.label;
+      const range = b.min === B_MIN ? 'Under ' + b.max : b.max === B_MAX ? b.min + ' and above' : b.min + ' – ' + (b.max - 0.1).toFixed(1);
+      const wt = b.min === B_MIN ? 'under ' + fmtW(b.max * m2, { coarse: true })
+               : b.max === B_MAX ? fmtW(b.min * m2, { coarse: true }) + ' +'
+               : fmtW(b.min * m2, { coarse: true, bare: true }) + ' – ' + fmtW(b.max * m2, { coarse: true });
+      return `<div class="flex items-center gap-3 px-4 py-3 ${on ? 'bg-fbblue3/60' : ''}">
+        <span class="h-7 w-1.5 rounded-full shrink-0" style="background:${b.color}"></span>
+        <span class="font-semibold text-[14.5px] min-w-[104px]">${b.label}</span>
+        <span class="tnum text-[13.5px] text-fbsub min-w-[92px]">${range}</span>
+        <span class="tnum text-[13.5px] text-fbsub hidden sm:inline">${wt}</span>
+        ${on ? '<span class="ml-auto rounded-full bg-fbblue px-2.5 py-0.5 text-[11.5px] font-bold text-white">This result</span>' : ''}
+      </div>`;
+    }).join('');
+
+    renderConversions();
+    renderEnergy();
+    renderNotice();
+    renderClinical(bmi, m, m2, hb);
+    driveTo(bmi);
+    syncFields();
+  }
+
+  /* ═══ conversion chips ═══ */
+  function chip(label, value, pressed, onClick) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'conv-chip rounded-fb border border-fbline bg-fbbg px-3 py-2 text-left hover:bg-fbhover transition';
+    b.setAttribute('aria-pressed', String(pressed));
+    b.innerHTML = `<span class="conv-unit block text-[11px] font-bold uppercase tracking-wide text-fbsub2">${label}</span>
+                   <span class="tnum block text-[15px] font-bold leading-tight mt-0.5">${value}</span>`;
+    if (onClick) b.addEventListener('click', onClick);
+    return b;
+  }
+
+  function renderConversions() {
+    const ch = $('convHeight'); ch.textContent = '';
+    Object.keys(H_UNITS).forEach(k => {
+      ch.appendChild(chip(H_UNITS[k].name, fmtH(state.h, k), state.hUnit === k, () => setHUnit(k)));
+    });
+    const cw = $('convWeight'); cw.textContent = '';
+    Object.keys(W_UNITS).forEach(k => {
+      cw.appendChild(chip(W_UNITS[k].name, fmtW(state.w, { unit: k }), state.wUnit === k, () => setWUnit(k)));
+    });
+    const wrap = $('convWaistWrap'), cwa = $('convWaist');
+    if (state.waist) {
+      wrap.classList.remove('hidden'); cwa.textContent = '';
+      ['cm', 'm', 'in', 'ftin'].forEach(k => cwa.appendChild(chip(H_UNITS[k].name, fmtH(state.waist, k), false, null)));
+    } else { wrap.classList.add('hidden'); }
+  }
+
+  /* ═══ energy section ═══ */
+  function renderEnergy() {
+    const pred = state.method === 'predictive';
+    $('methPredictive').setAttribute('aria-pressed', String(pred));
+    $('methWeight').setAttribute('aria-pressed', String(!pred));
+    $('methodPredictive').classList.toggle('hidden', !pred);
+    $('methodWeight').classList.toggle('hidden', pred);
+    $('energyBadge').textContent = pred ? 'Mifflin-St Jeor' : 'kcal per kg';
+    renderPredictive();
+    renderWeightBased();
+    renderCompare();
+  }
+
+  function renderPredictive() {
+    const bmr = bmrValue();
+    const ready = bmr !== null;
+
+    $('energyPrompt').classList.toggle('hidden', ready);
+    $('energyBody').classList.toggle('hidden', !ready);
+
+    if (!ready) {
+      const missing = [];
+      if (state.age === null) missing.push('age');
+      if (!state.sex) missing.push('sex at birth');
+      $('energyPromptText').innerHTML = missing.length
+        ? `Energy estimates need <strong>${missing.join('</strong> and <strong>')}</strong> as well as height and weight.`
+        : 'These measurements do not produce a usable estimate. Check the values entered.';
+      $('bmrWorked').innerHTML = '<p class="text-fbsub">Enter age and sex to see this worked through with the current measurements.</p>';
+      $('tdeeWorked').innerHTML = '<p class="text-fbsub">Enter age and sex to see this worked through with the current measurements.</p>';
+      return;
+    }
+
+    const act = activityFor(state.activity), tdee = bmr * act.factor;
+
+    $('bmrValue').textContent = kcal(bmr);
+    $('bmrSub').textContent = `${kcal(bmr * KJ_PER_KCAL)} kJ · ${(bmr / state.w).toFixed(1)} kcal per kg of body weight`;
+    $('tdeeLevel').textContent = act.name.toLowerCase();
+    $('tdeeValue').textContent = kcal(tdee);
+    $('tdeeSub').textContent = `${kcal(bmr)} × ${act.factor} · ${kcal(tdee * KJ_PER_KCAL)} kJ · holds weight steady`;
+
+    /* activity rows */
+    const rows = $('activityRows'); rows.textContent = '';
+    ACTIVITY.forEach(a => {
+      const on = a.key === state.activity;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'act-btn w-full flex items-center gap-3 px-3.5 py-3 text-left hover:bg-fbhover transition';
+      b.setAttribute('aria-pressed', String(on));
+      b.innerHTML = `
+        <span class="h-8 w-1.5 rounded-full shrink-0" style="background:${a.color}"></span>
+        <span class="flex-1 min-w-0">
+          <span class="act-name block font-semibold text-[14.5px]">${a.name}</span>
+          <span class="block text-[12.5px] text-fbsub">${a.desc}</span>
+        </span>
+        <span class="tnum text-[12.5px] text-fbsub2 w-[42px] text-right shrink-0">×${a.factor}</span>
+        <span class="tnum text-[15px] font-bold w-[74px] text-right shrink-0">${kcal(bmr * a.factor)}</span>
+        <span class="act-check grid place-items-center h-5 w-5 shrink-0 rounded-full bg-fbblue text-white text-[11px] font-bold" aria-hidden="true">✓</span>`;
+      b.addEventListener('click', () => { state.activity = a.key; renderEnergy(); });
+      rows.appendChild(b);
+    });
+
+    /* caution for ages outside the derivation range */
+    const cau = $('energyCaution'), cauT = $('energyCautionText');
+    if (state.age < 18) {
+      cauT.innerHTML = '<strong>Under 18.</strong> Mifflin-St Jeor was derived in adults. Children and adolescents need age-specific reference values, which also allow for growth. Treat the figure above as indicative only.';
+      cau.classList.remove('hidden');
+    } else if (state.age >= 70) {
+      cauT.innerHTML = '<strong>Aged 70 and over.</strong> The equation was derived in adults up to 78 and can overestimate when muscle mass is reduced. Interpret alongside appetite, function and recent weight change.';
+      cau.classList.remove('hidden');
+    } else {
+      cau.classList.add('hidden');
+    }
+
+    /* worked examples in the explainer */
+    const sexTerm = state.sex === 'male' ? 'Male' : 'Female';
+    const constant = state.sex === 'male' ? 5 : -161;
+    const t1 = 10 * state.w, t2 = 6.25 * state.h, t3 = 5 * state.age;
+    $('bmrWorked').innerHTML = `
+      <p class="font-semibold">${sexTerm}, ${state.age} years, ${nf(state.w, 1)} kg, ${nf(state.h, 1)} cm</p>
+      <p>10 × ${nf(state.w, 1)} = ${nf(t1, 1)}</p>
+      <p>6.25 × ${nf(state.h, 1)} = ${nf(t2, 1)}</p>
+      <p>5 × ${state.age} = ${nf(t3, 0)}</p>
+      <p class="font-semibold pt-1">${nf(t1, 1)} + ${nf(t2, 1)} − ${nf(t3, 0)} ${constant < 0 ? '− 161' : '+ 5'} = ${kcal(bmr)} kcal/day</p>`;
+    $('tdeeWorked').innerHTML = ACTIVITY.map(a => {
+      const on = a.key === state.activity;
+      return `<p class="${on ? 'font-semibold text-fbtext' : ''}">${a.name}: ${kcal(bmr)} × ${a.factor} = ${kcal(bmr * a.factor)} kcal/day</p>`;
+    }).join('');
+  }
+
+  /* ═══ weight-based method ═══ */
+  function renderWeightBased() {
+    const g = goalFor(state.goal);
+
+    /* clinical situation rows, each showing what it works out to */
+    const rows = $('goalRows'); rows.textContent = '';
+    GOALS.forEach(x => {
+      const on = x.key === state.goal;
+      const bw = basisWeight();
+      const out = bw ? `${kcal(x.lo * bw.kg)}–${kcal(x.hi * bw.kg)}` : '—';
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'goal-btn w-full flex items-center gap-3 px-3.5 py-3 text-left hover:bg-fbhover transition';
+      b.setAttribute('aria-pressed', String(on));
+      b.innerHTML = `
+        <span class="h-8 w-1.5 rounded-full shrink-0" style="background:${x.color}"></span>
+        <span class="flex-1 min-w-0">
+          <span class="act-name block font-semibold text-[14.5px]">${x.name}</span>
+          <span class="block text-[12.5px] text-fbsub">${x.desc}</span>
+        </span>
+        <span class="tnum text-[12.5px] text-fbsub2 w-[58px] text-right shrink-0">${x.lo}–${x.hi}</span>
+        <span class="tnum text-[14px] font-bold w-[92px] text-right shrink-0">${out}</span>
+        <span class="act-check grid place-items-center h-5 w-5 shrink-0 rounded-full bg-fbblue text-white text-[11px] font-bold" aria-hidden="true">✓</span>`;
+      b.addEventListener('click', () => {
+        state.goal = x.key;
+        state.basis = x.basis;          // each situation carries its own conventional basis
+        renderEnergy(); renderClinicalIfOpen();
+      });
+      rows.appendChild(b);
+    });
+
+    /* weight basis */
+    const bRows = $('basisRows'); bRows.textContent = '';
+    BASES.forEach(x => {
+      const bw = basisWeight(x.key);
+      const on = x.key === state.basis;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'basis-btn text-left rounded-fb border-2 border-fbline bg-fbbg px-3 py-2.5 hover:bg-fbhover transition';
+      b.setAttribute('aria-pressed', String(on && !!bw));
+      b.disabled = !bw;
+      b.innerHTML = `<span class="basis-name block font-bold text-[14px]">${x.name}</span>
+                     <span class="tnum block text-[15px] font-bold leading-tight mt-0.5">${bw ? fmtW(bw.kg) : '—'}</span>
+                     <span class="block text-[11.5px] text-fbsub2 mt-0.5">${bw ? x.note : 'Enter sex at birth'}</span>`;
+      if (bw) b.addEventListener('click', () => { state.basis = x.key; renderEnergy(); renderClinicalIfOpen(); });
+      bRows.appendChild(b);
+    });
+
+    /* adjustment factor only matters for the adjusted basis */
+    const afw = $('abwFactorWrap'), usingAbw = state.basis === 'adjusted' && abwValue() !== null;
+    afw.classList.toggle('hidden', !usingAbw);
+    afw.classList.toggle('flex', usingAbw);
+    if (usingAbw) {
+      const ibw = ibwValue();
+      $('abwFormula').textContent = `${fmtW(ibw)} + ${state.abwFactor} × (${fmtW(state.w)} − ${fmtW(ibw)}) = ${fmtW(abwValue())}`;
+    }
+
+    /* flag when the basis differs from the convention for this situation */
+    const hint = $('basisHint');
+    if (state.basis !== g.basis && basisWeight()) {
+      const conv = BASES.find(x => x.key === g.basis);
+      hint.textContent = `${g.name} conventionally uses ${conv.name.toLowerCase()} weight`;
+    } else { hint.textContent = ''; }
+
+    /* result */
+    const wb = weightBased();
+    if (!wb) {
+      $('wbGoalName').textContent = g.name;
+      $('wbCoeff').textContent = `${g.lo}–${g.hi} kcal/kg`;
+      $('wbRange').textContent = '—';
+      $('wbWorking').textContent = 'This weight basis needs sex at birth. Choose actual weight, or add sex above.';
+    } else {
+      $('wbGoalName').textContent = g.name;
+      $('wbCoeff').textContent = `${g.lo}–${g.hi} kcal/kg · ${g.src}`;
+      $('wbRange').textContent = `${kcal(wb.lo)} – ${kcal(wb.hi)}`;
+      $('wbWorking').textContent = `${g.lo} and ${g.hi} × ${nf(wb.bw.kg, 1)} kg ${wb.bw.label} · midpoint ${kcal(wb.mid)} kcal/day`;
+    }
+
+    /* situation-specific cautions */
+    const cau = $('wbCaution'), cauT = $('wbCautionText');
+    if (g.refeed) {
+      cau.className = 'mt-3 rounded-fb border-l-4 border-fbred bg-fbred/10 px-4 py-3';
+      cauT.innerHTML = '<strong>Refeeding syndrome risk.</strong> A starting rate only. It requires baseline and daily electrolytes (phosphate, potassium, magnesium), thiamine and B vitamins before feeding begins, cardiac and fluid monitoring, and a build-up over several days. Specialist nutrition support input is expected. Identify risk against NICE CG32 criteria before starting.';
+      cau.classList.remove('hidden');
+    } else if (g.hypo) {
+      cau.className = 'mt-3 rounded-fb border-l-4 border-fbyellow bg-fbyellow/10 px-4 py-3';
+      cauT.innerHTML = '<strong>Hypocaloric target.</strong> Prescribed and monitored by a dietitian, not self-directed. Protein is held at full requirement while energy is reduced, and intakes at this level rarely meet micronutrient needs without supplementation. Review against weight, function and bloods rather than running the figure unchanged.';
+      cau.classList.remove('hidden');
+    } else if (state.basis === 'actual' && state.w / Math.pow(state.h / 100, 2) >= 30) {
+      cau.className = 'mt-3 rounded-fb border-l-4 border-fbblue bg-fbblue3 px-4 py-3';
+      cauT.innerHTML = '<strong>Check the weight basis.</strong> At a BMI of 30 or above, applying a standard coefficient to actual weight tends to overestimate. Adjusted body weight, or a hypocaloric row above, is the usual approach.';
+      cau.classList.remove('hidden');
+    } else { cau.classList.add('hidden'); }
+  }
+
+  /* ═══ comparison of the two methods ═══ */
+  function renderCompare() {
+    const bmr = bmrValue(), wb = weightBased();
+    const strip = $('compareStrip');
+    if (!bmr || !wb) { strip.classList.add('hidden'); return; }
+    strip.classList.remove('hidden');
+
+    const act = activityFor(state.activity), pred = bmr * act.factor;
+    const lo = Math.min(pred, wb.lo), hi = Math.max(pred, wb.hi);
+    const pad = Math.max((hi - lo) * 0.18, 120);
+    const sLo = lo - pad, sHi = hi + pad;
+    const pos = v => clamp((v - sLo) / (sHi - sLo) * 100, 0, 100);
+
+    $('cmpBand').style.left = pos(wb.lo) + '%';
+    $('cmpBand').style.width = (pos(wb.hi) - pos(wb.lo)) + '%';
+    $('cmpMarker').style.left = pos(pred) + '%';
+    const ml = $('cmpMarkerLabel');
+    ml.style.left = pos(pred) + '%';
+    ml.textContent = kcal(pred);
+
+    $('cmpPred').textContent = `${kcal(pred)} kcal`;
+    $('cmpWb').textContent = `${kcal(wb.lo)}–${kcal(wb.hi)} kcal`;
+
+    const v = $('cmpVerdict');
+    const gap = (pred - wb.mid) / wb.mid * 100;
+    const inside = pred >= wb.lo && pred <= wb.hi;
+    const g = goalFor(state.goal);
+    /* hypocaloric and refeeding rows sit deliberately below maintenance,
+       so a large gap there is the intended result, not a discrepancy */
+    if ((g.hypo || g.refeed) && pred > wb.hi) {
+      v.className = 'text-[13.5px] leading-relaxed mt-3 pt-3 border-t border-fbline2 text-fbsub';
+      v.textContent = `The gap here is intended. Mifflin-St Jeor estimates what holds weight steady, ${kcal(pred)} kcal, while ${g.name.toLowerCase()} deliberately feeds below that. The predictive figure is the reference point the deficit is measured against, not a competing target.`;
+    } else if (inside) {
+      v.className = 'text-[13.5px] leading-relaxed mt-3 pt-3 border-t border-fbline2 text-fbgreen2';
+      v.textContent = `The two methods agree: Mifflin-St Jeor at ${act.name.toLowerCase()} falls inside the ${goalFor(state.goal).name.toLowerCase()} range. Either figure is a reasonable starting point.`;
+    } else if (Math.abs(gap) <= 20) {
+      v.className = 'text-[13.5px] leading-relaxed mt-3 pt-3 border-t border-fbline2 text-fbsub';
+      v.textContent = `Mifflin-St Jeor sits ${Math.abs(gap).toFixed(0)} per cent ${gap > 0 ? 'above' : 'below'} the midpoint of the weight-based range. A gap this size is within the normal spread of the two methods.`;
+    } else {
+      v.className = 'text-[13.5px] leading-relaxed mt-3 pt-3 border-t border-fbline2 text-fborange';
+      v.textContent = `Mifflin-St Jeor sits ${Math.abs(gap).toFixed(0)} per cent ${gap > 0 ? 'above' : 'below'} the midpoint of the weight-based range. A gap this wide usually means the activity factor or the weight basis needs revisiting before either figure is used.`;
+    }
+  }
+
+  function renderClinicalIfOpen() {
+    if (!state.clinical) return;
+    const m = state.h / 100, m2 = m * m;
+    renderClinical(state.w / m2, m, m2, healthy());
+  }
+
+  function renderNotice() {
+    const n = $('notice'), t = $('noticeText');
+    let msg = '';
+    if (state.age !== null && state.age < 20) {
+      msg = '<strong>Under 20.</strong> Adult BMI categories do not apply. Use age- and sex-specific growth charts (WHO or CDC percentiles) instead. The figure below is shown for reference only.';
+    } else if (state.age !== null && state.age >= 65) {
+      msg = '<strong>Aged 65 and over.</strong> Some guidance supports a slightly higher target range in older adults, and screening for undernutrition matters as much as excess weight. Interpret alongside muscle mass, function and recent weight change.';
+    }
+    if (msg) { t.innerHTML = msg; n.classList.remove('hidden'); } else { n.classList.add('hidden'); }
+  }
+
+  function renderClinical(bmi, m, m2, hb) {
+    if (!state.clinical) return;
+    const w = state.w, hcm = state.h;
+    $('cBmi').textContent = bmi.toFixed(1);
+    $('cPrime').textContent = (bmi / hb.max).toFixed(2);
+    $('cBsa').textContent = Math.sqrt(hcm * w / 3600).toFixed(2) + ' m²';
+    $('cBsaDb').textContent = 'Du Bois ' + (0.007184 * Math.pow(hcm, 0.725) * Math.pow(w, 0.425)).toFixed(2) + ' m²';
+
+    const inches = hcm / CM_PER_IN;
+    let ibw = null;
+    if (state.sex) { ibw = (state.sex === 'male' ? 50 : 45.5) + 2.3 * (inches - 60); if (ibw < 20) ibw = null; }
+    if (ibw) {
+      $('cIbw').textContent = fmtW(ibw);
+      $('cIbwNote').textContent = hcm < 152.4 ? 'Devine · unreliable below 152 cm' : 'Devine';
+      const pct = w / ibw * 100;
+      $('cPctIbw').textContent = pct.toFixed(0) + '%';
+      $('cAbw').textContent = pct > 120 ? 'ABW ' + fmtW(ibw + 0.4 * (w - ibw)) : 'ABW not indicated';
+    } else {
+      $('cIbw').textContent = '—'; $('cIbwNote').textContent = 'Enter sex at birth';
+      $('cPctIbw').textContent = '—'; $('cAbw').textContent = '—';
+    }
+
+    const bmr = bmrValue();
+    if (bmr) {
+      const act = activityFor(state.activity);
+      $('cBmr').textContent = kcal(bmr);
+      $('cBmrNote').textContent = 'kcal/day · Mifflin-St Jeor';
+      $('cTdee').textContent = kcal(bmr * act.factor);
+      $('cTdeeNote').textContent = `${act.name.toLowerCase()} · ×${act.factor}`;
+      $('cBmrKg').textContent = (bmr / w).toFixed(1);
+    } else {
+      $('cBmr').textContent = '—'; $('cBmrNote').textContent = 'Enter age and sex';
+      $('cTdee').textContent = '—'; $('cTdeeNote').textContent = 'Enter age and sex';
+      $('cBmrKg').textContent = '—';
+    }
+
+    const wb = weightBased();
+    if (wb) {
+      $('cWb').textContent = `${kcal(wb.lo)} – ${kcal(wb.hi)} kcal/day`;
+      $('cWbNote').textContent = `${wb.goal.name} · ${wb.goal.lo}–${wb.goal.hi} kcal/kg × ${nf(wb.bw.kg, 1)} kg ${wb.bw.label} · ${wb.goal.src}`;
+    } else {
+      $('cWb').textContent = '—';
+      $('cWbNote').textContent = 'Select actual weight as the basis, or enter sex at birth';
+    }
+
+    if (state.waist) {
+      const whtr = state.waist / hcm;
+      $('cWhtr').textContent = whtr.toFixed(2);
+      $('cWhtrNote').textContent = whtr < 0.5 ? 'within target' : whtr < 0.6 ? 'above target' : 'markedly above target';
+      $('cWhtrNote').className = 'text-[11.5px] font-semibold ' + (whtr < 0.5 ? 'text-fbgreen2' : whtr < 0.6 ? 'text-fborange' : 'text-fbred');
+    } else {
+      $('cWhtr').textContent = '—';
+      $('cWhtrNote').textContent = 'target < 0.50';
+      $('cWhtrNote').className = 'text-[11.5px] text-fbsub2';
+    }
+
+    const marks = [];
+    bands().forEach(b => { if (b.min > B_MIN) marks.push({ label: `BMI ${b.min} — ${b.label} begins`, v: b.min * m2 }); });
+    if (bmi > hb.max) {
+      marks.push({ label: '5% weight reduction', v: w * 0.95, tag: true });
+      marks.push({ label: '10% weight reduction', v: w * 0.90, tag: true });
+    }
+    $('thresholdRows').innerHTML = marks.map(x => {
+      const diff = x.v - w;
+      const delta = Math.abs(diff) < 0.05 ? 'current' : (diff > 0 ? '+' : '−') + fmtW(Math.abs(diff));
+      return `<div class="flex items-center gap-3 px-3.5 py-2.5">
+        <span class="text-[13.5px] ${x.tag ? 'font-bold text-fbtext' : 'text-fbsub'} flex-1">${x.label}</span>
+        <span class="tnum text-[14px] font-bold">${fmtW(x.v)}</span>
+        <span class="tnum text-[12.5px] text-fbsub2 w-[92px] text-right">${delta}</span>
+      </div>`;
+    }).join('');
+
+    const wr = $('waistRisk'), th = SETS[state.set].waist;
+    if (!state.sex) {
+      wr.innerHTML = 'Enter sex at birth to apply waist thresholds.';
+    } else if (!state.waist) {
+      const t = th[state.sex];
+      wr.innerHTML = `Thresholds for this profile: increased risk from <strong>${fmtWaist(t[0])}</strong>, substantially increased from <strong>${fmtWaist(t[1])}</strong>. Enter a waist measurement to compare.`;
+    } else {
+      const t = th[state.sex], cm = state.waist;
+      const lv = cm >= t[1] ? ['Substantially increased risk', '#FA383E'] : cm >= t[0] ? ['Increased risk', '#F7770F'] : ['Below risk threshold', '#42B72A'];
+      wr.innerHTML = `<span class="inline-block rounded-full px-2.5 py-0.5 text-[12.5px] font-bold text-white" style="background:${lv[1]}">${lv[0]}</span>
+        <span class="block mt-2 tnum">Measured ${fmtWaist(cm)} · thresholds ${fmtWaist(t[0])} and ${fmtWaist(t[1])} (${SETS[state.set].name})</span>`;
+    }
+  }
+
+  /* ═══ inputs ═══ */
+  const fill = s => s.style.setProperty('--fill', (s.value - s.min) / (s.max - s.min) * 100 + '%');
+
+  function syncFields() {
+    const a = document.activeElement;
+    const hs = $('heightSlider'), ws = $('weightSlider');
+    hs.value = state.h; ws.value = state.w; fill(hs); fill(ws);
+
+    const hu = H_UNITS[state.hUnit];
+    if (hu.pair) {
+      const total = hu.from(state.h);
+      let big = Math.floor(total / hu.per), small = +(total - big * hu.per).toFixed(hu.dec);
+      if (small >= hu.per) { big++; small = 0; }
+      if (a !== $('hBig')) $('hBig').value = big;
+      if (a !== $('hSmall')) $('hSmall').value = small;
+    } else if (a !== $('hSingle')) {
+      $('hSingle').value = +hu.from(state.h).toFixed(hu.dec);
+    }
+
+    const wu = W_UNITS[state.wUnit];
+    if (wu.pair) {
+      const total = wu.from(state.w);
+      let big = Math.floor(total / wu.per), small = +(total - big * wu.per).toFixed(wu.dec);
+      if (small >= wu.per) { big++; small = 0; }
+      if (a !== $('wBig')) $('wBig').value = big;
+      if (a !== $('wSmall')) $('wSmall').value = small;
+    } else if (a !== $('wSingle')) {
+      $('wSingle').value = +wu.from(state.w).toFixed(wu.dec);
+    }
+
+    if (a !== $('waistVal') && state.waist) {
+      $('waistVal').value = +(waistUnitKey() === 'in' ? state.waist / CM_PER_IN : state.waist).toFixed(1);
+    }
+  }
+
+  function err(msg) {
+    const e = $('inputError');
+    if (!msg) return e.classList.add('hidden');
+    e.textContent = msg; e.classList.remove('hidden');
+  }
+  const boundsMsgH = () => `Height must be between ${fmtH(H_MIN)} and ${fmtH(H_MAX)}.`;
+  const boundsMsgW = () => `Weight must be between ${fmtW(W_MIN)} and ${fmtW(W_MAX)}.`;
+
+  function applyUnitUI() {
+    const hu = H_UNITS[state.hUnit], wu = W_UNITS[state.wUnit];
+    $('hSingleWrap').classList.toggle('hidden', hu.pair);
+    $('hSingleWrap').classList.toggle('flex', !hu.pair);
+    $('hPairWrap').classList.toggle('hidden', !hu.pair);
+    $('hPairWrap').classList.toggle('flex', hu.pair);
+    if (!hu.pair) { $('hSingle').step = hu.step; }
+    $('wSingleWrap').classList.toggle('hidden', wu.pair);
+    $('wSingleWrap').classList.toggle('flex', !wu.pair);
+    $('wPairWrap').classList.toggle('hidden', !wu.pair);
+    $('wPairWrap').classList.toggle('flex', wu.pair);
+    if (!wu.pair) { $('wSingle').step = wu.step; }
+    $('hUnit').value = state.hUnit;
+    $('wUnit').value = state.wUnit;
+    $('waistUnit').textContent = waistUnitKey();
+    const metric = (state.hUnit === 'cm' || state.hUnit === 'm') && (state.wUnit === 'kg' || state.wUnit === 'g');
+    const imperial = (state.hUnit === 'in' || state.hUnit === 'ftin') && (state.wUnit === 'lb' || state.wUnit === 'stlb');
+    $('sysMetric').setAttribute('aria-pressed', String(metric));
+    $('sysImperial').setAttribute('aria-pressed', String(imperial));
+  }
+
+  function setHUnit(k) { state.hUnit = k; applyUnitUI(); err(''); render(); }
+  function setWUnit(k) { state.wUnit = k; applyUnitUI(); err(''); render(); }
+
+  /* height entry */
+  function readHeight() {
+    const hu = H_UNITS[state.hUnit];
+    let cm;
+    if (hu.pair) {
+      const big = parseFloat($('hBig').value), small = parseFloat($('hSmall').value) || 0;
+      if (isNaN(big)) return err(`Enter a height in ${hu.big} and ${hu.small}.`);
+      cm = hu.to(big * hu.per + small);
+    } else {
+      const v = parseFloat($('hSingle').value);
+      if (isNaN(v)) return err(`Enter a height in ${hu.name}.`);
+      cm = hu.to(v);
+    }
+    if (cm < H_MIN || cm > H_MAX) return err(boundsMsgH());
+    err(''); state.h = cm; render();
+  }
+  function readWeight() {
+    const wu = W_UNITS[state.wUnit];
+    let kg;
+    if (wu.pair) {
+      const big = parseFloat($('wBig').value), small = parseFloat($('wSmall').value) || 0;
+      if (isNaN(big)) return err(`Enter a weight in ${wu.big} and ${wu.small}.`);
+      kg = wu.to(big * wu.per + small);
+    } else {
+      const v = parseFloat($('wSingle').value);
+      if (isNaN(v)) return err(`Enter a weight in ${wu.name}.`);
+      kg = wu.to(v);
+    }
+    if (kg < W_MIN || kg > W_MAX) return err(boundsMsgW());
+    err(''); state.w = kg; render();
+  }
+
+  ['hSingle', 'hBig', 'hSmall'].forEach(id => $(id).addEventListener('input', readHeight));
+  ['wSingle', 'wBig', 'wSmall'].forEach(id => $(id).addEventListener('input', readWeight));
+  ['hSingle', 'hBig', 'hSmall', 'wSingle', 'wBig', 'wSmall'].forEach(id =>
+    $(id).addEventListener('blur', () => { err(''); syncFields(); }));
+
+  $('heightSlider').addEventListener('input', e => { state.h = +e.target.value; err(''); render(); });
+  $('weightSlider').addEventListener('input', e => { state.w = +e.target.value; err(''); render(); });
+  $('hUnit').addEventListener('change', e => setHUnit(e.target.value));
+  $('wUnit').addEventListener('change', e => setWUnit(e.target.value));
+  $('sysMetric').addEventListener('click', () => { state.hUnit = 'cm'; state.wUnit = 'kg'; applyUnitUI(); render(); });
+  $('sysImperial').addEventListener('click', () => { state.hUnit = 'ftin'; state.wUnit = 'lb'; applyUnitUI(); render(); });
+
+  $('waistVal').addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    if (isNaN(v)) { state.waist = null; return render(); }
+    const cm = waistUnitKey() === 'in' ? v * CM_PER_IN : v;
+    state.waist = (cm >= 20 && cm <= 250) ? cm : null;
+    render();
+  });
+  $('ageVal').addEventListener('input', e => {
+    const v = parseInt(e.target.value, 10);
+    state.age = (!isNaN(v) && v >= 2 && v <= 120) ? v : null;
+    render();
+  });
+  $('sexVal').addEventListener('change', e => { state.sex = e.target.value; render(); });
+
+  $('methPredictive').addEventListener('click', () => { state.method = 'predictive'; renderEnergy(); });
+  $('methWeight').addEventListener('click', () => { state.method = 'weight'; renderEnergy(); });
+  $('abwFactor').addEventListener('change', e => {
+    state.abwFactor = parseFloat(e.target.value);
+    renderEnergy(); renderClinicalIfOpen();
+  });
+
+  $('energyPromptBtn').addEventListener('click', () => {
+    $('moreDetails').open = true;
+    const target = state.age === null ? $('ageVal') : $('sexVal');
+    target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' });
+    target.focus({ preventScroll: true });
+    if (!reduced) {
+      const wrap = target.parentElement;
+      wrap.classList.remove('flash'); void wrap.offsetWidth; wrap.classList.add('flash');
+    }
+  });
+
+  function setCut(k) {
+    state.set = k;
+    $('cutStandard').setAttribute('aria-pressed', String(k === 'standard'));
+    $('cutAsian').setAttribute('aria-pressed', String(k === 'asian'));
+    drawSegments(); render();
+  }
+  $('cutStandard').addEventListener('click', () => setCut('standard'));
+  $('cutAsian').addEventListener('click', () => setCut('asian'));
+
+  $('clinicalToggle').addEventListener('click', e => {
+    state.clinical = !state.clinical;
+    e.currentTarget.setAttribute('aria-checked', String(state.clinical));
+    $('clinicalPanel').classList.toggle('hidden', !state.clinical);
+    if (state.clinical) {
+      $('clinicalPanel').classList.add('enter');
+      $('moreDetails').open = true;
+      render();
+      $('clinicalPanel').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'nearest' });
+    }
+  });
+
+  /* ═══ printable report ═══ */
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const row = (k, v) => `<div class="rpt-row"><span>${k}</span><span>${v}</span></div>`;
+
+  function buildReport() {
+    const on = id => $(id).checked;
+    const m = state.h / 100, m2 = m * m, w = state.w;
+    const bmi = w / m2, band = bandFor(bmi), hb = healthy();
+    const loB = hb.min, hiB = +(hb.max - 0.1).toFixed(1), loW = loB * m2, hiW = hiB * m2;
+    const now = new Date();
+    const stamp = now.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+      + ' · ' + now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    const ref = $('poRef').value.trim();
+    const pname = $('poName').value.trim();
+
+    let h = `<div class="rpt-head">
+      <div>
+        <div class="rpt-title">BMI and energy assessment</div>
+        ${pname ? `<div class="rpt-patient">${esc(pname)}</div>` : ''}
+        <div class="rpt-sub">${esc(SETS[state.set].name)} classification${ref ? ' · Ref: ' + esc(ref) : ''}</div>
+        ${CREDITS.practitioner ? `<div class="rpt-sub" style="margin-top:3px"><b>${esc(CREDITS.practitioner)}</b>${CREDITS.practitionerRole ? ' · ' + esc(CREDITS.practitionerRole) : ''}</div>` : ''}
+      </div>
+      <div class="rpt-meta">${stamp}<br>Screening tool — not a diagnosis</div>
+    </div>`;
+
+    /* measurements */
+    if (on('optMeasure')) {
+      h += `<div class="rpt-sec"><h3>Measurements</h3><div class="rpt-grid">`;
+      h += row('Height', `${fmtH(state.h)}${state.hUnit === 'cm' ? '' : ' (' + nf(state.h, 1) + ' cm)'}`);
+      h += row('Weight', `${fmtW(w)}${state.wUnit === 'kg' ? '' : ' (' + nf(w, 1) + ' kg)'}`);
+      h += row('Age', state.age === null ? 'Not stated' : state.age + ' years');
+      h += row('Sex at birth', state.sex ? state.sex.charAt(0).toUpperCase() + state.sex.slice(1) : 'Not stated');
+      if (state.waist) {
+        h += row('Waist', fmtWaist(state.waist));
+        h += row('Waist-to-height', (state.waist / state.h).toFixed(2));
+      }
+      h += `</div></div>`;
+    }
+
+    /* result */
+    if (on('optResult')) {
+      const rel = bmi < loB ? `${fmtW(loW - w)} below the healthy range`
+                : bmi <= hiB ? `Within the healthy range`
+                : `${fmtW(w - hiW)} above the healthy range`;
+      h += `<div class="rpt-sec"><h3>Result</h3>
+        <div class="rpt-headline">
+          <div><div class="rpt-big">${bmi.toFixed(1)}</div><div style="font-size:8pt">kg/m²</div></div>
+          <div>
+            <div class="rpt-cat">${band.label}</div>
+            <div style="font-size:9pt">${rel}</div>
+          </div>
+        </div>
+        <div class="rpt-grid">
+          ${row('Healthy weight range', `${fmtW(loW)} – ${fmtW(hiW)}`)}
+          ${row('Healthy BMI range', `${loB} – ${hiB}`)}
+          ${row('Classification set', SETS[state.set].name)}
+          ${row('BMI prime', (bmi / hb.max).toFixed(2))}
+        </div></div>`;
+    }
+
+    /* classification table */
+    if (on('optBands')) {
+      h += `<div class="rpt-sec"><h3>Classification at this height</h3>
+        <table class="rpt"><thead><tr><th>Band</th><th class="num">BMI</th><th class="num">Weight</th></tr></thead><tbody>`;
+      bands().forEach(b => {
+        const range = b.min === B_MIN ? 'Under ' + b.max
+          : b.max === B_MAX ? b.min + ' and above'
+          : b.min + ' – ' + (b.max - 0.1).toFixed(1);
+        const wt = b.min === B_MIN ? 'under ' + fmtW(b.max * m2, { coarse: true })
+          : b.max === B_MAX ? fmtW(b.min * m2, { coarse: true }) + ' +'
+          : fmtW(b.min * m2, { coarse: true, bare: true }) + ' – ' + fmtW(b.max * m2, { coarse: true });
+        h += `<tr class="${b.label === band.label ? 'on' : ''}"><td>${b.label}</td><td class="num">${range}</td><td class="num">${wt}</td></tr>`;
+      });
+      h += `</tbody></table></div>`;
+    }
+
+    /* energy */
+    if (on('optEnergy')) {
+      const bmr = bmrValue(), wb = weightBased();
+      h += `<div class="rpt-sec"><h3>Energy estimates</h3>`;
+      if (bmr) {
+        h += `<div class="rpt-grid">${row('BMR (Mifflin-St Jeor)', kcal(bmr) + ' kcal/day')}${row('BMR per kg', (bmr / w).toFixed(1) + ' kcal/kg')}</div>
+          <table class="rpt" style="margin-top:6px"><thead><tr><th>Activity level</th><th class="num">Factor</th><th class="num">kcal/day</th></tr></thead><tbody>`;
+        ACTIVITY.forEach(a => {
+          h += `<tr class="${a.key === state.activity ? 'on' : ''}"><td>${a.name}</td><td class="num">×${a.factor}</td><td class="num">${kcal(bmr * a.factor)}</td></tr>`;
+        });
+        h += `</tbody></table>`;
+      } else {
+        h += `<div class="rpt-note">Predictive equation not calculated — age and sex at birth were not entered.</div>`;
+      }
+      if (wb) {
+        h += `<div class="rpt-grid" style="margin-top:7px">
+          ${row('Weight-based method', wb.goal.name)}
+          ${row('Coefficient', `${wb.goal.lo}–${wb.goal.hi} kcal/kg`)}
+          ${row('Applied to', `${nf(wb.bw.kg, 1)} kg ${wb.bw.label}`)}
+          ${row('Estimate', `${kcal(wb.lo)} – ${kcal(wb.hi)} kcal/day`)}
+        </div><div class="rpt-note">Source: ${wb.goal.src}.</div>`;
+        if (wb.goal.refeed) h += `<div class="rpt-flag"><b>Refeeding risk.</b> Starting rate only. Requires electrolyte monitoring, thiamine before feeding, and specialist supervision with a build-up over several days.</div>`;
+        else if (wb.goal.hypo) h += `<div class="rpt-flag"><b>Hypocaloric target.</b> Dietitian-prescribed and monitored. Protein remains at full requirement; micronutrient supplementation is usually needed.</div>`;
+      }
+      h += `<div class="rpt-note">Estimates only, not an intake prescription. Titrate against measured weight change.</div></div>`;
+    }
+
+    /* clinical */
+    if (on('optClinical')) {
+      const ibw = ibwValue();
+      h += `<div class="rpt-sec"><h3>Clinical measures</h3><div class="rpt-grid">`;
+      h += row('BSA (Mosteller)', Math.sqrt(state.h * w / 3600).toFixed(2) + ' m²');
+      h += row('BSA (Du Bois)', (0.007184 * Math.pow(state.h, 0.725) * Math.pow(w, 0.425)).toFixed(2) + ' m²');
+      if (ibw) {
+        const pct = w / ibw * 100;
+        h += row('Ideal body weight', fmtW(ibw) + (state.h < 152.4 ? ' *' : ''));
+        h += row('% of IBW', pct.toFixed(0) + '%');
+        h += row('Adjusted body weight', pct > 120 ? fmtW(ibw + state.abwFactor * (w - ibw)) + ` (factor ${state.abwFactor})` : 'Not indicated');
+      } else {
+        h += row('Ideal body weight', 'Sex at birth not stated');
+      }
+      if (state.waist && state.sex) {
+        const t = SETS[state.set].waist[state.sex], cm = state.waist;
+        const lv = cm >= t[1] ? 'Substantially increased risk' : cm >= t[0] ? 'Increased risk' : 'Below risk threshold';
+        h += row('Waist risk', lv);
+        h += row('Waist thresholds', `${fmtWaist(t[0])} / ${fmtWaist(t[1])}`);
+      }
+      h += `</div>`;
+      if (ibw && state.h < 152.4) h += `<div class="rpt-note">* Devine formula is unreliable below 152 cm.</div>`;
+      h += `</div>`;
+    }
+
+    /* notes */
+    if (on('optNotes')) {
+      const notes = [];
+      if (state.age !== null && state.age < 20) notes.push('Under 20: adult BMI categories do not apply. Use age- and sex-specific percentile charts.');
+      if (state.age !== null && state.age >= 65) notes.push('Aged 65 and over: a slightly higher target range may be appropriate, and undernutrition screening matters as much as excess weight.');
+      if (state.age !== null && state.age >= 70) notes.push('Mifflin-St Jeor was derived in adults up to 78 and can overestimate where muscle mass is reduced.');
+      notes.push('BMI cannot distinguish fat from lean mass and does not account for fat distribution.');
+      notes.push('Not valid in pregnancy, or with oedema, ascites, amputation or significant fluid shifts.');
+      notes.push('Energy figures are population estimates; measured expenditure commonly differs by 10 per cent or more.');
+      h += `<div class="rpt-sec"><h3>Interpretation notes</h3><ul class="rpt-ul">${notes.map(n => `<li>${n}</li>`).join('')}</ul></div>`;
+    }
+
+    if (on('optSign')) {
+      const assessor = CREDITS.practitioner
+        ? `<b>${esc(CREDITS.practitioner)}</b>${CREDITS.practitionerRole ? '<br>' + esc(CREDITS.practitionerRole) : ''}`
+        : 'Assessed by (name and role)';
+      h += `<div class="rpt-sign"><div>${assessor}</div><div>Signature</div><div>Date</div></div>`;
+    }
+
+    h += `<div class="rpt-foot"><b>Not a medical device and not a diagnosis.</b> This report contains arithmetic performed on the measurements entered above. It is not certified for diagnostic use and does not replace clinical assessment. Verify any figure before it informs prescribing, dosing or a nutrition care plan. Generated ${stamp}.`;
+    const dev = CREDITS.developer
+      ? `Developed by ${esc(CREDITS.developer)}${CREDITS.portfolioLabel || CREDITS.portfolioUrl ? ' · ' + esc(CREDITS.portfolioLabel || CREDITS.portfolioUrl) : ''}`
+      : '';
+    if (CREDITS.practitioner || dev) {
+      h += `<div style="margin-top:5px;padding-top:5px;border-top:1px solid #ccc;display:flex;justify-content:space-between;gap:14px">
+        <span>${CREDITS.practitioner ? esc(CREDITS.practitioner) + (CREDITS.practitionerRole ? ' · ' + esc(CREDITS.practitionerRole) : '') : ''}</span>
+        <span>${dev}</span></div>`;
+    }
+    h += `</div>`;
+
+    $('printReport').innerHTML = h;
+  }
+
+  /* ═══ print dialog ═══ */
+  let lastFocus = null;
+  function openPrintDialog() {
+    lastFocus = document.activeElement;
+    $('printOverlay').classList.remove('hidden');
+    $('poName').focus();
+  }
+  function closePrintDialog() {
+    $('printOverlay').classList.add('hidden');
+    if (lastFocus) lastFocus.focus();
+  }
+  $('printBtn').addEventListener('click', openPrintDialog);
+  $('poClose').addEventListener('click', closePrintDialog);
+  $('poCancel').addEventListener('click', closePrintDialog);
+  $('printOverlay').addEventListener('click', e => { if (e.target === $('printOverlay')) closePrintDialog(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !$('printOverlay').classList.contains('hidden')) closePrintDialog();
+  });
+  $('poPrint').addEventListener('click', () => {
+    closePrintDialog();
+    buildReport();
+    setTimeout(() => window.print(), 60);
+  });
+  /* catches Ctrl+P as well, so the report is always what prints */
+  window.addEventListener('beforeprint', buildReport);
+
+  $('copyBtn').addEventListener('click', async e => {
+    const b = e.currentTarget, t = b.textContent;
+    const m2 = Math.pow(state.h / 100, 2), bmi = state.w / m2, hb = healthy();
+    const hi = +(hb.max - 0.1).toFixed(1);
+    let txt = `BMI ${bmi.toFixed(1)} kg/m² — ${bandFor(bmi).label}\n`
+      + `Height ${fmtH(state.h)} (${nf(state.h, 1)} cm) · Weight ${fmtW(state.w)} (${nf(state.w, 1)} kg)\n`
+      + `Healthy weight range at this height: ${fmtW(hb.min * m2)} – ${fmtW(hi * m2)}\n`
+      + `Classification: ${SETS[state.set].name}`;
+    if (state.waist) txt += `\nWaist ${fmtWaist(state.waist)} · WHtR ${(state.waist / state.h).toFixed(2)}`;
+    const bmr = bmrValue();
+    if (bmr) {
+      const act = activityFor(state.activity);
+      txt += `\nBMR ${kcal(bmr)} kcal/day (Mifflin-St Jeor, age ${state.age}, ${state.sex})`
+           + `\nDaily total ${kcal(bmr * act.factor)} kcal/day at ${act.name.toLowerCase()} (×${act.factor})`;
+    }
+    const wb = weightBased();
+    if (wb) {
+      txt += `\nWeight-based ${kcal(wb.lo)}–${kcal(wb.hi)} kcal/day (${wb.goal.name}, ${wb.goal.lo}–${wb.goal.hi} kcal/kg × ${nf(wb.bw.kg, 1)} kg ${wb.bw.label}, ${wb.goal.src})`;
+    }
+    txt += `\nScreening tool only — not a diagnosis. Energy figures are estimates, not an intake prescription.`;
+    if (CREDITS.practitioner) txt += `\n${CREDITS.practitioner}${CREDITS.practitionerRole ? ' · ' + CREDITS.practitionerRole : ''}`;
+    try { await navigator.clipboard.writeText(txt); b.textContent = 'Copied'; }
+    catch { b.textContent = 'Copy unavailable'; }
+    setTimeout(() => { b.textContent = t; }, 1600);
+  });
+
+  let rt = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(rt);
+    rt = setTimeout(() => {
+      const m2 = Math.pow(state.h / 100, 2);
+      positionPointer((anim.cur === null ? state.w / m2 : anim.cur) * m2);
+    }, 80);
+  });
+
+  /* ═══ credits ═══ */
+  function applyCredits() {
+    $('wmName').textContent = CREDITS.practitioner || '';
+    $('wmRole').textContent = CREDITS.practitionerRole || '';
+    $('creditName').textContent = CREDITS.practitioner || '—';
+    $('creditRole').textContent = CREDITS.practitionerRole || '';
+    const d = $('creditDev');
+    if (CREDITS.developer) {
+      const link = CREDITS.portfolioUrl
+        ? ` · <a href="${esc(CREDITS.portfolioUrl)}" target="_blank" rel="noopener noreferrer" class="font-semibold text-fbblue hover:underline">${esc(CREDITS.portfolioLabel || CREDITS.portfolioUrl)}</a>`
+        : (CREDITS.portfolioLabel ? ' · ' + esc(CREDITS.portfolioLabel) : '');
+      d.innerHTML = `Developed by <span class="font-semibold text-fbtext">${esc(CREDITS.developer)}</span>${link}`;
+      d.classList.remove('hidden');
+    } else { d.classList.add('hidden'); }
+    if (CREDITS.practitioner) {
+      document.title = `BMI Assessment — ${CREDITS.practitioner}`;
+    }
+  }
+
+  /* ═══ boot ═══ */
+  applyCredits();
+  drawTicks(); drawSegments(); applyUnitUI(); setCut('asian');
+  requestAnimationFrame(() => clampLabel(50));
+})();
+</script>
+<script src="../../assets/gt-switcher.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Dietary Nutrition Assessment — Food Exchange Calculator</title>
+<meta name="description" content="Food Exchange List for Type 2 Diabetes Mellitus — Sri Lanka. Clinical dietary nutrition assessment and energy calculator by Gayathri Dissanayaka." />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: {
+      brand:'#0066CC', section:'#4472C4', tablehd:'#70AD47', lime:'#92D050',
+      cho:'#2E7D32', pro:'#1565C0', fat:'#EF6C00', ink:'#0F2B4A'
+    },
+    fontFamily: { sans:['Inter','Segoe UI','Helvetica Neue','Arial','sans-serif'] }
+  }}
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════ SCREEN APP ═══════════════════════════ */
+html { -webkit-text-size-adjust: 100%; }
+body { background:#eef1f6; }
+.num { font-variant-numeric: tabular-nums; }
+
+.fld { width:100%; background:#F2F2F2; border:1px solid #c9ced8; border-radius:4px;
+       padding:5px 8px; font-size:13px; line-height:1.25; color:#111827;
+       transition:border-color .12s, box-shadow .12s, background .12s; }
+.fld:hover { background:#ecf0f6; }
+.fld:focus { outline:none; background:#fff; border-color:#0066CC; box-shadow:0 0 0 3px rgba(0,102,204,.18); }
+.fld::placeholder { color:#9aa3b2; }
+
+.exch { width:100%; text-align:center; font-weight:700; font-size:14px;
+        font-variant-numeric:tabular-nums; background:#FFF2CC; border:1px solid #E2C87A;
+        border-radius:4px; padding:5px 4px; color:#6b4e00; -moz-appearance:textfield; }
+.exch::-webkit-outer-spin-button,.exch::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.exch:focus { outline:none; border-color:#B8860B; box-shadow:0 0 0 3px rgba(184,134,11,.22); background:#fffaeb; }
+.exch.is-set { background:#FDE9A8; border-color:#C9A227; }
+
+.base, .nm { width:100%; font-size:12.5px; font-variant-numeric:tabular-nums;
+       background:transparent; border:1px solid transparent; border-radius:4px;
+       padding:4px 6px; color:#475569; -moz-appearance:textfield; }
+.base { text-align:right; }
+.nm { text-align:left; font-size:11.5px; font-weight:600; color:#0f172a; }
+.base::-webkit-outer-spin-button,.base::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.base:hover,.nm:hover { border-color:#d5dae3; background:#fff; }
+.base:focus,.nm:focus { outline:none; background:#fff; border-color:#0066CC;
+       box-shadow:0 0 0 2px rgba(0,102,204,.15); color:#111827; }
+
+.stepbtn { width:26px; height:26px; flex:none; display:inline-flex; align-items:center;
+       justify-content:center; border:1px solid #d5dae3; background:#fff; border-radius:5px;
+       color:#475569; font-weight:700; font-size:15px; line-height:1; user-select:none; }
+.stepbtn:hover { background:#f1f5f9; border-color:#b6bfcc; color:#0f172a; }
+.stepbtn:active { transform:translateY(1px); }
+
+.delbtn { width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center;
+       border-radius:5px; color:#c2c8d2; font-size:15px; line-height:1; border:1px solid transparent; }
+.delbtn:hover { background:#fee2e2; color:#b91c1c; border-color:#fecaca; }
+
+.sheet { box-shadow:0 1px 2px rgba(16,24,40,.06), 0 12px 32px -8px rgba(16,24,40,.16); }
+.band { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+
+.tbl th,.tbl td { border-bottom:1px solid #e5e8ee; }
+.tbl tbody tr:nth-child(even) { background:#fafbfd; }
+.tbl tbody tr:hover { background:#eff6ff; }
+.stickycol { position:sticky; left:0; z-index:2; background:inherit; }
+.tbl tbody tr:nth-child(odd) .stickycol { background:#fff; }
+.tbl tbody tr:nth-child(even) .stickycol { background:#fafbfd; }
+.tbl tbody tr:hover .stickycol { background:#eff6ff; }
+.stickycol::after { content:''; position:absolute; top:0; right:-6px; bottom:0; width:6px;
+       background:linear-gradient(to right, rgba(15,23,42,.07), transparent); pointer-events:none; }
+
+.rail { position:relative; height:34px; border-radius:6px; overflow:hidden; background:#eceff4; }
+.rail > span { display:block; height:100%; float:left; transition:width .28s cubic-bezier(.4,0,.2,1); }
+.tick { position:absolute; top:-5px; bottom:-5px; width:2px; background:#0f172a; opacity:.55; }
+.tick::after { content:attr(data-label); position:absolute; top:-16px; left:50%;
+       transform:translateX(-50%); font-size:9px; font-weight:700; color:#0f172a; opacity:.75; white-space:nowrap; }
+
+.pill { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:2px 9px;
+        font-size:11px; font-weight:700; letter-spacing:.02em; }
+.ok{background:#dcfce7;color:#166534} .warn{background:#fef3c7;color:#92400e}
+.bad{background:#fee2e2;color:#991b1b} .neut{background:#e2e8f0;color:#334155}
+
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:7px; border-radius:7px;
+       padding:9px 15px; font-size:13.5px; font-weight:600; border:1px solid transparent;
+       cursor:pointer; white-space:nowrap; transition:background .13s, border-color .13s, box-shadow .13s, transform .06s; }
+.btn:active { transform:translateY(1px); }
+.btn-primary{background:#0066CC;color:#fff;box-shadow:0 1px 2px rgba(0,102,204,.35)}
+.btn-primary:hover{background:#0058b0}
+.btn-green{background:#2f7d32;color:#fff} .btn-green:hover{background:#276a29}
+.btn-ghost{background:#fff;color:#334155;border-color:#cbd5e1} .btn-ghost:hover{background:#f1f5f9;border-color:#94a3b8}
+.btn-sm{padding:6px 11px;font-size:12.5px}
+:focus-visible{outline:2px solid #0066CC;outline-offset:2px}
+
+.toast { position:fixed; left:50%; bottom:26px; transform:translate(-50%,14px); background:#0f172a;
+       color:#fff; font-size:13px; font-weight:500; padding:10px 16px; border-radius:8px;
+       opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:80; }
+.toast.show { opacity:1; transform:translate(-50%,0); }
+
+@media (max-width:767px){ body.compact .col-extra{ display:none; } }
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+
+/* ═══════════════════════ PRINT DOCUMENT ═══════════════════════
+   A standalone A4 report. Never visible on screen except while
+   being measured off-canvas for single-page auto-fit.
+   ═════════════════════════════════════════════════════════════ */
+#printDoc { display:none; }
+#printDoc.measuring { display:block; position:absolute; left:-20000px; top:0;
+                      width:190mm; visibility:hidden; zoom:1; }
+
+@media print {
+  @page { size:A4 portrait; margin:10mm; }
+  html, body { background:#fff !important; margin:0 !important; padding:0 !important; }
+  .screen-app, .toast { display:none !important; }
+  #printDoc { display:block; }
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  a[href]::after { content:none !important; }
+}
+
+.pd { font-family:Inter,'Segoe UI',Arial,sans-serif; color:#111; font-size:7.6pt; line-height:1.34; }
+.pd .nb { break-inside:avoid; page-break-inside:avoid; }
+.pd table { break-inside:auto; }
+.pd tr, .pd thead, .pd tfoot { break-inside:avoid; page-break-inside:avoid; }
+.pd thead { display:table-header-group; }
+
+/* Letterhead */
+.pd-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8mm;
+       border-bottom:2pt solid #0066CC; padding-bottom:2.4mm; margin-bottom:3mm; }
+.pd-org  { font-size:5.9pt; font-weight:800; letter-spacing:.16em; color:#0066CC; text-transform:uppercase; }
+.pd-title{ font-size:14pt; font-weight:800; letter-spacing:-.015em; line-height:1.08; margin:.8mm 0 .6mm; }
+.pd-sub  { font-size:6.8pt; color:#4a5568; }
+.pd-meta { min-width:50mm; border-left:.6pt solid #cbd2dc; padding-left:3.4mm; }
+.pd-meta dl { display:grid; grid-template-columns:auto 1fr; gap:.7mm 3mm; margin:0; }
+.pd-meta dt { font-size:5.7pt; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#6b7280; align-self:center; }
+.pd-meta dd { margin:0; font-size:7.6pt; font-weight:600; text-align:right; }
+
+/* Section rules */
+.pd-h { font-size:6.4pt; font-weight:800; letter-spacing:.15em; text-transform:uppercase; color:#0F2B4A;
+        border-bottom:.8pt solid #0F2B4A; padding-bottom:.8mm; margin:3.4mm 0 1.8mm;
+        display:flex; align-items:baseline; justify-content:space-between; gap:4mm; }
+.pd-h span { font-weight:600; letter-spacing:.03em; text-transform:none; font-size:6.2pt; color:#6b7280; }
+
+/* Field grid */
+.pd-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.8mm 5mm; }
+.pd-f dt { font-size:5.7pt; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#6b7280; }
+.pd-f dd { margin:.3mm 0 0; font-size:8pt; font-weight:600; border-bottom:.5pt solid #b9c0cb;
+           padding-bottom:.7mm; min-height:3.8mm; overflow-wrap:anywhere; }
+.pd-f dd.empty { color:#b0b6c0; font-weight:400; }
+
+/* Anthropometry */
+.pd-stats { display:grid; grid-template-columns:repeat(4,1fr); border:.7pt solid #c3cad4; }
+.pd-stat { padding:1.6mm 2.6mm; border-right:.7pt solid #dfe4ea; }
+.pd-stat:last-child { border-right:0; }
+.pd-stat .k { font-size:5.7pt; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#6b7280; }
+.pd-stat .v { font-size:11.5pt; font-weight:800; line-height:1.1; margin-top:.3mm; font-variant-numeric:tabular-nums; }
+.pd-stat .v small { font-size:6.2pt; font-weight:600; color:#6b7280; }
+.pd-stat .n { font-size:5.7pt; color:#6b7280; }
+
+/* Tables */
+.pd-t { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
+.pd-t thead th { background:#0F2B4A; color:#fff; font-size:5.9pt; font-weight:700; letter-spacing:.05em;
+       text-transform:uppercase; text-align:right; padding:1.3mm 1.6mm; border:0; line-height:1.2; }
+.pd-t thead th:first-child { text-align:left; }
+.pd-t tbody td { font-size:7.2pt; padding:.95mm 1.6mm; border-bottom:.4pt solid #e3e7ed; text-align:right; }
+.pd-t tbody td:first-child { text-align:left; font-weight:600; }
+.pd-t tbody tr:nth-child(even) td { background:#f6f8fa; }
+.pd-t tbody td.dim { color:#7b8494; font-weight:400; }
+.pd-t tbody tr.zero td { color:#98a1af; font-weight:400; }
+.pd-t tbody tr.zero td:first-child { font-weight:500; }
+.pd-t tfoot td { font-size:7.6pt; font-weight:800; padding:1.4mm 1.6mm; background:#0066CC; color:#fff; text-align:right; }
+.pd-t tfoot td:first-child { text-align:left; letter-spacing:.05em; text-transform:uppercase; font-size:6.6pt; }
+.pd-t.plain tbody tr:nth-child(even) td { background:transparent; }
+.pd-note { font-size:6pt; color:#7b8494; margin-top:.9mm; }
+
+/* Assessment marks */
+.mk { font-size:6.2pt; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+.mk-ok{color:#15803d} .mk-hi{color:#b45309} .mk-lo{color:#b91c1c} .mk-na{color:#9aa1ad}
+
+/* Two-column analysis band */
+.pd-cols { display:grid; grid-template-columns:1fr 1fr; gap:6mm; align-items:start; }
+
+.pd-boxes { display:grid; grid-template-columns:repeat(3,1fr); gap:2mm; }
+.pd-box { border:.7pt solid #c3cad4; border-top:1.8pt solid #0F2B4A; padding:1.6mm 2mm; }
+.pd-box.accent { border-top-color:#0066CC; }
+.pd-box .k { font-size:5.5pt; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#6b7280; }
+.pd-box .v { font-size:12pt; font-weight:800; line-height:1.1; margin-top:.4mm; font-variant-numeric:tabular-nums; }
+.pd-box .v small { font-size:5.8pt; font-weight:600; color:#6b7280; }
+
+.pd-ratio { display:flex; align-items:baseline; gap:3mm; border:.7pt solid #c3cad4;
+            padding:1.4mm 2.2mm; margin-top:2mm; }
+.pd-ratio .k { font-size:5.9pt; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#6b7280; }
+.pd-ratio .v { font-size:10.5pt; font-weight:800; font-variant-numeric:tabular-nums; }
+.pd-ratio .n { font-size:5.9pt; color:#6b7280; margin-left:auto; text-align:right; }
+
+.pd-verdict { border-left:2.2pt solid #0066CC; background:#f2f7fd; padding:1.7mm 2.6mm;
+              margin-top:2.6mm; font-size:7.4pt; line-height:1.38; }
+
+.pd-notes { border:.7pt solid #c3cad4; padding:1.8mm 2.4mm; min-height:13mm;
+            font-size:7.4pt; white-space:pre-wrap; line-height:1.45; }
+.pd-notes.blank { background-image:repeating-linear-gradient(to bottom, transparent 0 4.4mm, #dfe4ea 4.4mm 4.42mm); }
+
+.pd-guide { column-count:2; column-gap:6mm; margin:0; padding:0; list-style:none; }
+.pd-guide li { font-size:6.4pt; line-height:1.4; padding-left:2.6mm; text-indent:-2.6mm;
+               break-inside:avoid; margin-bottom:.4mm; color:#333; }
+.pd-guide li b { font-weight:700; color:#111; }
+
+.pd-sign { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8mm; margin-top:6mm; }
+.pd-sign div { border-top:.7pt solid #111; padding-top:1mm; }
+.pd-sign .r { font-size:5.7pt; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#6b7280; }
+.pd-sign .m { font-size:7.6pt; font-weight:600; margin-top:.2mm; min-height:3.6mm; }
+
+/* Footer sits in normal flow — it can never overlap the content above it */
+.pd-foot { border-top:.5pt solid #c3cad4; margin-top:3.5mm; padding-top:1.2mm;
+           font-size:5.7pt; color:#7b8494; line-height:1.35;
+           display:flex; justify-content:space-between; gap:5mm; }
+.pd-foot .cite { max-width:130mm; }
+</style>
+</head>
+
+<body class="font-sans text-slate-900 antialiased compact">
+
+<!-- ══════════════ Toolbar ══════════════ -->
+<div class="screen-app sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200">
+  <div class="mx-auto max-w-[1180px] px-3 sm:px-5 py-2.5 flex flex-wrap items-center gap-2">
+    <div class="flex items-center gap-2.5 mr-auto min-w-0">
+      <div class="h-8 w-8 rounded-md bg-brand grid place-items-center text-white font-extrabold text-[13px] shrink-0">DA</div>
+      <div class="min-w-0">
+        <div class="text-[13px] font-bold leading-tight truncate">Dietary Nutrition Assessment</div>
+        <div class="text-[11px] text-slate-500 leading-tight truncate">Food exchange calculator · Sri Lanka T2DM</div>
+      </div>
+    </div>
+
+    <div class="hidden lg:flex items-center gap-3 mr-1 text-[12px] text-slate-600 font-medium">
+      <label class="flex items-center gap-1.5 select-none cursor-pointer">
+        <input type="checkbox" id="optAllRows" class="h-3.5 w-3.5 accent-brand cursor-pointer" checked>
+        All food groups
+      </label>
+      <label class="flex items-center gap-1.5 select-none cursor-pointer">
+        <input type="checkbox" id="optFit" class="h-3.5 w-3.5 accent-brand cursor-pointer" checked>
+        Fit to one page
+      </label>
+    </div>
+
+    <button id="btnSample" class="btn btn-ghost">Load sample</button>
+    <button id="btnReset"  class="btn btn-ghost">Clear form</button>
+    <button id="btnCols"   class="btn btn-ghost md:hidden">All columns</button>
+    <button id="btnExcel"  class="btn btn-green">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export Excel
+    </button>
+    <button id="btnPrint" class="btn btn-primary">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print / PDF
+    </button>
+  </div>
+</div>
+
+<div class="screen-app mx-auto max-w-[1180px] px-2 sm:px-5 py-4 sm:py-7">
+<div class="sheet bg-white rounded-lg sm:rounded-xl border border-slate-200 overflow-hidden">
+
+  <header class="band bg-brand text-white px-4 sm:px-7 py-4 sm:py-5">
+    <h1 class="text-[19px] sm:text-[25px] font-extrabold tracking-tight leading-tight">DIETARY NUTRITION ASSESSMENT</h1>
+    <p class="mt-1 text-[11.5px] sm:text-[13px] text-blue-100 leading-snug">
+      Food Exchange List for Type 2 Diabetes Mellitus — Sri Lanka · by Gayathri Dissanayaka
+    </p>
+  </header>
+
+  <!-- ══════════════ Patient information ══════════════ -->
+  <section>
+    <h2 class="band bg-section text-white px-4 sm:px-7 py-2 text-[12px] sm:text-[13px] font-bold tracking-wide">PATIENT INFORMATION</h2>
+
+    <div class="px-4 sm:px-7 py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3">
+      <label class="block"><span class="block text-[11px] font-bold text-slate-600 mb-1">Patient name</span>
+        <input class="fld" id="pName" type="text" placeholder="Full name" /></label>
+      <label class="block"><span class="block text-[11px] font-bold text-slate-600 mb-1">Patient ID</span>
+        <input class="fld" id="pId" type="text" placeholder="Clinic / BHT no." /></label>
+      <label class="block"><span class="block text-[11px] font-bold text-slate-600 mb-1">Date</span>
+        <input class="fld" id="pDate" type="date" /></label>
+
+      <div class="grid grid-cols-2 gap-3">
+        <label class="block"><span class="block text-[11px] font-bold text-slate-600 mb-1">Age</span>
+          <input class="fld num" id="pAge" type="number" min="0" max="120" inputmode="numeric" placeholder="Years" /></label>
+        <label class="block"><span class="block text-[11px] font-bold text-slate-600 mb-1">Gender</span>
+          <select class="fld" id="pSex"><option value="">—</option><option>Male</option><option>Female</option></select></label>
+      </div>
+
+      <label class="block"><span class="block text-[11px] font-bold text-slate-600 mb-1">Dietitian</span>
+        <input class="fld" id="pDietitian" type="text" value="Gayathri Dissanayaka" /></label>
+      <label class="block"><span class="block text-[11px] font-bold text-slate-600 mb-1">Ward / Dept</span>
+        <input class="fld" id="pWard" type="text" placeholder="e.g. Medical Ward 3" /></label>
+    </div>
+
+    <div class="px-4 sm:px-7 pb-5">
+      <div class="rounded-lg border border-slate-200 bg-slate-50/70 p-3 sm:p-4 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 items-end">
+        <label class="block"><span class="block text-[11px] font-bold text-slate-600 mb-1">Height (cm)</span>
+          <input class="fld num" id="pHeight" type="number" step="0.1" min="0" inputmode="decimal" placeholder="0.0" /></label>
+        <label class="block"><span class="block text-[11px] font-bold text-slate-600 mb-1">Weight (kg)</span>
+          <input class="fld num" id="pWeight" type="number" step="0.1" min="0" inputmode="decimal" placeholder="0.0" /></label>
+        <div class="col-span-2">
+          <span class="block text-[11px] font-bold text-slate-600 mb-1">Body mass index</span>
+          <div class="flex items-baseline gap-2 flex-wrap">
+            <span id="bmiVal" class="num text-[26px] sm:text-[30px] font-extrabold leading-none text-slate-400">—</span>
+            <span class="text-[12px] text-slate-500 font-medium">kg/m²</span>
+            <span id="bmiTag" class="pill neut ml-1">Enter height &amp; weight</span>
+          </div>
+          <p class="mt-1 text-[10px] text-slate-500 leading-snug">Classified on Asia-Pacific / South Asian cut-offs.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ Meal plan ══════════════ -->
+  <section>
+    <h2 class="band bg-section text-white px-4 sm:px-7 py-2 text-[12px] sm:text-[13px] font-bold tracking-wide">
+      DAILY MEAL PLAN — FOOD EXCHANGE CALCULATOR
+    </h2>
+
+    <p class="px-4 sm:px-7 pt-3 text-[11.5px] text-slate-500 leading-snug">
+      Enter the number of exchanges for each food group. Item names and base values are editable — click any of them to change it.
+    </p>
+
+    <div class="px-2 sm:px-7 py-3 overflow-x-auto">
+      <table class="tbl w-full min-w-[600px] md:min-w-[960px] border-collapse">
+        <thead>
+          <tr class="band bg-tablehd text-white text-left align-bottom" style="background:#70AD47">
+            <th class="stickycol px-1.5 sm:px-2 py-2 text-[10.5px] font-bold w-[36%] md:w-[21%]" style="background:#70AD47">Food group / item</th>
+            <th class="col-extra px-2 py-2 text-[10.5px] font-bold text-right">Base CHO<span class="font-normal opacity-80"> g</span></th>
+            <th class="col-extra px-2 py-2 text-[10.5px] font-bold text-right">Base protein<span class="font-normal opacity-80"> g</span></th>
+            <th class="col-extra px-2 py-2 text-[10.5px] font-bold text-right">Base fat<span class="font-normal opacity-80"> g</span></th>
+            <th class="col-extra px-2 py-2 text-[10.5px] font-bold text-right">Base energy<span class="font-normal opacity-80"> kcal</span></th>
+            <th class="px-2 py-2 text-[10.5px] font-bold text-center w-[104px] md:w-[120px]">No. of<br>exchanges</th>
+            <th class="col-extra px-2 py-2 text-[10.5px] font-bold text-right">Total CHO<span class="font-normal opacity-80"> g</span></th>
+            <th class="col-extra px-2 py-2 text-[10.5px] font-bold text-right">Total protein<span class="font-normal opacity-80"> g</span></th>
+            <th class="col-extra px-2 py-2 text-[10.5px] font-bold text-right">Total fat<span class="font-normal opacity-80"> g</span></th>
+            <th class="px-2 py-2 text-[10.5px] font-bold text-right">Total energy<span class="font-normal opacity-80"> kcal</span></th>
+            <th class="px-1 py-2 w-[30px]"></th>
+          </tr>
+        </thead>
+        <tbody id="foodBody"></tbody>
+        <tfoot>
+          <tr class="band bg-brand text-white font-bold" style="background:#0066CC">
+            <td class="stickycol px-1.5 sm:px-2 py-2.5 text-[11.5px]" style="background:#0066CC">DAILY TOTAL</td>
+            <td class="col-extra" colspan="4"></td>
+            <td class="num px-2 py-2.5 text-center text-[13px]" id="tExch">0</td>
+            <td class="col-extra num px-2 py-2.5 text-right text-[13px]" id="tCho">0.0</td>
+            <td class="col-extra num px-2 py-2.5 text-right text-[13px]" id="tPro">0.0</td>
+            <td class="col-extra num px-2 py-2.5 text-right text-[13px]" id="tFat">0.0</td>
+            <td class="num px-2 py-2.5 text-right text-[15px]" id="tKcal">0</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- Add / restore controls -->
+    <div class="px-4 sm:px-7 pb-4 flex flex-wrap items-center gap-2">
+      <button id="btnAddItem" class="btn btn-ghost btn-sm">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add food group
+      </button>
+      <button id="btnRestore" class="btn btn-ghost btn-sm">Restore default list</button>
+      <span class="text-[11px] text-slate-500" id="itemCount"></span>
+    </div>
+
+    <div class="md:hidden px-4 pb-4 grid grid-cols-3 gap-2" id="miniTotals">
+      <div class="rounded-md border border-slate-200 px-2 py-1.5">
+        <div class="text-[9.5px] font-bold text-cho tracking-wide">CHO</div>
+        <div class="num text-[15px] font-bold" id="mCho">0.0<span class="text-[10px] font-normal text-slate-500"> g</span></div></div>
+      <div class="rounded-md border border-slate-200 px-2 py-1.5">
+        <div class="text-[9.5px] font-bold text-pro tracking-wide">PROTEIN</div>
+        <div class="num text-[15px] font-bold" id="mPro">0.0<span class="text-[10px] font-normal text-slate-500"> g</span></div></div>
+      <div class="rounded-md border border-slate-200 px-2 py-1.5">
+        <div class="text-[9.5px] font-bold text-fat tracking-wide">FAT</div>
+        <div class="num text-[15px] font-bold" id="mFat">0.0<span class="text-[10px] font-normal text-slate-500"> g</span></div></div>
+    </div>
+  </section>
+
+  <!-- ══════════════ Summary ══════════════ -->
+  <section>
+    <h2 class="band bg-lime text-slate-900 px-4 sm:px-7 py-2 text-[12px] sm:text-[13px] font-bold tracking-wide">
+      NUTRITIONAL SUMMARY &amp; RECOMMENDATIONS
+    </h2>
+
+    <div class="px-4 sm:px-7 pt-5 pb-1">
+      <div class="flex items-baseline justify-between gap-3 mb-6">
+        <h3 class="text-[12px] font-bold text-slate-700 tracking-wide">ENERGY DISTRIBUTION FROM THIS PLAN</h3>
+        <span class="text-[10.5px] text-slate-500">Marks show the recommended range boundaries</span>
+      </div>
+
+      <div class="rail" id="rail">
+        <span id="segCho" style="width:0%;background:#2E7D32"></span>
+        <span id="segPro" style="width:0%;background:#1565C0"></span>
+        <span id="segFat" style="width:0%;background:#EF6C00"></span>
+        <div class="tick" style="left:45%" data-label="45"></div>
+        <div class="tick" style="left:60%" data-label="60"></div>
+      </div>
+
+      <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        <div class="rounded-lg border border-slate-200 px-3 py-2.5">
+          <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#2E7D32"></span>
+            <span class="text-[11px] font-bold text-slate-700">Carbohydrate</span>
+            <span class="ml-auto pill neut" id="chip-cho">—</span></div>
+          <div class="mt-1 flex items-baseline gap-2">
+            <span class="num text-[22px] font-extrabold leading-none" id="pctCho">0.0</span><span class="text-[12px] text-slate-500 font-semibold">%</span>
+            <span class="ml-auto text-[10.5px] text-slate-500">Target 45–60%</span></div>
+        </div>
+        <div class="rounded-lg border border-slate-200 px-3 py-2.5">
+          <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#1565C0"></span>
+            <span class="text-[11px] font-bold text-slate-700">Protein</span>
+            <span class="ml-auto pill neut" id="chip-pro">—</span></div>
+          <div class="mt-1 flex items-baseline gap-2">
+            <span class="num text-[22px] font-extrabold leading-none" id="pctPro">0.0</span><span class="text-[12px] text-slate-500 font-semibold">%</span>
+            <span class="ml-auto text-[10.5px] text-slate-500">Target 15–20%</span></div>
+        </div>
+        <div class="rounded-lg border border-slate-200 px-3 py-2.5">
+          <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#EF6C00"></span>
+            <span class="text-[11px] font-bold text-slate-700">Fat</span>
+            <span class="ml-auto pill neut" id="chip-fat">—</span></div>
+          <div class="mt-1 flex items-baseline gap-2">
+            <span class="num text-[22px] font-extrabold leading-none" id="pctFat">0.0</span><span class="text-[12px] text-slate-500 font-semibold">%</span>
+            <span class="ml-auto text-[10.5px] text-slate-500">Target 25–35%</span></div>
+        </div>
+      </div>
+
+      <div class="mt-3 rounded-lg band px-3 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-1" style="background:#D9E1F2">
+        <span class="text-[11px] font-bold text-slate-700">Simplified ratio</span>
+        <span class="num text-[19px] font-extrabold tracking-tight" id="ratio">0 : 0 : 0</span>
+        <span class="text-[10.5px] text-slate-600">(CHO : PRO : FAT, by weight)</span>
+      </div>
+    </div>
+
+    <div class="px-4 sm:px-7 pt-6 pb-6 grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8">
+      <div>
+        <h3 class="text-[12px] font-bold text-slate-700 tracking-wide mb-2.5">PRESCRIBED DISTRIBUTION</h3>
+        <label class="block mb-3"><span class="block text-[11px] font-bold text-slate-600 mb-1">Estimated energy requirement (kcal/day)</span>
+          <input class="fld num" id="energyReq" type="number" step="1" min="0" inputmode="numeric" placeholder="e.g. 1430" /></label>
+
+        <div class="rounded-lg border border-slate-200 overflow-hidden">
+          <div class="grid grid-cols-[1fr_86px_1fr] items-center text-[11px] font-bold text-slate-600 bg-slate-50 px-3 py-1.5 border-b border-slate-200">
+            <span>Macronutrient</span><span class="text-center">Share %</span><span class="text-right">Target grams</span></div>
+          <div class="grid grid-cols-[1fr_86px_1fr] items-center px-3 py-2 border-b border-slate-100">
+            <span class="text-[12px] font-semibold text-cho">Carbohydrate</span>
+            <input class="exch" id="reqCho" type="number" step="1" min="0" max="100" inputmode="numeric" value="50" />
+            <span class="num text-right text-[13.5px] font-bold" id="gCho">— g</span></div>
+          <div class="grid grid-cols-[1fr_86px_1fr] items-center px-3 py-2 border-b border-slate-100">
+            <span class="text-[12px] font-semibold text-pro">Protein</span>
+            <input class="exch" id="reqPro" type="number" step="1" min="0" max="100" inputmode="numeric" value="20" />
+            <span class="num text-right text-[13.5px] font-bold" id="gPro">— g</span></div>
+          <div class="grid grid-cols-[1fr_86px_1fr] items-center px-3 py-2">
+            <span class="text-[12px] font-semibold text-fat">Fat</span>
+            <input class="exch" id="reqFat" type="number" step="1" min="0" max="100" inputmode="numeric" value="30" />
+            <span class="num text-right text-[13.5px] font-bold" id="gFat">— g</span></div>
+          <div id="pctWarn" class="hidden band px-3 py-1.5 text-[11px] font-semibold" style="background:#FEF3C7;color:#92400E"></div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-[12px] font-bold text-slate-700 tracking-wide mb-2.5">PLAN VS REQUIREMENT</h3>
+        <div class="rounded-lg border border-slate-200 divide-y divide-slate-100">
+          <div class="flex items-baseline justify-between px-3 py-2.5">
+            <span class="text-[12px] font-semibold text-slate-600">Energy from meal plan</span>
+            <span class="num text-[17px] font-extrabold" id="sPlan">0<span class="text-[11px] font-medium text-slate-500"> kcal</span></span></div>
+          <div class="flex items-baseline justify-between px-3 py-2.5">
+            <span class="text-[12px] font-semibold text-slate-600">Estimated requirement</span>
+            <span class="num text-[17px] font-extrabold" id="sReq">—<span class="text-[11px] font-medium text-slate-500"> kcal</span></span></div>
+          <div class="flex items-baseline justify-between px-3 py-3 band" style="background:#F8FAFC">
+            <span class="text-[12px] font-bold text-slate-700">Difference</span>
+            <span class="num text-[21px] font-extrabold" id="sDiff">—</span></div>
+        </div>
+        <div id="diffNote" class="mt-2.5 text-[11.5px] leading-snug text-slate-600 rounded-lg border border-slate-200 px-3 py-2.5">
+          Enter an estimated energy requirement to compare it against the planned exchanges.
+        </div>
+        <label class="block mt-4"><span class="block text-[11px] font-bold text-slate-600 mb-1">Dietitian's notes</span>
+          <textarea class="fld" id="notes" rows="3" placeholder="Counselling points, follow-up plan, review date…"></textarea></label>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="band px-4 sm:px-7 py-2 text-[12px] sm:text-[13px] font-bold tracking-wide text-slate-900" style="background:#D9D9D9">
+      EXCHANGE SIZE REFERENCE GUIDE
+    </h2>
+    <ul class="px-4 sm:px-7 py-4 grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-1.5 text-[11.5px] leading-snug text-slate-700" id="guideList"></ul>
+  </section>
+
+  <footer class="border-t border-slate-200 px-4 sm:px-7 py-4 text-[10.5px] leading-relaxed text-slate-500">
+    <p>Developed based on: <em>Food Exchange List for Sri Lankans with Type 2 Diabetes Mellitus</em> (Shanmuganathan &amp; Hettiarchchi, 2017) — by Gayathri Dissanayaka.</p>
+  </footer>
+
+</div>
+</div>
+
+<!-- Print document: built from the form immediately before printing -->
+<div id="printDoc" class="pd" aria-hidden="true"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+/* ═══════════ Reference data ═══════════ */
+const DEFAULT_FOODS = [
+  { name:"Whole Milk",                 cho:10, pro:6, fat:8,   kcal:136 },
+  { name:"Low-Fat/Non-Fat Milk",       cho:10, pro:7, fat:0.4, kcal:71  },
+  { name:"Skim Milk",                  cho:14, pro:9, fat:0.2, kcal:94  },
+  { name:"Yogurt",                     cho:12, pro:3, fat:3,   kcal:87  },
+  { name:"Curd",                       cho:2,  pro:2, fat:2,   kcal:34  },
+  { name:"Legumes/Pulses",             cho:15, pro:7, fat:0.1, kcal:97  },
+  { name:"Non-Starchy Vegetables",     cho:4,  pro:2, fat:0.5, kcal:29  },
+  { name:"Green Leaves (Uncooked)",    cho:2,  pro:1, fat:0,   kcal:12  },
+  { name:"Fruits",                     cho:10, pro:0, fat:0,   kcal:40  },
+  { name:"Starch",                     cho:17, pro:3, fat:1,   kcal:89  },
+  { name:"Biscuits",                   cho:18, pro:2, fat:4,   kcal:116 },
+  { name:"Jaggery/Sugar",              cho:5,  pro:0, fat:0,   kcal:20  },
+  { name:"Fish/Meat (Lean)",           cho:0,  pro:7, fat:3,   kcal:55  },
+  { name:"Egg",                        cho:0,  pro:8, fat:8,   kcal:104 },
+  { name:"Coconut Scrapes",            cho:3,  pro:1, fat:20,  kcal:196 },
+  { name:"Coconut Milk (1st Extract)", cho:0,  pro:0, fat:20,  kcal:180 },
+  { name:"Oil",                        cho:0,  pro:0, fat:5,   kcal:45  }
+];
+
+const SAMPLE_EXCHANGES = [0,2,0,1,0,2,4,0,2,8,0,0,4,1,0,1,2];
+
+const GUIDE = [
+  "Whole Milk: 1 glass (200 mL) | 1 cup tea with 3 tsp powder",
+  "Legumes/Pulses: ½ cup cooked (70–75 g) | 3 Tbsp Mysore dhal",
+  "Non-Starchy Vegetables: ½ cup cooked (48–60 g) | 3 Tbsp cooked | 1 glass juice",
+  "Fruits: 1 medium banana (45–50 g) | thin papaya slice (60–80 g) | ¼ guava",
+  "Starch: ½ cup cooked rice (62–86 g) | 3 string hoppers | 1 bread slice | 1 atta roti",
+  "Fish/Meat: 1 medium boiled piece (30 g) | 3 Tbsp cooked sprats (15 g)",
+  "Egg: 1 boiled egg (50 g)",
+  "Oil: 1 teaspoon (5 g)",
+  "Coconut: ⅕ medium coconut (40 g) | ½ cup coconut milk, 1st extract (50 mL)"
+];
+
+/* ═══════════ State: the food list is now editable ═══════════ */
+let items = DEFAULT_FOODS.map(f => ({ ...f, x: 0 }));
+
+/* ═══════════ Helpers ═══════════ */
+const $  = (id) => document.getElementById(id);
+const n  = (v) => { const x = parseFloat(v); return Number.isFinite(x) ? x : 0; };
+const r1 = (x) => Math.round(x * 10) / 10;
+const f1 = (x) => r1(x).toFixed(1);
+const esc = (s) => String(s == null ? "" : s)
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), 2400);
+}
+
+const longDate = (iso) => {
+  if (!iso) return "";
+  const d = new Date(iso + "T00:00:00");
+  return Number.isNaN(d.getTime()) ? iso
+    : d.toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" });
+};
+
+/* ═══════════ Render the editable table ═══════════ */
+function renderTable() {
+  const body = $("foodBody");
+  body.innerHTML = items.map((f, i) => `
+    <tr class="bg-white">
+      <td class="stickycol px-1 sm:px-1.5 py-1"><input class="nm" type="text" data-f="name" data-i="${i}" value="${esc(f.name)}" aria-label="Food group name"></td>
+      <td class="col-extra px-1 py-1"><input class="base" type="number" step="0.1" min="0" inputmode="decimal" data-f="cho"  data-i="${i}" value="${f.cho}"></td>
+      <td class="col-extra px-1 py-1"><input class="base" type="number" step="0.1" min="0" inputmode="decimal" data-f="pro"  data-i="${i}" value="${f.pro}"></td>
+      <td class="col-extra px-1 py-1"><input class="base" type="number" step="0.1" min="0" inputmode="decimal" data-f="fat"  data-i="${i}" value="${f.fat}"></td>
+      <td class="col-extra px-1 py-1"><input class="base" type="number" step="1"   min="0" inputmode="numeric" data-f="kcal" data-i="${i}" value="${f.kcal}"></td>
+      <td class="px-1.5 py-1">
+        <div class="flex items-center gap-1 justify-center">
+          <button type="button" class="stepbtn" data-step="-1" data-i="${i}" aria-label="Decrease exchanges">−</button>
+          <input class="exch" type="number" step="0.5" min="0" inputmode="decimal" data-f="x" data-i="${i}" value="${f.x}" aria-label="${esc(f.name)} exchanges">
+          <button type="button" class="stepbtn" data-step="1" data-i="${i}" aria-label="Increase exchanges">+</button>
+        </div>
+      </td>
+      <td class="col-extra num px-2 py-1 text-right text-[12px] text-slate-700" data-o="cho-${i}">0.0</td>
+      <td class="col-extra num px-2 py-1 text-right text-[12px] text-slate-700" data-o="pro-${i}">0.0</td>
+      <td class="col-extra num px-2 py-1 text-right text-[12px] text-slate-700" data-o="fat-${i}">0.0</td>
+      <td class="num px-2 py-1 text-right text-[12.5px] font-semibold text-slate-900" data-o="kcal-${i}">0</td>
+      <td class="px-0.5 py-1 text-center">
+        <button type="button" class="delbtn" data-del="${i}" title="Remove ${esc(f.name)}" aria-label="Remove ${esc(f.name)}">×</button>
+      </td>
+    </tr>`).join("");
+
+  $("itemCount").textContent = items.length + (items.length === 1 ? " food group" : " food groups");
+  recalc();
+}
+
+/* ═══════════ Derived totals ═══════════ */
+function computed() {
+  const rows = items.map(f => ({
+    name: f.name, base: { cho:f.cho, pro:f.pro, fat:f.fat, kcal:f.kcal }, x: f.x,
+    cho: f.cho * f.x, pro: f.pro * f.x, fat: f.fat * f.x, kcal: f.kcal * f.x
+  }));
+  const T = rows.reduce((a, r) => ({
+    cho:a.cho+r.cho, pro:a.pro+r.pro, fat:a.fat+r.fat, kcal:a.kcal+r.kcal, x:a.x+r.x
+  }), { cho:0, pro:0, fat:0, kcal:0, x:0 });
+  const on = T.kcal > 0;
+  return {
+    rows, T, on,
+    pCho: on ? T.cho*4/T.kcal*100 : 0,
+    pPro: on ? T.pro*4/T.kcal*100 : 0,
+    pFat: on ? T.fat*9/T.kcal*100 : 0
+  };
+}
+
+/* ═══════════ Recalculate the screen ═══════════ */
+function recalc() {
+  const { rows, T, on, pCho, pPro, pFat } = computed();
+
+  rows.forEach((row, i) => {
+    const set = (k, v) => { const el = document.querySelector(`[data-o="${k}-${i}"]`); if (el) el.textContent = v; };
+    set("cho", f1(row.cho)); set("pro", f1(row.pro)); set("fat", f1(row.fat));
+    set("kcal", Math.round(row.kcal));
+    const inp = document.querySelector(`.exch[data-f="x"][data-i="${i}"]`);
+    if (inp) inp.classList.toggle("is-set", row.x > 0);
+  });
+
+  $("tCho").textContent = f1(T.cho);
+  $("tPro").textContent = f1(T.pro);
+  $("tFat").textContent = f1(T.fat);
+  $("tKcal").textContent = Math.round(T.kcal);
+  $("tExch").textContent = r1(T.x);
+  $("mCho").innerHTML = f1(T.cho) + '<span class="text-[10px] font-normal text-slate-500"> g</span>';
+  $("mPro").innerHTML = f1(T.pro) + '<span class="text-[10px] font-normal text-slate-500"> g</span>';
+  $("mFat").innerHTML = f1(T.fat) + '<span class="text-[10px] font-normal text-slate-500"> g</span>';
+
+  $("pctCho").textContent = f1(pCho);
+  $("pctPro").textContent = f1(pPro);
+  $("pctFat").textContent = f1(pFat);
+  const scale = (pCho + pPro + pFat) || 1;
+  $("segCho").style.width = (pCho/scale*100) + "%";
+  $("segPro").style.width = (pPro/scale*100) + "%";
+  $("segFat").style.width = (pFat/scale*100) + "%";
+  setChip("chip-cho", pCho, 45, 60, on);
+  setChip("chip-pro", pPro, 15, 20, on);
+  setChip("chip-fat", pFat, 25, 35, on);
+
+  $("ratio").textContent = (T.cho>0 && T.pro>0 && T.fat>0)
+    ? [T.cho,T.pro,T.fat].map(v => r1(v/Math.min(T.cho,T.pro,T.fat))).join(" : ")
+    : "0 : 0 : 0";
+
+  const req = n($("energyReq").value);
+  const sCho = n($("reqCho").value), sPro = n($("reqPro").value), sFat = n($("reqFat").value);
+  const sum = sCho + sPro + sFat;
+  const warn = $("pctWarn");
+  if (sum !== 100) { warn.classList.remove("hidden"); warn.textContent = `Shares add up to ${r1(sum)}% — adjust to total 100%.`; }
+  else warn.classList.add("hidden");
+
+  $("gCho").textContent = req>0 ? f1(req*sCho/100/4)+" g" : "— g";
+  $("gPro").textContent = req>0 ? f1(req*sPro/100/4)+" g" : "— g";
+  $("gFat").textContent = req>0 ? f1(req*sFat/100/9)+" g" : "— g";
+
+  $("sPlan").innerHTML = Math.round(T.kcal) + '<span class="text-[11px] font-medium text-slate-500"> kcal</span>';
+  $("sReq").innerHTML  = (req>0 ? Math.round(req) : "—") + '<span class="text-[11px] font-medium text-slate-500"> kcal</span>';
+
+  const diffEl = $("sDiff"), noteEl = $("diffNote");
+  if (req > 0) {
+    const d = T.kcal - req;
+    diffEl.innerHTML = (d>0?"+":"") + Math.round(d) + '<span class="text-[11px] font-medium text-slate-500"> kcal</span>';
+    const within = Math.abs(d) <= Math.max(50, req*0.05);
+    diffEl.style.color = within ? "#166534" : (d>0 ? "#b45309" : "#b91c1c");
+    noteEl.textContent = within
+      ? "The meal plan matches the estimated requirement within an acceptable margin."
+      : (d>0 ? `The plan supplies ${Math.round(d)} kcal above the requirement. Reduce starch, fat or sugar exchanges.`
+             : `The plan falls ${Math.round(-d)} kcal short of the requirement. Add starch, protein or fat exchanges.`);
+  } else {
+    diffEl.textContent = "—"; diffEl.style.color = "#0f172a";
+    noteEl.textContent = "Enter an estimated energy requirement to compare it against the planned exchanges.";
+  }
+
+  recalcBMI();
+}
+
+function setChip(id, val, lo, hi, on) {
+  const el = $(id);
+  el.className = "pill ml-auto " + (!on ? "neut" : (val>=lo && val<=hi ? "ok"
+    : (Math.abs(val - (val<lo?lo:hi)) <= 5 ? "warn" : "bad")));
+  el.textContent = !on ? "—" : (val>=lo && val<=hi ? "In range" : (val<lo ? "Below target" : "Above target"));
+}
+
+function bmiClass(b) {
+  if (b < 18.5) return "Underweight";
+  if (b < 23)   return "Normal";
+  if (b < 25)   return "Overweight";
+  if (b < 30)   return "Obese I";
+  return "Obese II";
+}
+
+function recalcBMI() {
+  const h = n($("pHeight").value)/100, w = n($("pWeight").value);
+  const el = $("bmiVal"), tag = $("bmiTag");
+  if (h > 0 && w > 0) {
+    const bmi = r1(w/(h*h));
+    el.textContent = bmi.toFixed(1);
+    el.className = "num text-[26px] sm:text-[30px] font-extrabold leading-none text-slate-900";
+    const label = bmiClass(bmi);
+    tag.className = "pill ml-1 " + (bmi<18.5 ? "warn" : bmi<23 ? "ok" : bmi<25 ? "warn" : "bad");
+    tag.textContent = label;
+  } else {
+    el.textContent = "—";
+    el.className = "num text-[26px] sm:text-[30px] font-extrabold leading-none text-slate-400";
+    tag.className = "pill neut ml-1"; tag.textContent = "Enter height & weight";
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PRINT DOCUMENT — built fresh from the form before every print
+   ═══════════════════════════════════════════════════════════════ */
+function pdField(label, value, placeholder) {
+  const has = String(value || "").trim() !== "";
+  return `<dl class="pd-f"><dt>${esc(label)}</dt>
+    <dd class="${has ? "" : "empty"}">${has ? esc(value) : esc(placeholder || "—")}</dd></dl>`;
+}
+
+function assess(val, lo, hi, on) {
+  if (!on) return { txt:"—", cls:"mk-na" };
+  if (val < lo) return { txt:"Below range", cls:"mk-lo" };
+  if (val > hi) return { txt:"Above range", cls:"mk-hi" };
+  return { txt:"Within range", cls:"mk-ok" };
+}
+
+function buildPrintDoc() {
+  const { rows, T, on, pCho, pPro, pFat } = computed();
+  const showAll = $("optAllRows").checked;
+  const active  = rows.filter(r => r.x > 0);
+  const shown   = (showAll || active.length === 0) ? rows : active;
+  const omitted = rows.length - shown.length;
+
+  const req  = n($("energyReq").value);
+  const sCho = n($("reqCho").value), sPro = n($("reqPro").value), sFat = n($("reqFat").value);
+  const gCho = req>0 ? req*sCho/100/4 : 0;
+  const gPro = req>0 ? req*sPro/100/4 : 0;
+  const gFat = req>0 ? req*sFat/100/9 : 0;
+
+  const h = n($("pHeight").value), w = n($("pWeight").value);
+  const bmi = (h>0 && w>0) ? r1(w/Math.pow(h/100,2)) : null;
+
+  const aCho = assess(pCho, 45, 60, on);
+  const aPro = assess(pPro, 15, 20, on);
+  const aFat = assess(pFat, 25, 35, on);
+
+  const mealRows = shown.map(r => `
+    <tr class="${r.x > 0 ? "" : "zero"}">
+      <td>${esc(r.name)}</td>
+      <td class="dim">${f1(r.base.cho)}</td>
+      <td class="dim">${f1(r.base.pro)}</td>
+      <td class="dim">${f1(r.base.fat)}</td>
+      <td class="dim">${f1(r.base.kcal)}</td>
+      <td><b>${r1(r.x)}</b></td>
+      <td>${f1(r.cho)}</td>
+      <td>${f1(r.pro)}</td>
+      <td>${f1(r.fat)}</td>
+      <td><b>${Math.round(r.kcal)}</b></td>
+    </tr>`).join("");
+
+  const presRow = (name, share, target, actual) => {
+    const d = actual - target;
+    const good = req>0 && Math.abs(d) <= Math.max(5, target*0.1);
+    return `<tr>
+      <td>${name}</td>
+      <td>${req>0 ? f1(share)+"%" : "—"}</td>
+      <td>${req>0 ? f1(target)+" g" : "—"}</td>
+      <td>${f1(actual)} g</td>
+      <td class="${req>0 ? (good ? "mk mk-ok" : "mk mk-hi") : "dim"}">${req>0 ? (d>=0?"+":"")+f1(d)+" g" : "—"}</td>
+    </tr>`;
+  };
+
+  let verdict;
+  if (!on) {
+    verdict = "No exchanges have been prescribed yet. Complete the daily meal plan to generate an assessment.";
+  } else if (req <= 0) {
+    verdict = `The prescribed plan supplies <b>${Math.round(T.kcal)} kcal</b> per day. Record an estimated energy requirement to assess adequacy.`;
+  } else {
+    const d = T.kcal - req;
+    const within = Math.abs(d) <= Math.max(50, req*0.05);
+    verdict = within
+      ? `The plan supplies <b>${Math.round(T.kcal)} kcal</b> against an estimated requirement of <b>${Math.round(req)} kcal</b> — within an acceptable clinical margin.`
+      : (d > 0
+        ? `The plan supplies <b>${Math.round(d)} kcal above</b> the estimated requirement of ${Math.round(req)} kcal. Consider reducing starch, fat or sugar exchanges.`
+        : `The plan falls <b>${Math.round(-d)} kcal short</b> of the estimated requirement of ${Math.round(req)} kcal. Consider adding starch, protein or fat exchanges.`);
+  }
+
+  const notes = ($("notes").value || "").trim();
+  const ratioTxt = (T.cho>0 && T.pro>0 && T.fat>0)
+    ? [T.cho,T.pro,T.fat].map(v => r1(v/Math.min(T.cho,T.pro,T.fat))).join("  :  ") : "—";
+
+  const guideHtml = GUIDE.map(g => {
+    const i = g.indexOf(":");
+    return `<li><b>${esc(g.slice(0,i+1))}</b>${esc(g.slice(i+1))}</li>`;
+  }).join("");
+
+  $("printDoc").innerHTML = `
+  <header class="pd-head nb">
+    <div>
+      <div class="pd-org">Clinical Nutrition &amp; Dietetics</div>
+      <div class="pd-title">Dietary Nutrition Assessment</div>
+      <div class="pd-sub">Food Exchange List for Type 2 Diabetes Mellitus — Sri Lanka</div>
+    </div>
+    <div class="pd-meta">
+      <dl>
+        <dt>Patient ID</dt><dd>${esc($("pId").value.trim() || "—")}</dd>
+        <dt>Assessed</dt><dd>${esc(longDate($("pDate").value) || "—")}</dd>
+        <dt>Dietitian</dt><dd>${esc($("pDietitian").value.trim() || "—")}</dd>
+      </dl>
+    </div>
+  </header>
+
+  <div class="pd-h">Patient particulars</div>
+  <div class="pd-grid nb">
+    ${pdField("Patient name", $("pName").value)}
+    ${pdField("Age", $("pAge").value ? $("pAge").value + " years" : "")}
+    ${pdField("Gender", $("pSex").value)}
+    ${pdField("Ward / department", $("pWard").value)}
+    ${pdField("Height / Weight", (h>0?f1(h)+" cm":"—") + "  ·  " + (w>0?f1(w)+" kg":"—"))}
+    ${pdField("Reviewing dietitian", $("pDietitian").value)}
+  </div>
+
+  <div class="pd-h">Anthropometry</div>
+  <div class="pd-stats nb">
+    <div class="pd-stat"><div class="k">Height</div><div class="v">${h>0?f1(h):"—"} <small>cm</small></div></div>
+    <div class="pd-stat"><div class="k">Weight</div><div class="v">${w>0?f1(w):"—"} <small>kg</small></div></div>
+    <div class="pd-stat"><div class="k">Body mass index</div><div class="v">${bmi!==null?bmi.toFixed(1):"—"} <small>kg/m²</small></div></div>
+    <div class="pd-stat"><div class="k">Classification</div>
+      <div class="v" style="font-size:9.5pt">${bmi!==null?bmiClass(bmi):"—"}</div>
+      <div class="n">Asia-Pacific cut-offs</div></div>
+  </div>
+
+  <div class="pd-h">Daily meal plan — food exchanges <span>${r1(T.x)} exchanges across ${shown.filter(r=>r.x>0).length} food groups</span></div>
+  <table class="pd-t">
+    <thead>
+      <tr>
+        <th style="width:22%">Food group / item</th>
+        <th style="width:7.5%">CHO</th>
+        <th style="width:7.5%">Prot.</th>
+        <th style="width:7.5%">Fat</th>
+        <th style="width:9%">kcal</th>
+        <th style="width:9.5%">Exch.</th>
+        <th style="width:9%">CHO g</th>
+        <th style="width:9.5%">Protein g</th>
+        <th style="width:8.5%">Fat g</th>
+        <th style="width:10%">Energy kcal</th>
+      </tr>
+    </thead>
+    <tbody>${mealRows}</tbody>
+    <tfoot>
+      <tr>
+        <td>Daily total</td><td colspan="4"></td>
+        <td>${r1(T.x)}</td><td>${f1(T.cho)}</td><td>${f1(T.pro)}</td><td>${f1(T.fat)}</td>
+        <td>${Math.round(T.kcal)}</td>
+      </tr>
+    </tfoot>
+  </table>
+  <div class="pd-note">Columns 2–5 give the composition of one exchange. ${omitted>0 ? omitted + " food group" + (omitted===1?" that was":"s that were") + " not prescribed " + (omitted===1?"is":"are") + " omitted." : ""}</div>
+
+  <div class="pd-cols" style="margin-top:1mm">
+    <div>
+      <div class="pd-h">Nutritional analysis</div>
+      <table class="pd-t plain nb">
+        <thead>
+          <tr><th style="width:28%">Macronutrient</th><th style="width:17%">Weight</th>
+              <th style="width:18%">% energy</th><th style="width:18%">Target</th><th style="width:19%">Assessment</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Carbohydrate</td><td>${f1(T.cho)} g</td><td><b>${f1(pCho)}%</b></td><td class="dim">45–60%</td><td class="mk ${aCho.cls}">${aCho.txt}</td></tr>
+          <tr><td>Protein</td><td>${f1(T.pro)} g</td><td><b>${f1(pPro)}%</b></td><td class="dim">15–20%</td><td class="mk ${aPro.cls}">${aPro.txt}</td></tr>
+          <tr><td>Fat</td><td>${f1(T.fat)} g</td><td><b>${f1(pFat)}%</b></td><td class="dim">25–35%</td><td class="mk ${aFat.cls}">${aFat.txt}</td></tr>
+        </tbody>
+      </table>
+      <div class="pd-ratio nb">
+        <div class="k">Ratio</div>
+        <div class="v">${esc(ratioTxt)}</div>
+        <div class="n">CHO : Protein : Fat<br>by weight</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="pd-h">Energy prescription</div>
+      <div class="pd-boxes nb">
+        <div class="pd-box"><div class="k">Requirement</div>
+          <div class="v">${req>0?Math.round(req):"—"} <small>kcal</small></div></div>
+        <div class="pd-box accent"><div class="k">Planned</div>
+          <div class="v">${Math.round(T.kcal)} <small>kcal</small></div></div>
+        <div class="pd-box"><div class="k">Difference</div>
+          <div class="v">${req>0 ? (T.kcal-req>=0?"+":"")+Math.round(T.kcal-req) : "—"} <small>kcal</small></div></div>
+      </div>
+      <table class="pd-t plain nb" style="margin-top:2mm">
+        <thead>
+          <tr><th style="width:26%">Distribution</th><th style="width:15%">Share</th>
+              <th style="width:20%">Target</th><th style="width:20%">Planned</th><th style="width:19%">Variance</th></tr>
+        </thead>
+        <tbody>
+          ${presRow("Carbohydrate", sCho, gCho, T.cho)}
+          ${presRow("Protein", sPro, gPro, T.pro)}
+          ${presRow("Fat", sFat, gFat, T.fat)}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="pd-verdict nb">${verdict}</div>
+
+  <div class="pd-h">Dietitian's notes &amp; counselling points</div>
+  <div class="pd-notes ${notes ? "" : "blank"} nb">${esc(notes)}</div>
+
+  <div class="pd-h">Exchange size reference guide <span>Patient counselling aid</span></div>
+  <ul class="pd-guide">${guideHtml}</ul>
+
+  <div class="pd-sign nb">
+    <div><div class="r">Dietitian — name &amp; signature</div><div class="m">${esc($("pDietitian").value.trim() || "")}</div></div>
+    <div><div class="r">Patient / carer signature</div><div class="m"></div></div>
+    <div><div class="r">Date</div><div class="m">${esc(longDate($("pDate").value) || "")}</div></div>
+  </div>
+
+  <div class="pd-foot">
+    <div class="cite">Developed based on: Food Exchange List for Sri Lankans with Type 2 Diabetes Mellitus (Shanmuganathan &amp; Hettiarchchi, 2017) — by Gayathri Dissanayaka.</div>
+    <div>${esc($("pName").value.trim() || "Unnamed patient")} · Printed ${esc(new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}))}</div>
+  </div>`;
+
+  fitToOnePage();
+}
+
+/* Scale the report so the whole thing lands on one A4 sheet.
+   Measured off-canvas at true print width, then zoomed down if needed. */
+function fitToOnePage() {
+  const pd = $("printDoc");
+  pd.style.zoom = "1";
+  if (!$("optFit").checked) return;
+
+  const PX_PER_MM = 96 / 25.4;
+  const AVAILABLE  = 277 * PX_PER_MM;      // A4 height 297mm less 10mm top+bottom margins
+
+  pd.classList.add("measuring");
+  const height = pd.scrollHeight;
+  pd.classList.remove("measuring");
+
+  if (height > AVAILABLE) {
+    const scale = Math.max(0.55, Math.floor((AVAILABLE / height) * 1000) / 1000 - 0.004);
+    pd.style.zoom = String(scale);
+  }
+}
+
+/* ═══════════ Excel export ═══════════ */
+function exportExcel() {
+  const { rows, T } = computed();
+  const req = n($("energyReq").value);
+  const AOA = [];
+  const push = (a) => AOA.push(a);
+  const blank = () => AOA.push([]);
+
+  push(["DIETARY NUTRITION ASSESSMENT"]);
+  push(["Food Exchange List for Type 2 Diabetes Mellitus - Sri Lanka by Gayathri Dissanayaka"]);
+  blank();
+  push(["PATIENT INFORMATION"]);
+  push(["Patient Name:", $("pName").value, "", "", "Date:", $("pDate").value, "", "Height (cm):", n($("pHeight").value)]);
+  push(["Patient ID:", $("pId").value, "", "", "Dietitian:", $("pDietitian").value, "", "Weight (kg):", n($("pWeight").value)]);
+  push(["Age:", n($("pAge").value), "Gender:", $("pSex").value, "Ward/Dept:", $("pWard").value, "", "BMI:",
+        { t:"n", f:'IF(AND(I6<>"",I5<>""),ROUND(I6/((I5/100)^2),1),"")', z:"0.0" }, "kg/m²"]);
+  blank();
+  push(["DAILY MEAL PLAN - FOOD EXCHANGE CALCULATOR"]);
+  push(["Food Group/Item","Base CHO (g)","Base Protein (g)","Base Fat (g)","Base Energy (kcal)",
+        "No. of Exchanges","Total CHO (g)","Total Protein (g)","Total Fat (g)","Total Energy (kcal)"]);
+
+  const first = 11;
+  rows.forEach((r, i) => {
+    const R = first + i;
+    push([r.name, r.base.cho, r.base.pro, r.base.fat, r.base.kcal, r.x,
+      { t:"n", f:`B${R}*F${R}`, z:"0.0" },
+      { t:"n", f:`C${R}*F${R}`, z:"0.0" },
+      { t:"n", f:`D${R}*F${R}`, z:"0.0" },
+      { t:"n", f:`E${R}*F${R}`, z:"0.0" }]);
+  });
+
+  const last = first + rows.length - 1;
+  const TOT  = last + 1;
+  push(["DAILY TOTAL","","","","",
+    { t:"n", f:`SUM(F${first}:F${last})`, z:"0.0" },
+    { t:"n", f:`SUM(G${first}:G${last})`, z:"0.0" },
+    { t:"n", f:`SUM(H${first}:H${last})`, z:"0.0" },
+    { t:"n", f:`SUM(I${first}:I${last})`, z:"0.0" },
+    { t:"n", f:`SUM(J${first}:J${last})`, z:"0" }]);
+  blank();
+
+  const SUM_H = TOT + 2;            // "NUTRITIONAL SUMMARY" row
+  push(["NUTRITIONAL SUMMARY & RECOMMENDATIONS"]);
+  push(["Carbohydrate %:", { t:"n", f:`IF(J${TOT}>0,ROUND(G${TOT}*4/J${TOT}*100,1),0)`, z:'0.0"%"' }, "Target: 45-60%", "",
+        "Protein %:",      { t:"n", f:`IF(J${TOT}>0,ROUND(H${TOT}*4/J${TOT}*100,1),0)`, z:'0.0"%"' }, "Target: 15-20%",
+        "Fat %:",          { t:"n", f:`IF(J${TOT}>0,ROUND(I${TOT}*9/J${TOT}*100,1),0)`, z:'0.0"%"' }, "Target: 25-35%"]);
+  const REQ_ROW = SUM_H + 3;        // "Estimated Energy Req:" row, value in column B
+  push(["CHO Ratio (g):",     { t:"n", f:`IF(B${REQ_ROW}>0,ROUND(B${REQ_ROW}*${n($("reqCho").value)}/100/4,1),"")`, z:'0.0" g"' }, ":",
+        "Protein Ratio (g):", { t:"n", f:`IF(B${REQ_ROW}>0,ROUND(B${REQ_ROW}*${n($("reqPro").value)}/100/4,1),"")`, z:'0.0" g"' }, ":",
+        "Fat Ratio (g):",     { t:"n", f:`IF(B${REQ_ROW}>0,ROUND(B${REQ_ROW}*${n($("reqFat").value)}/100/9,1),"")`, z:'0.0" g"' }]);
+  push(["Simplified Ratio:",
+    { t:"s", f:`IF(G${TOT}>0,ROUND(G${TOT}/MINA(G${TOT},H${TOT},I${TOT}),1),0)&":"&IF(H${TOT}>0,ROUND(H${TOT}/MINA(G${TOT},H${TOT},I${TOT}),1),0)&":"&IF(I${TOT}>0,ROUND(I${TOT}/MINA(G${TOT},H${TOT},I${TOT}),1),0)` },
+    "","","","","","","(CHO:PRO:FAT)"]);
+  push(["Estimated Energy Req:", req || "", "", "kcal/day", "Difference:",
+    { t:"n", f:`IF(B${REQ_ROW}<>"",J${TOT}-B${REQ_ROW},"")`, z:"0" }, "kcal"]);
+  blank();
+
+  const GUIDE_H = REQ_ROW + 2;
+  push(["EXCHANGE SIZE REFERENCE GUIDE"]);
+  GUIDE.forEach(g => push(["• " + g]));
+  const NOTES_ROW = GUIDE_H + GUIDE.length + 1;
+  push(["Notes:", ($("notes").value || "").trim()]);
+  push(["Developed based on: Food Exchange List for Sri Lankans with Type 2 Diabetes Mellitus (Shanmuganathan & Hettiarchchi, 2017) by Gayathri Dissanayaka"]);
+
+  const ws = XLSX.utils.aoa_to_sheet(AOA);
+  ws["!cols"] = [{wch:26},{wch:15},{wch:18},{wch:17},{wch:20},{wch:19},{wch:16},{wch:19},{wch:14},{wch:20}];
+
+  const M = (r0,c0,r2,c2) => ({ s:{r:r0,c:c0}, e:{r:r2,c:c2} });
+  ws["!merges"] = [
+    M(0,0,0,9), M(1,0,1,9), M(3,0,3,9), M(8,0,8,9),
+    M(4,1,4,3), M(5,1,5,3), M(4,5,4,6), M(5,5,5,6), M(6,5,6,6),
+    M(TOT-1,0,TOT-1,4),
+    M(SUM_H-1,0,SUM_H-1,9),
+    M(SUM_H+1,1,SUM_H+1,7),
+    M(REQ_ROW-1,1,REQ_ROW-1,2),
+    M(GUIDE_H-1,0,GUIDE_H-1,9),
+    ...GUIDE.map((_,i) => M(GUIDE_H+i, 0, GUIDE_H+i, 9)),
+    M(NOTES_ROW-1,1,NOTES_ROW-1,9),
+    M(NOTES_ROW,0,NOTES_ROW,9)
+  ];
+  ws["!rows"] = []; ws["!rows"][0] = { hpt:30 }; ws["!rows"][9] = { hpt:28 };
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Energy Calculator");
+  wb.Props = {
+    Title:"Dietary Nutrition Assessment",
+    Subject:"Food Exchange Calculator - Type 2 Diabetes Mellitus, Sri Lanka",
+    Author:$("pDietitian").value || "Gayathri Dissanayaka"
+  };
+
+  const who = ($("pName").value || "Patient").trim().replace(/[^\w\- ]+/g,"").replace(/\s+/g,"_");
+  const day = $("pDate").value || new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `Energy_Calculator_${who}_${day}.xlsx`, { bookType:"xlsx", compression:true });
+  toast("Excel file downloaded");
+}
+
+/* ═══════════ Form actions ═══════════ */
+function loadSample() {
+  items = DEFAULT_FOODS.map((f, i) => ({ ...f, x: SAMPLE_EXCHANGES[i] || 0 }));
+  $("pName").value = "Mr. M. Rajanayagam";
+  $("pId").value = "";
+  $("pAge").value = 48;
+  $("pSex").value = "Male";
+  $("pDate").value = new Date().toISOString().slice(0,10);
+  $("pDietitian").value = "Gayathri Dissanayaka";
+  $("pWard").value = "";
+  $("pHeight").value = 165;
+  $("pWeight").value = 85;
+  $("energyReq").value = 1430;
+  $("reqCho").value = 50; $("reqPro").value = 20; $("reqFat").value = 30;
+  renderTable();
+  toast("Sample assessment loaded");
+}
+
+function clearForm() {
+  items = DEFAULT_FOODS.map(f => ({ ...f, x: 0 }));
+  ["pName","pId","pAge","pWard","energyReq","pHeight","pWeight","notes"].forEach(id => $(id).value = "");
+  $("pSex").value = "";
+  $("pDietitian").value = "Gayathri Dissanayaka";
+  $("pDate").value = new Date().toISOString().slice(0,10);
+  $("reqCho").value = 50; $("reqPro").value = 20; $("reqFat").value = 30;
+  renderTable();
+  toast("Form cleared");
+}
+
+/* ═══════════ Wiring ═══════════ */
+$("guideList").innerHTML = GUIDE
+  .map(g => `<li class="flex gap-2"><span class="text-tablehd font-bold leading-5">•</span><span>${esc(g)}</span></li>`).join("");
+$("pDate").value = new Date().toISOString().slice(0,10);
+renderTable();
+
+/* Table inputs write straight into state — no re-render, so focus is never lost */
+$("foodBody").addEventListener("input", (e) => {
+  const el = e.target;
+  const i = el.dataset.i, f = el.dataset.f;
+  if (i === undefined || !f) return;
+  items[i][f] = (f === "name") ? el.value : Math.max(0, n(el.value));
+  recalc();
+});
+
+$("foodBody").addEventListener("click", (e) => {
+  const del = e.target.closest("[data-del]");
+  if (del) {
+    const i = Number(del.dataset.del);
+    const name = items[i].name || "this food group";
+    if (items.length === 1) { toast("At least one food group is required"); return; }
+    if (confirm(`Remove "${name}" from the table?`)) { items.splice(i, 1); renderTable(); toast("Food group removed"); }
+    return;
+  }
+  const step = e.target.closest("[data-step]");
+  if (step) {
+    const i = Number(step.dataset.i);
+    items[i].x = Math.max(0, r1(items[i].x + Number(step.dataset.step) * 0.5));
+    const inp = document.querySelector(`.exch[data-f="x"][data-i="${i}"]`);
+    if (inp) inp.value = items[i].x;
+    recalc();
+  }
+});
+
+$("btnAddItem").addEventListener("click", () => {
+  items.push({ name:"New food group", cho:0, pro:0, fat:0, kcal:0, x:0 });
+  renderTable();
+  const last = document.querySelector(`.nm[data-i="${items.length-1}"]`);
+  if (last) { last.scrollIntoView({ block:"center", behavior:"smooth" }); last.focus(); last.select(); }
+  toast("Food group added — name it and set its base values");
+});
+
+$("btnRestore").addEventListener("click", () => {
+  if (!confirm("Restore the default 17 food groups? Exchange numbers will be reset.")) return;
+  items = DEFAULT_FOODS.map(f => ({ ...f, x: 0 }));
+  renderTable();
+  toast("Default food list restored");
+});
+
+document.querySelectorAll(".screen-app input, .screen-app select, .screen-app textarea").forEach(el => {
+  if (!el.closest("#foodBody")) el.addEventListener("input", recalc);
+});
+
+$("btnPrint").addEventListener("click", () => { buildPrintDoc(); window.print(); });
+window.addEventListener("beforeprint", buildPrintDoc);
+
+$("btnExcel").addEventListener("click", () => {
+  try { exportExcel(); } catch (err) { console.error(err); toast("Export failed — check the browser console"); }
+});
+$("btnSample").addEventListener("click", loadSample);
+$("btnReset").addEventListener("click", clearForm);
+$("btnCols").addEventListener("click", () => {
+  document.body.classList.toggle("compact");
+  const on = document.body.classList.contains("compact");
+  $("btnCols").textContent = on ? "All columns" : "Fewer columns";
+  $("miniTotals").classList.toggle("hidden", !on);
+});
+
+window.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") { e.preventDefault(); exportExcel(); }
+});
+
+recalc();
+</script>
+<script src="../../assets/gt-switcher.js" defer></script>
+</body>
+</html>

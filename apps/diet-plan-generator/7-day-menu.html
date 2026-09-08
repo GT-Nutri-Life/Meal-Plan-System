@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GT Nutri Life - 7 Day Diet Menu Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .menu-option {
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        .remove-option-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: background-color 0.2s;
+        }
+        .remove-option-btn:hover {
+            background: #dc2626;
+        }
+        .add-option-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        .add-option-btn:hover {
+            opacity: 0.9;
+        }
+        .day-section {
+            border-left: 4px solid #667eea;
+        }
+        .meal-card {
+            background: linear-gradient(to right, #f9fafb, #ffffff);
+            transition: all 0.3s ease;
+        }
+        .meal-card.moving {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+        .move-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.35rem 0.6rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .move-btn:hover:not(:disabled) {
+            background: #5568d3;
+            transform: translateY(-1px);
+        }
+        .move-btn:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-8 shadow-lg">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-bold">GT Nutri Life ❤️</h1>
+                    <h2 class="text-2xl md:text-4xl font-bold">7 Day Diet Menu Planner</h2>
+                    <p class="text-purple-100 mt-1">by Gayathri Dissanayake (Professional Dietitian)</p>
+                </div>
+                <div class="hidden md:block">
+                    <a href="index.html" class="bg-white text-purple-600 px-6 py-2 rounded-lg font-semibold hover:bg-purple-50 transition-colors">
+                        ← Back to Main Form
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Back button for mobile -->
+        <div class="md:hidden mb-4">
+            <a href="index.html" class="bg-white text-purple-600 px-4 py-2 rounded-lg font-semibold hover:bg-purple-50 transition-colors inline-block">
+                ← Back to Main Form
+            </a>
+        </div>
+
+        <!-- Introduction -->
+        <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-6">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Create Your Weekly Menu Plan</h3>
+            <p class="text-gray-600 mb-4">
+                This form allows you to plan meals for each day of the week. For each meal time (breakfast, mid-morning snack, lunch, evening snack, dinner), 
+                you can add multiple menu options that clients can choose from. This gives your clients flexibility while maintaining nutritional goals.
+            </p>
+            <div class="bg-blue-50 border-l-4 border-blue-400 p-4">
+                <p class="text-sm text-blue-700">
+                    <strong>Tip:</strong> Add multiple options for each meal to give clients variety and flexibility in their diet plan.
+                </p>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form id="menu-form" class="space-y-8">
+            <!-- Client Information -->
+            <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm" aria-label="Information">ℹ️</span>
+                    Client Information
+                </h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Client Name *</label>
+                        <input type="text" name="clientName" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Enter client name">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Plan Start Date</label>
+                        <input type="date" name="startDate" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Special Notes / Dietary Restrictions</label>
+                    <textarea name="specialNotes" rows="2" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="Any special dietary requirements, allergies, or preferences"></textarea>
+                </div>
+            </div>
+
+            <!-- Meal Time & Reminder Settings -->
+            <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm">⏰</span>
+                    Meal Time & Reminder Settings
+                </h3>
+                <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+                    <p class="text-sm text-blue-700">
+                        <strong>Tip:</strong> Customize the default meal times and reminder settings. These will be used when generating calendar events for the 7-day diet plan.
+                    </p>
+                </div>
+                
+                <!-- Reminder Time Setting -->
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Reminder Time (minutes before meal)</label>
+                    <div class="flex items-center gap-4">
+                        <input type="number" id="reminderMinutes" name="reminderMinutes" value="15" min="0" max="120" class="w-32 px-4 py-3 border-2 border-gray-200 rounded-lg transition-all" placeholder="15">
+                        <span class="text-gray-600 text-sm">minutes before each meal</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">You will receive a reminder this many minutes before each meal time (0-120 minutes)</p>
+                </div>
+
+                <!-- Meal Times Settings -->
+                <div>
+                    <h4 class="text-lg font-semibold text-gray-800 mb-4">Default Meal Times</h4>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">☕ Bed Tea</label>
+                            <input type="time" id="mealTime-bedTea" name="mealTime-bedTea" value="07:00" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">🍳 Breakfast</label>
+                            <input type="time" id="mealTime-breakfast" name="mealTime-breakfast" value="08:00" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">🍎 Mid-Morning Snack</label>
+                            <input type="time" id="mealTime-midMorningSnack" name="mealTime-midMorningSnack" value="10:30" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">🍱 Lunch</label>
+                            <input type="time" id="mealTime-lunch" name="mealTime-lunch" value="13:00" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">🥤 Evening Snack</label>
+                            <input type="time" id="mealTime-eveningSnack" name="mealTime-eveningSnack" value="16:00" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">🍽️ Dinner</label>
+                            <input type="time" id="mealTime-dinner" name="mealTime-dinner" value="19:00" class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg transition-all">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7 Day Menu Plan -->
+            <div id="menu-days-container">
+                <!-- Days will be dynamically added here -->
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                <div class="space-y-4">
+                    <!-- Generate Calendar Button -->
+                    <button type="button" onclick="generateAndDownloadCalendar()" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-lg font-semibold text-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        Generate 7-Day Calendar
+                    </button>
+                    <p class="text-center text-gray-500 text-xs">Download the 7-day diet plan as a calendar file (.ics) without submitting</p>
+                    
+                    <!-- Submit Form Button -->
+                    <button type="submit" class="w-full gradient-bg text-white py-4 rounded-lg font-semibold text-lg hover:opacity-90 transition-opacity">
+                        Submit 7 Day Menu Plan
+                    </button>
+                    <p class="text-center text-gray-500 text-xs">Submit the menu plan to the dietitian for review</p>
+                </div>
+            </div>
+        </form>
+
+        <!-- Success Message -->
+        <div id="success-message" class="hidden mt-6 bg-white rounded-xl shadow-lg p-6 md:p-8">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">Menu Plan Submitted Successfully!</h3>
+                <p class="text-gray-600">Your 7-day menu plan has been saved and submitted.</p>
+            </div>
+            
+            <!-- Calendar Download Section -->
+            <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 mb-6">
+                <h4 class="font-semibold text-gray-800 mb-3 flex items-center justify-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Add to Your Calendar
+                </h4>
+                <p class="text-gray-600 text-center mb-4">Download your diet plan as a calendar file with meal reminders</p>
+                <div class="flex justify-center">
+                    <button onclick="downloadICS()" class="gradient-bg text-white px-8 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Download Calendar File (.ics)
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex gap-4 justify-center flex-wrap">
+                <button onclick="resetForm()" class="gradient-bg text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                    Create Another Menu Plan
+                </button>
+                <a href="index.html" class="bg-gray-200 text-gray-800 px-6 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors">
+                    Back to Main Form
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-300">&copy; Developed with ❤️ by Ashen Wijesingha. All rights reserved.</p>
+            <p class="text-gray-400 text-sm mt-2">Professional nutrition guidance for optimal health</p>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize EmailJS with your public key
+        (function(){
+            try {
+                if (typeof emailjs !== 'undefined') {
+                    emailjs.init("yabBp2Uv197Oom58-");
+                }
+            } catch (e) {
+                console.log('EmailJS initialization failed:', e);
+            }
+        })();
+
+        // Constants
+        const DEFAULT_REMINDER_MINUTES = 15;
+        const MAX_REMINDER_MINUTES = 120;
+        const DEFAULT_MEAL_TIMES = {
+            'Bed Tea': '07:00',
+            'Breakfast': '08:00',
+            'Mid-Morning Snack': '10:30',
+            'Lunch': '13:00',
+            'Evening Snack': '16:00',
+            'Dinner': '19:00'
+        };
+
+        // Define meal types
+        const mealTypes = [
+            { id: 'bedTea', name: 'Bed Tea', icon: '☕', timeInputId: 'mealTime-bedTea' },
+            { id: 'breakfast', name: 'Breakfast', icon: '🍳', timeInputId: 'mealTime-breakfast' },
+            { id: 'midMorningSnack', name: 'Mid-Morning Snack', icon: '🍎', timeInputId: 'mealTime-midMorningSnack' },
+            { id: 'lunch', name: 'Lunch', icon: '🍱', timeInputId: 'mealTime-lunch' },
+            { id: 'eveningSnack', name: 'Evening Snack', icon: '🥤', timeInputId: 'mealTime-eveningSnack' },
+            { id: 'dinner', name: 'Dinner', icon: '🍽️', timeInputId: 'mealTime-dinner' }
+        ];
+
+        // Days of the week
+        const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+        // Global variable to store menu data for ICS generation
+        let currentMenuData = null;
+
+        // Store active meals for each day (all meals active by default)
+        let activeMealsPerDay = {};
+
+        // Initialize the form
+        function initializeForm() {
+            const container = document.getElementById('menu-days-container');
+            
+            // Initialize all days with all meal types
+            daysOfWeek.forEach((day, dayIndex) => {
+                activeMealsPerDay[dayIndex] = mealTypes.map(m => m.id);
+                const daySection = createDaySection(day, dayIndex);
+                container.appendChild(daySection);
+            });
+        }
+
+        // Create a day section
+        function createDaySection(day, dayIndex) {
+            const section = document.createElement('div');
+            section.className = 'bg-white rounded-xl shadow-lg p-6 md:p-8 day-section';
+            section.id = `day-section-${dayIndex}`;
+            section.innerHTML = `
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold text-gray-800 flex items-center">
+                        <span class="bg-purple-600 text-white rounded-full w-10 h-10 flex items-center justify-center mr-3">${dayIndex + 1}</span>
+                        ${day}
+                    </h3>
+                    <button type="button" class="add-option-btn" onclick="showAddMealDialog(${dayIndex})">
+                        ➕ Add Meal Type
+                    </button>
+                </div>
+                <div class="space-y-6" id="day-${dayIndex}-meals">
+                    <!-- Meals will be added here -->
+                </div>
+            `;
+
+            const mealsContainer = section.querySelector(`#day-${dayIndex}-meals`);
+            
+            mealTypes.forEach(meal => {
+                const mealCard = createMealCard(day, dayIndex, meal);
+                mealsContainer.appendChild(mealCard);
+            });
+            
+            // Update button states after all meals are added
+            requestAnimationFrame(() => updateMoveButtonStates(dayIndex));
+
+            return section;
+        }
+
+        // Create a meal card
+        function createMealCard(day, dayIndex, meal) {
+            const card = document.createElement('div');
+            card.className = 'meal-card rounded-lg p-4 border-2 border-gray-200';
+            card.id = `day-${dayIndex}-meal-${meal.id}`;
+            card.setAttribute('data-meal-id', meal.id);
+            card.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <div class="flex flex-col gap-1">
+                            <button type="button" class="move-btn" onclick="moveMealUp(${dayIndex}, '${meal.id}')" title="Move up" aria-label="Move ${meal.name} up">
+                                ▲
+                            </button>
+                            <button type="button" class="move-btn" onclick="moveMealDown(${dayIndex}, '${meal.id}')" title="Move down" aria-label="Move ${meal.name} down">
+                                ▼
+                            </button>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 flex items-center">
+                            <span class="mr-2">${meal.icon}</span>
+                            ${meal.name}
+                        </h4>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="button" class="add-option-btn" onclick="addMenuOption(${dayIndex}, '${meal.id}')">
+                            + Add Option
+                        </button>
+                        <button type="button" class="remove-option-btn" onclick="removeMealType(${dayIndex}, '${meal.id}', '${meal.name}')" aria-label="Remove ${meal.name}">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+                <div id="day-${dayIndex}-${meal.id}-options" class="space-y-3">
+                    <!-- Menu options will be added here -->
+                </div>
+            `;
+
+            // Add initial option
+            setTimeout(() => addMenuOption(dayIndex, meal.id), 0);
+
+            return card;
+        }
+
+        // Add a menu option
+        function addMenuOption(dayIndex, mealId) {
+            const container = document.getElementById(`day-${dayIndex}-${mealId}-options`);
+            const optionIndex = container.children.length;
+            
+            const option = document.createElement('div');
+            option.className = 'menu-option flex items-start gap-2';
+            option.innerHTML = `
+                <span class="text-purple-600 font-bold mt-3">•</span>
+                <div class="flex-1">
+                    <input 
+                        type="text" 
+                        name="day${dayIndex}_${mealId}_option${optionIndex}" 
+                        class="w-full px-4 py-2 border-2 border-gray-200 rounded-lg transition-all text-sm" 
+                        placeholder="Enter menu item (e.g., Oatmeal with berries and honey - 1 cup)"
+                        required
+                    />
+                </div>
+                ${optionIndex > 0 ? `<button type="button" class="remove-option-btn mt-2" onclick="removeMenuOption(this)" aria-label="Remove menu option">✕</button>` : ''}
+            `;
+            
+            container.appendChild(option);
+        }
+
+        // Remove a menu option
+        function removeMenuOption(button) {
+            button.closest('.menu-option').remove();
+        }
+
+        // Remove a meal type
+        function removeMealType(dayIndex, mealId, mealName) {
+            if (confirm(`Are you sure you want to remove "${mealName}" from this day?`)) {
+                const mealCard = document.getElementById(`day-${dayIndex}-meal-${mealId}`);
+                if (mealCard) {
+                    mealCard.remove();
+                    // Update active meals list
+                    const index = activeMealsPerDay[dayIndex].indexOf(mealId);
+                    if (index > -1) {
+                        activeMealsPerDay[dayIndex].splice(index, 1);
+                    }
+                    // Update button states after removal
+                    updateMoveButtonStates(dayIndex);
+                }
+            }
+        }
+
+        // Move meal up in the order
+        function moveMealUp(dayIndex, mealId) {
+            const mealsContainer = document.getElementById(`day-${dayIndex}-meals`);
+            const mealCard = document.getElementById(`day-${dayIndex}-meal-${mealId}`);
+            
+            if (!mealsContainer || !mealCard) return;
+            
+            const previousCard = mealCard.previousElementSibling;
+            if (previousCard) {
+                // Add visual feedback
+                mealCard.classList.add('moving');
+                
+                // Swap in DOM
+                mealsContainer.insertBefore(mealCard, previousCard);
+                
+                // Sync activeMealsPerDay with DOM order
+                activeMealsPerDay[dayIndex] = getMealsInOrder(dayIndex);
+                
+                // Remove visual feedback and update buttons
+                setTimeout(() => {
+                    mealCard.classList.remove('moving');
+                    updateMoveButtonStates(dayIndex);
+                }, 300);
+            }
+        }
+
+        // Move meal down in the order
+        function moveMealDown(dayIndex, mealId) {
+            const mealsContainer = document.getElementById(`day-${dayIndex}-meals`);
+            const mealCard = document.getElementById(`day-${dayIndex}-meal-${mealId}`);
+            
+            if (!mealsContainer || !mealCard) return;
+            
+            const nextCard = mealCard.nextElementSibling;
+            if (nextCard) {
+                // Add visual feedback
+                mealCard.classList.add('moving');
+                
+                // Swap in DOM
+                mealsContainer.insertBefore(nextCard, mealCard);
+                
+                // Sync activeMealsPerDay with DOM order
+                activeMealsPerDay[dayIndex] = getMealsInOrder(dayIndex);
+                
+                // Remove visual feedback and update buttons
+                setTimeout(() => {
+                    mealCard.classList.remove('moving');
+                    updateMoveButtonStates(dayIndex);
+                }, 300);
+            }
+        }
+
+        // Update move button states (disable if at top/bottom)
+        function updateMoveButtonStates(dayIndex) {
+            const mealsContainer = document.getElementById(`day-${dayIndex}-meals`);
+            if (!mealsContainer) return;
+            
+            const mealCards = Array.from(mealsContainer.children);
+            
+            mealCards.forEach((card, index) => {
+                const buttons = card.querySelectorAll('.move-btn');
+                const upButton = buttons[0]; // First move button is up
+                const downButton = buttons[1]; // Second move button is down
+                
+                if (upButton) {
+                    upButton.disabled = (index === 0);
+                }
+                if (downButton) {
+                    downButton.disabled = (index === mealCards.length - 1);
+                }
+            });
+        }
+
+        // Show dialog to add a meal type
+        function showAddMealDialog(dayIndex) {
+            const availableMeals = mealTypes.filter(meal => 
+                !activeMealsPerDay[dayIndex].includes(meal.id)
+            );
+
+            let options = availableMeals.map((meal, idx) => 
+                `${idx + 1}. ${meal.icon} ${meal.name}`
+            ).join('\n');
+            
+            // Add option for custom meal
+            const customOptionNumber = availableMeals.length + 1;
+            options += `\n${customOptionNumber}. ➕ Add Custom Meal Type`;
+
+            const input = prompt(`Select a meal type to add:\n\n${options}\n\nEnter the number (1-${customOptionNumber}):`);
+            
+            if (input) {
+                const selectedIndex = parseInt(input) - 1;
+                if (selectedIndex >= 0 && selectedIndex < availableMeals.length) {
+                    addMealType(dayIndex, availableMeals[selectedIndex]);
+                } else if (parseInt(input) === customOptionNumber) {
+                    // Add custom meal type
+                    addCustomMealType(dayIndex);
+                } else {
+                    alert('Invalid selection. Please try again.');
+                }
+            }
+        }
+        
+        // Add a custom meal type
+        function addCustomMealType(dayIndex) {
+            const mealName = prompt('Enter the name of the custom meal type:\n(e.g., "Before Dinner", "After Dinner", "Late Morning Snack")');
+            
+            if (!mealName || mealName.trim() === '') {
+                return;
+            }
+            
+            const mealIcon = prompt('Enter an emoji icon for this meal (optional):\n(e.g., 🍽️, 🥗, 🍲)', '🍴');
+            
+            // Generate a unique ID for the custom meal
+            const customId = 'custom_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
+            
+            const customMeal = {
+                id: customId,
+                name: mealName.trim(),
+                icon: mealIcon || '🍴',
+                isCustom: true
+            };
+            
+            addMealType(dayIndex, customMeal);
+        }
+
+        // Add a meal type to a specific day
+        function addMealType(dayIndex, meal) {
+            const mealsContainer = document.getElementById(`day-${dayIndex}-meals`);
+            if (!mealsContainer) return;
+
+            // Create and add the meal card
+            const day = daysOfWeek[dayIndex];
+            const mealCard = createMealCard(day, dayIndex, meal);
+            mealsContainer.appendChild(mealCard);
+
+            // Update active meals list
+            activeMealsPerDay[dayIndex].push(meal.id);
+            
+            // Update button states
+            requestAnimationFrame(() => updateMoveButtonStates(dayIndex));
+        }
+
+        // Get meals in the current display order from DOM
+        function getMealsInOrder(dayIndex) {
+            const mealsContainer = document.getElementById(`day-${dayIndex}-meals`);
+            if (!mealsContainer) return [];
+            
+            const mealCards = Array.from(mealsContainer.children);
+            return mealCards.map(card => card.getAttribute('data-meal-id')).filter(id => id);
+        }
+
+        // Handle form submission
+        document.getElementById('menu-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const menuData = {
+                clientName: formData.get('clientName'),
+                startDate: formData.get('startDate'),
+                specialNotes: formData.get('specialNotes'),
+                reminderMinutes: String(formData.get('reminderMinutes') || DEFAULT_REMINDER_MINUTES),
+                mealTimes: getMealTimes(),
+                days: {}
+            };
+
+            // Organize data by day and meal
+            daysOfWeek.forEach((day, dayIndex) => {
+                menuData.days[day] = {};
+                
+                // Get meals in the current display order from DOM
+                const orderedMealIds = getMealsInOrder(dayIndex);
+                
+                // Process all meals in display order (including custom ones)
+                orderedMealIds.forEach(mealId => {
+                    // Find meal info (could be from predefined list or custom)
+                    let meal = mealTypes.find(m => m.id === mealId);
+                    
+                    // If not found in predefined list, get it from the DOM
+                    if (!meal) {
+                        const mealCard = document.getElementById(`day-${dayIndex}-meal-${mealId}`);
+                        if (mealCard) {
+                            const mealNameElement = mealCard.querySelector('h4');
+                            const mealText = mealNameElement.textContent.trim();
+                            // Extract emoji icon using regex and name
+                            const emojiRegex = /^([\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])\s+(.+)$/u;
+                            const match = mealText.match(emojiRegex);
+                            if (match) {
+                                meal = { id: mealId, name: match[2], icon: match[1] };
+                            } else {
+                                // Fallback if no emoji detected
+                                meal = { id: mealId, name: mealText, icon: '🍴' };
+                            }
+                        }
+                    }
+                    
+                    if (!meal) return; // Skip if meal info not found
+                    
+                    const options = [];
+                    let optionIndex = 0;
+                    
+                    while (formData.has(`day${dayIndex}_${mealId}_option${optionIndex}`)) {
+                        const value = formData.get(`day${dayIndex}_${mealId}_option${optionIndex}`);
+                        if (value.trim()) {
+                            options.push(value.trim());
+                        }
+                        optionIndex++;
+                    }
+                    
+                    if (options.length > 0) {
+                        menuData.days[day][meal.name] = options;
+                    }
+                });
+            });
+
+            // Format email content
+            let emailContent = `7 Day Diet Menu Plan\n\n`;
+            emailContent += `Client Name: ${menuData.clientName}\n`;
+            emailContent += `Start Date: ${menuData.startDate || 'Not specified'}\n`;
+            emailContent += `Special Notes: ${menuData.specialNotes || 'None'}\n\n`;
+            emailContent += `${'='.repeat(60)}\n\n`;
+
+            daysOfWeek.forEach(day => {
+                emailContent += `${day.toUpperCase()}\n`;
+                emailContent += `${'-'.repeat(60)}\n`;
+                
+                // Get all meals for this day (both predefined and custom)
+                const dayMeals = menuData.days[day];
+                if (dayMeals) {
+                    Object.keys(dayMeals).forEach(mealName => {
+                        const mealOptions = dayMeals[mealName];
+                        if (mealOptions && mealOptions.length > 0) {
+                            // Find the meal icon - check predefined types first
+                            const meal = mealTypes.find(m => m.name === mealName);
+                            let icon = meal ? meal.icon : null;
+                            
+                            // If not in predefined types, try to find it from the active meal cards
+                            if (!icon) {
+                                const dayIndex = daysOfWeek.indexOf(day);
+                                if (dayIndex !== -1) {
+                                    activeMealsPerDay[dayIndex].forEach(mealId => {
+                                        const mealCard = document.getElementById(`day-${dayIndex}-meal-${mealId}`);
+                                        if (mealCard) {
+                                            const h4 = mealCard.querySelector('h4');
+                                            const text = h4.textContent.trim();
+                                            const emojiRegex = /^([\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])\s+(.+)$/u;
+                                            const match = text.match(emojiRegex);
+                                            if (match && match[2] === mealName) {
+                                                icon = match[1];
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                            
+                            // Use fallback icon if still not found
+                            if (!icon) icon = '🍴';
+                            
+                            emailContent += `\n${icon} ${mealName}:\n`;
+                            mealOptions.forEach((option, idx) => {
+                                emailContent += `  ${idx + 1}. ${option}\n`;
+                            });
+                        }
+                    });
+                }
+                
+                emailContent += `\n${'='.repeat(60)}\n\n`;
+            });
+
+            // Prepare email template parameters
+            const templateParams = {
+                client_name: menuData.clientName,
+                start_date: menuData.startDate || 'Not specified',
+                special_notes: menuData.specialNotes || 'None',
+                menu_content: emailContent
+            };
+
+            // Send email using EmailJS
+            if (typeof emailjs !== 'undefined') {
+                emailjs.send('service_y52gqbi', 'template_xt8aode', templateParams)
+                    .then(function(response) {
+                        console.log('SUCCESS!', response.status, response.text);
+                        // Store menu data globally for ICS generation
+                        currentMenuData = menuData;
+                        document.getElementById('menu-form').classList.add('hidden');
+                        document.getElementById('success-message').classList.remove('hidden');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, function(error) {
+                        console.log('FAILED...', error);
+                        alert('Failed to submit menu plan. Please try again or contact support.');
+                    });
+            } else {
+                // For demo purposes when EmailJS is not available
+                console.log('EmailJS not available. Form data:', menuData);
+                // Store menu data globally for ICS generation
+                currentMenuData = menuData;
+                document.getElementById('menu-form').classList.add('hidden');
+                document.getElementById('success-message').classList.remove('hidden');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+
+        // Reset form
+        function resetForm() {
+            document.getElementById('menu-form').reset();
+            document.getElementById('menu-form').classList.remove('hidden');
+            document.getElementById('success-message').classList.add('hidden');
+            
+            // Reset reminder and meal time inputs to defaults
+            document.getElementById('reminderMinutes').value = DEFAULT_REMINDER_MINUTES;
+            mealTypes.forEach(meal => {
+                const timeInput = document.getElementById(meal.timeInputId);
+                if (timeInput) {
+                    timeInput.value = DEFAULT_MEAL_TIMES[meal.name];
+                }
+            });
+            
+            // Clear all dynamic options and reinitialize
+            document.getElementById('menu-days-container').innerHTML = '';
+            initializeForm();
+            
+            // Clear stored menu data
+            currentMenuData = null;
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Format date and time for ICS
+        function formatICSDateTime(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            return `${year}${month}${day}T${hours}${minutes}${seconds}`;
+        }
+
+        // Generate unique ID for calendar event
+        function generateUID() {
+            return 'diet-plan-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9) + '@gtnutrilife.com';
+        }
+
+        // Function to get meal times from form or use defaults
+        function getMealTimes() {
+            // If we have stored menu data with meal times, use those
+            if (currentMenuData && currentMenuData.mealTimes) {
+                return currentMenuData.mealTimes;
+            }
+            // Otherwise get from form or use defaults
+            const times = {};
+            mealTypes.forEach(meal => {
+                const inputElement = document.getElementById(meal.timeInputId);
+                times[meal.name] = inputElement?.value || DEFAULT_MEAL_TIMES[meal.name];
+            });
+            return times;
+        }
+
+        // Function to get reminder time in minutes
+        function getReminderMinutes() {
+            // If we have stored menu data with reminder minutes, use those
+            if (currentMenuData && currentMenuData.reminderMinutes !== undefined && currentMenuData.reminderMinutes !== null) {
+                const value = parseInt(currentMenuData.reminderMinutes);
+                return isNaN(value) ? DEFAULT_REMINDER_MINUTES : value;
+            }
+            // Otherwise get from form or use default
+            const reminderInput = document.getElementById('reminderMinutes');
+            if (reminderInput && reminderInput.value !== '') {
+                const value = parseInt(reminderInput.value);
+                return isNaN(value) ? DEFAULT_REMINDER_MINUTES : value;
+            }
+            return DEFAULT_REMINDER_MINUTES;
+        }
+
+        // Generate ICS calendar file
+        function generateICS() {
+            if (!currentMenuData) {
+                alert('No menu data available. Please submit the form first.');
+                return null;
+            }
+
+            // Get start date or use today
+            let startDate;
+            if (currentMenuData.startDate) {
+                startDate = new Date(currentMenuData.startDate + 'T00:00:00');
+            } else {
+                startDate = new Date();
+                startDate.setHours(0, 0, 0, 0);
+            }
+
+            // ICS file header
+            let icsContent = 'BEGIN:VCALENDAR\r\n';
+            icsContent += 'VERSION:2.0\r\n';
+            icsContent += 'PRODID:-//GT Nutri Life//7 Day Diet Plan//EN\r\n';
+            icsContent += 'CALSCALE:GREGORIAN\r\n';
+            icsContent += 'METHOD:PUBLISH\r\n';
+            icsContent += 'X-WR-CALNAME:7 Day Diet Plan - ' + currentMenuData.clientName + '\r\n';
+            icsContent += 'X-WR-CALDESC:Personalized 7-day diet plan for ' + currentMenuData.clientName + '\r\n';
+
+            // Get custom meal times and reminder settings
+            const mealTimes = getMealTimes();
+            const reminderMinutes = getReminderMinutes();
+
+            // Generate events for each day and meal
+            daysOfWeek.forEach((day, dayIndex) => {
+                const eventDate = new Date(startDate);
+                eventDate.setDate(startDate.getDate() + dayIndex);
+
+                const dayMeals = currentMenuData.days[day];
+                if (!dayMeals) return;
+
+                // Create events for each meal type
+                Object.keys(dayMeals).forEach(mealName => {
+                    const mealOptions = dayMeals[mealName];
+                    if (!mealOptions || mealOptions.length === 0) return;
+
+                    // Get meal time (use default time for custom meals)
+                    let mealTime = mealTimes[mealName];
+                    if (!mealTime) {
+                        // For custom meals, use a default time or try to infer from name
+                        if (mealName.toLowerCase().includes('morning')) {
+                            mealTime = '09:00';
+                        } else if (mealName.toLowerCase().includes('lunch') || mealName.toLowerCase().includes('noon')) {
+                            mealTime = '12:00';
+                        } else if (mealName.toLowerCase().includes('afternoon') || mealName.toLowerCase().includes('evening')) {
+                            mealTime = '15:00';
+                        } else if (mealName.toLowerCase().includes('dinner')) {
+                            mealTime = '18:00';
+                        } else if (mealName.toLowerCase().includes('night')) {
+                            mealTime = '21:00';
+                        } else {
+                            mealTime = '12:00'; // Default fallback
+                        }
+                    }
+                    const [hours, minutes] = mealTime.split(':');
+
+                    // Set event start time
+                    const eventStart = new Date(eventDate);
+                    eventStart.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+                    // Set event end time (30 minutes after start)
+                    const eventEnd = new Date(eventStart);
+                    eventEnd.setMinutes(eventEnd.getMinutes() + 30);
+
+                    // Format meal options
+                    let mealDescription = `${mealName} options:\\n\\n`;
+                    mealOptions.forEach((option, idx) => {
+                        mealDescription += `${idx + 1}. ${option}\\n`;
+                    });
+                    
+                    if (currentMenuData.specialNotes) {
+                        mealDescription += `\\nSpecial Notes: ${currentMenuData.specialNotes}`;
+                    }
+
+                    // Create event
+                    icsContent += 'BEGIN:VEVENT\r\n';
+                    icsContent += 'UID:' + generateUID() + '\r\n';
+                    icsContent += 'DTSTAMP:' + formatICSDateTime(new Date()) + '\r\n';
+                    icsContent += 'DTSTART:' + formatICSDateTime(eventStart) + '\r\n';
+                    icsContent += 'DTEND:' + formatICSDateTime(eventEnd) + '\r\n';
+                    icsContent += 'SUMMARY:' + day + ' - ' + mealName + '\r\n';
+                    icsContent += 'DESCRIPTION:' + mealDescription + '\r\n';
+                    icsContent += 'LOCATION:GT Nutri Life Diet Plan\r\n';
+                    icsContent += 'STATUS:CONFIRMED\r\n';
+                    icsContent += 'SEQUENCE:0\r\n';
+                    
+                    // Add reminder with custom minutes before
+                    icsContent += 'BEGIN:VALARM\r\n';
+                    icsContent += 'TRIGGER:-PT' + reminderMinutes + 'M\r\n';
+                    icsContent += 'ACTION:DISPLAY\r\n';
+                    icsContent += 'DESCRIPTION:Reminder: ' + mealName + '\r\n';
+                    icsContent += 'END:VALARM\r\n';
+                    
+                    icsContent += 'END:VEVENT\r\n';
+                });
+            });
+
+            // ICS file footer
+            icsContent += 'END:VCALENDAR\r\n';
+
+            return icsContent;
+        }
+
+        // Generate and download calendar without form submission
+        function generateAndDownloadCalendar() {
+            const form = document.getElementById('menu-form');
+            
+            // Validate required fields
+            const clientNameInput = form.querySelector('[name="clientName"]');
+            if (!clientNameInput || !clientNameInput.value.trim()) {
+                alert('Please enter the client name before generating the calendar.');
+                clientNameInput?.focus();
+                return;
+            }
+
+            // Collect form data without submitting
+            const formData = new FormData(form);
+            const menuData = {
+                clientName: formData.get('clientName'),
+                startDate: formData.get('startDate'),
+                specialNotes: formData.get('specialNotes'),
+                reminderMinutes: String(formData.get('reminderMinutes') || DEFAULT_REMINDER_MINUTES),
+                mealTimes: getMealTimes(),
+                days: {}
+            };
+
+            // Organize data by day and meal
+            daysOfWeek.forEach((day, dayIndex) => {
+                menuData.days[day] = {};
+                
+                // Get meals in the current display order from DOM
+                const orderedMealIds = getMealsInOrder(dayIndex);
+                
+                // Process all meals in display order (including custom ones)
+                orderedMealIds.forEach(mealId => {
+                    // Find meal info (could be from predefined list or custom)
+                    let meal = mealTypes.find(m => m.id === mealId);
+                    
+                    // If not found in predefined list, get it from the DOM
+                    if (!meal) {
+                        const mealCard = document.getElementById(`day-${dayIndex}-meal-${mealId}`);
+                        if (mealCard) {
+                            const mealNameElement = mealCard.querySelector('h4');
+                            const mealText = mealNameElement.textContent.trim();
+                            // Extract emoji icon using regex and name
+                            const emojiRegex = /^([\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])\s+(.+)$/u;
+                            const match = mealText.match(emojiRegex);
+                            if (match) {
+                                meal = { id: mealId, name: match[2], icon: match[1] };
+                            } else {
+                                // Fallback if no emoji detected
+                                meal = { id: mealId, name: mealText, icon: '🍴' };
+                            }
+                        }
+                    }
+                    
+                    if (!meal) return; // Skip if meal info not found
+                    
+                    const options = [];
+                    let optionIndex = 0;
+                    
+                    while (formData.has(`day${dayIndex}_${mealId}_option${optionIndex}`)) {
+                        const value = formData.get(`day${dayIndex}_${mealId}_option${optionIndex}`);
+                        if (value.trim()) {
+                            options.push(value.trim());
+                        }
+                        optionIndex++;
+                    }
+                    
+                    if (options.length > 0) {
+                        menuData.days[day][meal.name] = options;
+                    }
+                });
+            });
+
+            // Check if there's any meal data
+            let hasMealData = false;
+            for (const day in menuData.days) {
+                if (Object.keys(menuData.days[day]).length > 0) {
+                    hasMealData = true;
+                    break;
+                }
+            }
+
+            if (!hasMealData) {
+                alert('Please add at least one meal option before generating the calendar.');
+                return;
+            }
+
+            // Store menu data temporarily for ICS generation
+            currentMenuData = menuData;
+
+            // Generate and download ICS
+            const icsContent = generateICS();
+            
+            if (!icsContent) {
+                return;
+            }
+
+            // Create blob and download
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            
+            // Generate filename
+            const clientName = menuData.clientName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const dateStr = new Date().toISOString().split('T')[0];
+            link.download = `diet_plan_${clientName}_${dateStr}.ics`;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Show success message
+            alert('Calendar file downloaded successfully! You can now import it into your calendar app (Google Calendar, Apple Calendar, Outlook, etc.).');
+        }
+
+        // Download ICS file (used after form submission)
+        function downloadICS() {
+            const icsContent = generateICS();
+            
+            if (!icsContent) {
+                return;
+            }
+
+            // Create blob and download
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            
+            // Generate filename
+            const clientName = currentMenuData.clientName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const dateStr = new Date().toISOString().split('T')[0];
+            link.download = `diet_plan_${clientName}_${dateStr}.ics`;
+            
+            // Trigger download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Show success message
+            alert('Calendar file downloaded successfully! You can now import it into your calendar app (Google Calendar, Apple Calendar, Outlook, etc.).');
+        }
+
+        // Initialize the form on page load
+        document.addEventListener('DOMContentLoaded', initializeForm);
+    </script>
+<script src="../../assets/gt-switcher.js" defer></script>
+</body>
+</html>

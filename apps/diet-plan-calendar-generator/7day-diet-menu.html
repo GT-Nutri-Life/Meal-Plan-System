@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    
+    <!-- Primary Meta Tags -->
+    <title>7-Day Diet Menu Planner - Diet Plan Calendar Generator Pro</title>
+    <meta name="title" content="7-Day Diet Menu Planner - Diet Plan Calendar Generator Pro">
+    <meta name="description" content="Create detailed 7-day diet plans with multiple menu options for each meal. Perfect for nutritionists and dietitians offering clients choice and variety.">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/ics@2.40.0/dist/bundle.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-W7P4Eew7aJYJzjMpQ3kF40BXYz7yeUMDY1zLpGMjqP3SEsqCKu/TcuP2zYNnQnE+qXtBDvqJNqqj5A1Mf0FiQ==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .animate-slideIn {
+            animation: slideIn 0.5s ease-out forwards;
+        }
+
+        .step {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        input[type="text"], input[type="date"], input[type="time"], input[type="number"], textarea, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 2px solid #667eea;
+            cursor: pointer;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 4rem 2rem;
+            text-align: center;
+            border-radius: 20px;
+            margin-bottom: 3rem;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        .remove-btn {
+            background: #ef4444;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+
+        .remove-btn:hover {
+            background: #dc2626;
+            transform: rotate(90deg);
+        }
+
+        .day-card {
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .meal-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .menu-option {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .menu-option:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .badge-purple {
+            background: #ede9fe;
+            color: #7c3aed;
+        }
+
+        .badge-green {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .badge-blue {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            animation: slideIn 0.3s ease-out;
+            z-index: 2000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .dark-mode-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .dark-mode-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        body.dark-mode .step {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        }
+
+        body.dark-mode .card {
+            background: #2d3748;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .meal-section {
+            background: #1a202c;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .menu-option {
+            background: #2d3748;
+            border-color: #4a5568;
+            color: #e2e8f0;
+        }
+
+        body.dark-mode .day-card {
+            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+            color: #e2e8f0;
+        }
+
+        body.dark-mode input[type="text"],
+        body.dark-mode input[type="date"],
+        body.dark-mode input[type="time"],
+        body.dark-mode input[type="number"],
+        body.dark-mode textarea,
+        body.dark-mode select {
+            background: #1a202c;
+            color: #e2e8f0;
+            border-color: #4a5568;
+        }
+
+        body.dark-mode .text-gray-800 {
+            color: #e2e8f0 !important;
+        }
+
+        body.dark-mode .text-gray-700 {
+            color: #cbd5e0 !important;
+        }
+
+        body.dark-mode .text-gray-600 {
+            color: #a0aec0 !important;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        body.dark-mode .loading-content {
+            background: #2d3748;
+            color: #e2e8f0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 2rem 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.75rem !important;
+            }
+
+            .step {
+                padding: 1.5rem;
+            }
+
+            .card {
+                padding: 1rem;
+            }
+
+            .btn-primary, .btn-secondary, .btn-success, .btn-danger {
+                padding: 0.875rem 1.5rem;
+                font-size: 0.95rem;
+                min-height: 44px;
+                touch-action: manipulation;
+            }
+
+            .dark-mode-toggle {
+                width: 56px;
+                height: 56px;
+                font-size: 24px;
+                top: 0.5rem;
+                right: 0.5rem;
+            }
+
+            input[type="text"],
+            input[type="date"],
+            input[type="time"],
+            input[type="number"],
+            textarea,
+            select {
+                font-size: 16px;
+                min-height: 44px;
+                padding: 0.875rem 1rem;
+            }
+
+            .remove-btn {
+                width: 44px;
+                height: 44px;
+                font-size: 24px;
+            }
+
+            .toast {
+                right: 1rem;
+                bottom: 1rem;
+                left: 1rem;
+                width: auto;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen py-8 px-4">
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode">
+        <span id="dark-mode-icon">🌙</span>
+    </button>
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Hero Section -->
+        <div class="hero animate-fadeInUp">
+            <div style="position: relative; z-index: 1;">
+                <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">🍽️ 7-Day Diet Menu Planner</h1>
+                <p class="text-purple-100 text-lg mb-6">Create detailed weekly meal plans with multiple menu options for client flexibility</p>
+                <div class="flex justify-center gap-4 flex-wrap">
+                    <span class="badge badge-purple">📅 7 Days</span>
+                    <span class="badge badge-green">🍴 Multiple Options</span>
+                    <span class="badge badge-blue">💾 Save & Export</span>
+                </div>
+                <div class="mt-4">
+                    <a href="index.html" class="btn-secondary inline-block">← Back to Main Generator</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form id="sevenDayForm" class="animate-fadeInUp">
+            <!-- Basic Information -->
+            <div class="step">
+                <h2 class="text-2xl font-bold text-white mb-6">📋 Plan Information</h2>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="card">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="clientName">
+                            Client Name *
+                        </label>
+                        <input type="text" id="clientName" placeholder="Enter client name" required class="text-gray-800">
+                    </div>
+                    <div class="card">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="startDate">Start Date *</label>
+                        <input type="date" id="startDate" required class="text-gray-800">
+                    </div>
+                    <div class="card">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2" for="planGoal">Goal</label>
+                        <select id="planGoal" class="text-gray-800">
+                            <option value="weight-loss">Weight Loss</option>
+                            <option value="muscle-gain">Muscle Gain</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="health">Health & Wellness</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7-Day Menu Planning -->
+            <div id="days-container"></div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-4 justify-center mt-6">
+                <button type="button" id="generateCalendar" class="btn-primary text-lg">📅 Generate Calendar (.ics)</button>
+                <button type="button" id="exportPDF" class="btn-success text-lg">📄 Export PDF</button>
+                <button type="button" id="savePlan" class="btn-secondary text-lg">💾 Save Plan</button>
+                <button type="button" id="loadPlan" class="btn-secondary text-lg">📥 Load Plan</button>
+                <button type="button" id="resetForm" class="btn-danger text-lg">🔄 Reset</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p class="mt-4 text-gray-800" id="loadingMessage">Processing...</p>
+        </div>
+    </div>
+
+    <script>
+        const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+        const mealTypes = [
+            { name: 'Breakfast', time: '07:30', icon: '🍳' },
+            { name: 'Morning Snack', time: '10:30', icon: '🍎' },
+            { name: 'Lunch', time: '13:00', icon: '🥗' },
+            { name: 'Afternoon Snack', time: '16:00', icon: '🥤' },
+            { name: 'Dinner', time: '19:30', icon: '🍽️' }
+        ];
+
+        // Initialize the form
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('startDate').valueAsDate = new Date();
+            createDayCards();
+            loadDarkMode();
+        });
+
+        // Create day cards for all 7 days
+        function createDayCards() {
+            const container = document.getElementById('days-container');
+            
+            daysOfWeek.forEach((day, dayIndex) => {
+                const dayCard = document.createElement('div');
+                dayCard.className = 'step';
+                dayCard.innerHTML = `
+                    <h2 class="text-2xl font-bold text-white mb-6">📅 ${day} - Day ${dayIndex + 1}</h2>
+                    <div id="day-${dayIndex}-meals" class="space-y-4"></div>
+                `;
+                container.appendChild(dayCard);
+
+                // Create meal sections for this day
+                const mealsContainer = document.getElementById(`day-${dayIndex}-meals`);
+                mealTypes.forEach((meal, mealIndex) => {
+                    const mealSection = createMealSection(dayIndex, mealIndex, meal);
+                    mealsContainer.appendChild(mealSection);
+                });
+            });
+        }
+
+        // Create a meal section with multiple menu options
+        function createMealSection(dayIndex, mealIndex, meal) {
+            const section = document.createElement('div');
+            section.className = 'meal-section';
+            section.id = `day-${dayIndex}-meal-${mealIndex}`;
+            
+            section.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">
+                        ${meal.icon} ${meal.name} <span class="text-sm text-gray-600">(${meal.time})</span>
+                    </h3>
+                    <button type="button" onclick="addMenuOption(${dayIndex}, ${mealIndex})" class="btn-secondary text-sm">
+                        + Add Menu Option
+                    </button>
+                </div>
+                <div id="day-${dayIndex}-meal-${mealIndex}-options" class="space-y-2">
+                    <!-- Menu options will be added here -->
+                </div>
+            `;
+
+            // Add initial menu option
+            setTimeout(() => addMenuOption(dayIndex, mealIndex), 0);
+            
+            return section;
+        }
+
+        // Add a menu option to a meal
+        function addMenuOption(dayIndex, mealIndex) {
+            const optionsContainer = document.getElementById(`day-${dayIndex}-meal-${mealIndex}-options`);
+            const optionIndex = optionsContainer.children.length;
+            
+            const option = document.createElement('div');
+            option.className = 'menu-option';
+            option.innerHTML = `
+                <div class="grid md:grid-cols-12 gap-3 items-center">
+                    <div class="md:col-span-1 flex items-center justify-center">
+                        <span class="text-2xl">${optionIndex + 1}</span>
+                    </div>
+                    <div class="md:col-span-5">
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Menu Item</label>
+                        <input type="text" placeholder="e.g., Oatmeal with berries" 
+                               data-day="${dayIndex}" data-meal="${mealIndex}" data-option="${optionIndex}"
+                               class="menu-item text-gray-800">
+                    </div>
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Description</label>
+                        <input type="text" placeholder="e.g., 350 cal, 10g protein" 
+                               data-day="${dayIndex}" data-meal="${mealIndex}" data-option="${optionIndex}"
+                               class="menu-desc text-gray-800">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-semibold text-gray-600 mb-1">Calories</label>
+                        <input type="number" placeholder="Cal" 
+                               data-day="${dayIndex}" data-meal="${mealIndex}" data-option="${optionIndex}"
+                               class="menu-cal text-gray-800">
+                    </div>
+                    <div class="md:col-span-1 flex items-end justify-center">
+                        <button type="button" onclick="removeMenuOption(this)" class="remove-btn">×</button>
+                    </div>
+                </div>
+            `;
+            optionsContainer.appendChild(option);
+            showToast('Menu option added', 'success');
+        }
+
+        // Remove a menu option
+        function removeMenuOption(btn) {
+            const optionsContainer = btn.closest('[id$="-options"]');
+            if (optionsContainer.children.length > 1) {
+                btn.closest('.menu-option').remove();
+                // Re-number remaining options
+                Array.from(optionsContainer.children).forEach((option, index) => {
+                    option.querySelector('span').textContent = index + 1;
+                });
+                showToast('Menu option removed', 'success');
+            } else {
+                showToast('At least one menu option is required', 'error');
+            }
+        }
+
+        // Collect all form data
+        function collectFormData() {
+            const data = {
+                clientName: document.getElementById('clientName').value,
+                startDate: document.getElementById('startDate').value,
+                planGoal: document.getElementById('planGoal').value,
+                days: []
+            };
+
+            daysOfWeek.forEach((dayName, dayIndex) => {
+                const dayData = {
+                    name: dayName,
+                    meals: []
+                };
+
+                mealTypes.forEach((meal, mealIndex) => {
+                    const mealData = {
+                        name: meal.name,
+                        time: meal.time,
+                        icon: meal.icon,
+                        options: []
+                    };
+
+                    const optionsContainer = document.getElementById(`day-${dayIndex}-meal-${mealIndex}-options`);
+                    const menuItems = optionsContainer.querySelectorAll('.menu-item');
+                    const menuDescs = optionsContainer.querySelectorAll('.menu-desc');
+                    const menuCals = optionsContainer.querySelectorAll('.menu-cal');
+
+                    menuItems.forEach((item, optionIndex) => {
+                        const menuItem = item.value.trim();
+                        if (menuItem) {
+                            mealData.options.push({
+                                item: menuItem,
+                                description: menuDescs[optionIndex].value.trim(),
+                                calories: menuCals[optionIndex].value
+                            });
+                        }
+                    });
+
+                    if (mealData.options.length > 0) {
+                        dayData.meals.push(mealData);
+                    }
+                });
+
+                data.days.push(dayData);
+            });
+
+            return data;
+        }
+
+        // Populate form with data
+        function populateFormData(data) {
+            document.getElementById('clientName').value = data.clientName || '';
+            document.getElementById('startDate').value = data.startDate || '';
+            document.getElementById('planGoal').value = data.planGoal || 'weight-loss';
+
+            // Clear existing options
+            document.querySelectorAll('[id$="-options"]').forEach(container => {
+                container.innerHTML = '';
+            });
+
+            // Populate days
+            data.days.forEach((dayData, dayIndex) => {
+                dayData.meals.forEach((mealData, mealIndex) => {
+                    const optionsContainer = document.getElementById(`day-${dayIndex}-meal-${mealIndex}-options`);
+                    optionsContainer.innerHTML = '';
+
+                    mealData.options.forEach((option, optionIndex) => {
+                        // Add option first
+                        addMenuOption(dayIndex, mealIndex);
+                        
+                        // Then populate it
+                        setTimeout(() => {
+                            const menuItems = optionsContainer.querySelectorAll('.menu-item');
+                            const menuDescs = optionsContainer.querySelectorAll('.menu-desc');
+                            const menuCals = optionsContainer.querySelectorAll('.menu-cal');
+                            
+                            if (menuItems[optionIndex]) {
+                                menuItems[optionIndex].value = option.item || '';
+                                menuDescs[optionIndex].value = option.description || '';
+                                menuCals[optionIndex].value = option.calories || '';
+                            }
+                        }, 100);
+                    });
+                });
+            });
+        }
+
+        // Generate ICS calendar events
+        function generateICSEvents() {
+            const data = collectFormData();
+            const startDate = new Date(data.startDate);
+            const events = [];
+
+            data.days.forEach((dayData, dayIndex) => {
+                const currentDate = new Date(startDate);
+                currentDate.setDate(startDate.getDate() + dayIndex);
+
+                dayData.meals.forEach(meal => {
+                    const [hours, minutes] = meal.time.split(':').map(Number);
+                    const start = [currentDate.getFullYear(), currentDate.getMonth() + 1, currentDate.getDate(), hours, minutes];
+
+                    // Create event description with all menu options
+                    let description = `${meal.name} options for ${data.clientName}:\\n\\n`;
+                    meal.options.forEach((option, index) => {
+                        description += `Option ${index + 1}: ${option.item}`;
+                        if (option.description) description += ` - ${option.description}`;
+                        if (option.calories) description += ` (${option.calories} cal)`;
+                        description += '\\n';
+                    });
+
+                    events.push({
+                        title: `${meal.icon} ${meal.name} – ${data.clientName}`,
+                        description: description,
+                        start,
+                        duration: { minutes: 30 },
+                        categories: ['Diet', '7-Day-Plan'],
+                        status: 'CONFIRMED',
+                        busyStatus: 'FREE',
+                        alarms: [{ 
+                            action: 'display', 
+                            trigger: { minutes: 15, before: true }, 
+                            description: 'Time to eat!' 
+                        }]
+                    });
+                });
+            });
+
+            return events;
+        }
+
+        // Generate ICS file manually (fallback)
+        function generateICSManually(events) {
+            const formatDate = (dateArray) => {
+                const [year, month, day, hours, minutes] = dateArray;
+                const pad = (n) => String(n).padStart(2, '0');
+                return `${year}${pad(month)}${pad(day)}T${pad(hours)}${pad(minutes)}00`;
+            };
+
+            let icsContent = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//7-Day Diet Menu Planner//EN\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n';
+
+            events.forEach(event => {
+                const startDate = formatDate(event.start);
+                const uid = `${startDate}-${Math.random().toString(36).substr(2, 9)}@7daydietplan.com`;
+                
+                icsContent += 'BEGIN:VEVENT\r\n';
+                icsContent += `UID:${uid}\r\n`;
+                icsContent += `DTSTAMP:${formatDate([...event.start])}\r\n`;
+                icsContent += `DTSTART:${startDate}\r\n`;
+                
+                if (event.duration) {
+                    const endDate = new Date(event.start[0], event.start[1] - 1, event.start[2], event.start[3], event.start[4]);
+                    if (event.duration.minutes) endDate.setMinutes(endDate.getMinutes() + event.duration.minutes);
+                    const endArray = [endDate.getFullYear(), endDate.getMonth() + 1, endDate.getDate(), endDate.getHours(), endDate.getMinutes()];
+                    icsContent += `DTEND:${formatDate(endArray)}\r\n`;
+                }
+                
+                icsContent += `SUMMARY:${event.title || 'Event'}\r\n`;
+                
+                if (event.description) {
+                    icsContent += `DESCRIPTION:${event.description}\r\n`;
+                }
+                
+                if (event.categories) {
+                    icsContent += `CATEGORIES:${event.categories.join(',')}\r\n`;
+                }
+                
+                icsContent += 'STATUS:CONFIRMED\r\n';
+                icsContent += 'TRANSP:TRANSPARENT\r\n';
+                
+                if (event.alarms && event.alarms.length > 0) {
+                    event.alarms.forEach(alarm => {
+                        icsContent += 'BEGIN:VALARM\r\n';
+                        icsContent += 'ACTION:DISPLAY\r\n';
+                        icsContent += `DESCRIPTION:${alarm.description || 'Reminder'}\r\n`;
+                        if (alarm.trigger) {
+                            const sign = alarm.trigger.before ? '-' : '';
+                            const minutes = alarm.trigger.minutes || 0;
+                            icsContent += `TRIGGER:${sign}PT${minutes}M\r\n`;
+                        }
+                        icsContent += 'END:VALARM\r\n';
+                    });
+                }
+                
+                icsContent += 'END:VEVENT\r\n';
+            });
+
+            icsContent += 'END:VCALENDAR\r\n';
+            return icsContent;
+        }
+
+        // Generate Calendar
+        document.getElementById('generateCalendar').addEventListener('click', () => {
+            const clientName = document.getElementById('clientName').value.trim();
+            const startDate = document.getElementById('startDate').value;
+
+            if (!clientName || !startDate) {
+                showToast('Please fill in client name and start date', 'error');
+                return;
+            }
+
+            showLoading('Generating 7-day calendar...');
+
+            try {
+                const events = generateICSEvents();
+                let icsContent;
+
+                if (typeof ics !== 'undefined' && typeof ics.createEvents === 'function') {
+                    const { error, value } = ics.createEvents(events);
+                    if (error) {
+                        console.warn('ICS library error, using fallback:', error);
+                        icsContent = generateICSManually(events);
+                    } else {
+                        icsContent = value;
+                    }
+                } else {
+                    icsContent = generateICSManually(events);
+                }
+
+                const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `7day-diet-plan-${clientName}-${startDate}.ics`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                hideLoading();
+                showToast('7-day calendar generated successfully!', 'success');
+            } catch (error) {
+                hideLoading();
+                showToast('Error generating calendar: ' + error.message, 'error');
+                console.error(error);
+            }
+        });
+
+        // Export PDF
+        document.getElementById('exportPDF').addEventListener('click', async () => {
+            const clientName = document.getElementById('clientName').value.trim();
+            if (!clientName) {
+                showToast('Please fill in client name', 'error');
+                return;
+            }
+
+            showLoading('Generating PDF...');
+            
+            try {
+                const data = collectFormData();
+                const previewHTML = generatePreviewHTML(data);
+                
+                // Create temporary container
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = previewHTML;
+                tempDiv.style.padding = '40px';
+                tempDiv.style.background = 'white';
+                document.body.appendChild(tempDiv);
+
+                const canvas = await html2canvas(tempDiv, {
+                    scale: 2,
+                    backgroundColor: '#ffffff'
+                });
+                
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                pdf.save(`7day-diet-plan-${clientName}.pdf`);
+                
+                document.body.removeChild(tempDiv);
+                hideLoading();
+                showToast('PDF exported successfully!', 'success');
+            } catch (error) {
+                hideLoading();
+                showToast('Error generating PDF', 'error');
+                console.error(error);
+            }
+        });
+
+        // Generate preview HTML for PDF
+        function generatePreviewHTML(data) {
+            let html = `
+                <div style="font-family: 'Inter', sans-serif;">
+                    <h1 style="color: #667eea; font-size: 32px; margin-bottom: 20px;">7-Day Diet Menu Plan</h1>
+                    <p style="font-size: 18px; margin-bottom: 10px;"><strong>Client:</strong> ${data.clientName}</p>
+                    <p style="font-size: 18px; margin-bottom: 10px;"><strong>Start Date:</strong> ${data.startDate}</p>
+                    <p style="font-size: 18px; margin-bottom: 30px;"><strong>Goal:</strong> ${data.planGoal}</p>
+            `;
+
+            data.days.forEach((day, index) => {
+                html += `
+                    <div style="margin-bottom: 30px; page-break-inside: avoid;">
+                        <h2 style="color: #764ba2; font-size: 24px; margin-bottom: 15px;">${day.name} - Day ${index + 1}</h2>
+                `;
+
+                day.meals.forEach(meal => {
+                    html += `
+                        <div style="margin-bottom: 20px; border-left: 4px solid #667eea; padding-left: 15px;">
+                            <h3 style="font-size: 18px; margin-bottom: 10px;">${meal.icon} ${meal.name} (${meal.time})</h3>
+                    `;
+
+                    meal.options.forEach((option, optIndex) => {
+                        html += `
+                            <div style="margin-bottom: 8px; padding-left: 10px;">
+                                <p style="margin: 0;"><strong>Option ${optIndex + 1}:</strong> ${option.item}</p>
+                                ${option.description ? `<p style="margin: 0; color: #666; font-size: 14px;">${option.description}</p>` : ''}
+                                ${option.calories ? `<p style="margin: 0; color: #059669; font-size: 14px;">${option.calories} calories</p>` : ''}
+                            </div>
+                        `;
+                    });
+
+                    html += `</div>`;
+                });
+
+                html += `</div>`;
+            });
+
+            html += `</div>`;
+            return html;
+        }
+
+        // Save Plan
+        document.getElementById('savePlan').addEventListener('click', () => {
+            const clientName = document.getElementById('clientName').value.trim();
+            if (!clientName) {
+                showToast('Please fill in client name', 'error');
+                return;
+            }
+
+            const data = collectFormData();
+            const planName = prompt('Enter a name for this plan:', `${clientName} - 7 Day Plan`);
+            if (!planName) return;
+
+            const plan = {
+                name: planName,
+                date: new Date().toISOString(),
+                data: data
+            };
+
+            const savedPlans = JSON.parse(localStorage.getItem('sevenDayPlans') || '[]');
+            savedPlans.push(plan);
+            localStorage.setItem('sevenDayPlans', JSON.stringify(savedPlans));
+            
+            showToast('Plan saved successfully!', 'success');
+        });
+
+        // Load Plan
+        document.getElementById('loadPlan').addEventListener('click', () => {
+            const savedPlans = JSON.parse(localStorage.getItem('sevenDayPlans') || '[]');
+            
+            if (savedPlans.length === 0) {
+                showToast('No saved plans found', 'error');
+                return;
+            }
+
+            let planList = 'Select a plan to load:\n\n';
+            savedPlans.forEach((plan, index) => {
+                planList += `${index + 1}. ${plan.name} (${new Date(plan.date).toLocaleDateString()})\n`;
+            });
+
+            const selection = prompt(planList + '\nEnter plan number:');
+            if (!selection) return;
+
+            const planIndex = parseInt(selection) - 1;
+            if (planIndex >= 0 && planIndex < savedPlans.length) {
+                populateFormData(savedPlans[planIndex].data);
+                showToast('Plan loaded successfully!', 'success');
+            } else {
+                showToast('Invalid plan number', 'error');
+            }
+        });
+
+        // Reset Form
+        document.getElementById('resetForm').addEventListener('click', () => {
+            if (confirm('Reset all data? This cannot be undone.')) {
+                document.getElementById('sevenDayForm').reset();
+                document.querySelectorAll('[id$="-options"]').forEach(container => {
+                    container.innerHTML = '';
+                });
+                // Re-initialize with one option per meal
+                daysOfWeek.forEach((day, dayIndex) => {
+                    mealTypes.forEach((meal, mealIndex) => {
+                        addMenuOption(dayIndex, mealIndex);
+                    });
+                });
+                showToast('Form reset', 'success');
+            }
+        });
+
+        // Dark Mode
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('darkMode', isDark);
+            document.getElementById('dark-mode-icon').textContent = isDark ? '☀️' : '🌙';
+        }
+
+        function loadDarkMode() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                document.getElementById('dark-mode-icon').textContent = '☀️';
+            }
+        }
+
+        // Toast Notifications
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Loading States
+        function showLoading(message = 'Processing...') {
+            const overlay = document.getElementById('loadingOverlay');
+            const messageEl = document.getElementById('loadingMessage');
+            messageEl.textContent = message;
+            overlay.style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    </script>
+<script src="../../assets/gt-switcher.js" defer></script>
+</body>
+</html>
