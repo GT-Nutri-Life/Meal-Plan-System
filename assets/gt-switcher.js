@@ -8,10 +8,13 @@
  * Design constraints, because this runs inside eleven unrelated pages
  * that were never written to host it:
  *
- *   - Everything lives in a closed-off shadow root, so the host page's
- *     CSS cannot reach in and this file's CSS cannot leak out. The apps
- *     variously ship Tailwind, hand-rolled CSS and inline styles; none
- *     of it can collide with what is rendered here.
+ *   - Everything lives in a shadow root, so the host page's CSS cannot
+ *     reach in and this file's CSS cannot leak out. The apps variously
+ *     ship Tailwind, hand-rolled CSS and inline styles; none of it can
+ *     collide with what is rendered here. The root is open rather than
+ *     closed: the isolation comes from the shadow boundary either way,
+ *     and an open root stays inspectable in DevTools and reachable from
+ *     the test suite.
  *   - Only one global is claimed (__GT_SWITCHER__) and only as a
  *     double-injection guard.
  *   - The launcher is anchored bottom-right, which no bundled app uses
@@ -59,7 +62,7 @@
     host.id = 'gt-switcher-root';
     // The host element itself is inert; all fixed positioning happens inside.
     host.style.cssText = 'all:initial';
-    var root = host.attachShadow({ mode: 'closed' });
+    var root = host.attachShadow({ mode: 'open' });
 
     /* ---------- which tool are we currently inside? ------------------- */
 
@@ -271,6 +274,9 @@
 
   var CSS = [
     ':host,*{box-sizing:border-box}',
+    /* The author rules below set display on .panel, which would otherwise beat the
+       UA stylesheet's [hidden]{display:none} and leave the panel permanently open. */
+    '[hidden]{display:none!important}',
     ':host{--ac:#2D7A5F;--ac2:#3A9E7A;--bg:#FFFFFF;--bg2:#F4F7F5;--tx:#1B2A22;--tx2:#5F8474;',
     '--bdr:rgba(45,122,95,.14);--sh:0 24px 64px rgba(27,42,34,.20);--z:2147483000;',
     "--f:'Outfit',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}",

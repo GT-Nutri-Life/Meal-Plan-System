@@ -53,7 +53,7 @@ The switcher is added to each bundled page as a single line before `</body>`:
 <script src="../../assets/gt-switcher.js" defer></script>
 ```
 
-It renders into a **closed shadow root**. That matters here because the eleven
+It renders into a **shadow root**. That matters here because the eleven
 bundled pages were written independently and ship a mix of Tailwind, hand-rolled
 CSS and inline styles — the shadow boundary means none of that can reach the
 switcher, and the switcher's own CSS cannot leak into the app it is sitting in.
