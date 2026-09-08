@@ -41,6 +41,12 @@ scripts/
   sync-apps.sh              refresh the bundled copies from upstream
   inject-nav.sh             attach the switcher to bundled pages (idempotent)
   verify-registry.js        catch registry/disk/adapter drift — run by CI
+tests/
+  run.js                    entry point: node tests/run.js [portal|handoff]
+  harness.js                static servers, browser lookup, assertions
+  portal.test.js            catalogue, switcher, and the no-regression contract
+  handoff.test.js           sign-in and the cross-system record
+  stub-supabase.js          offline stand-in for the Supabase client
 ```
 
 ## How navigation works
@@ -204,11 +210,39 @@ a single subsystem: `scripts/sync-apps.sh bmi-assessment`.
 
 The portal and the switcher both pick it up with no further changes.
 
+## Tests
+
+```bash
+npm install                 # playwright
+npx playwright install chromium
+npm test                    # verification + both browser suites
+node tests/run.js portal    # just the catalogue and switcher
+node tests/run.js handoff   # just sign-in and the record
+```
+
+`tests/run.js` starts two throwaway static servers: one serving the portal, and
+a **control** server that serves each bundled page with the injected `<script>`
+line stripped back out — reconstructing the upstream file exactly. Every app is
+then loaded twice, so a JavaScript error only counts against the portal if the
+original page does not already produce it. Several apps load Tailwind, jsPDF and
+similar from CDNs, and those failing offline must not read as a regression.
+
+The suites also assert the contract that makes bundling safe: **layout width
+identical to the original**, on all eleven pages.
+
+Sign-in and the cloud mirror run against `tests/stub-supabase.js` rather than
+the practice's live project, so the suite is offline and CI does not depend on
+a third-party service. That means the checks cover the *logic* — wrong password,
+off-allow-list account, public-page exemption, no double prompt — but not the
+live Supabase endpoint. Verify a real sign-in by hand after deploying.
+
 ## Deployment
 
-Pushing to `main` runs `.github/workflows/static.yml`, which verifies that every
-bundled page carries the switcher and that the registry matches what is on disk,
-then publishes the whole repository to GitHub Pages.
+`.github/workflows/static.yml` runs on every push and pull request. It checks
+that every bundled page carries the switcher, that the registry, adapters and
+data-flow declarations agree with what is on disk, and then runs both browser
+suites in Chromium. Only a push to `main` that passes all of it publishes to
+GitHub Pages.
 
 To serve locally:
 

@@ -301,8 +301,21 @@
         var armed = false;
         var grab = function () { if (armed) CTX.capture(current.id); };
 
-        var arm = function () {
-          if (armed) return;
+        // Input events are composed, so typing in the switcher's own search
+        // box or the sign-in form reaches this document listener too. Those
+        // are not data entry in the host app, and treating them as such would
+        // arm capture and let the app's placeholder values through.
+        var ours = function (e) {
+          var path = e.composedPath ? e.composedPath() : [];
+          for (var i = 0; i < path.length; i++) {
+            var id = path[i] && path[i].id;
+            if (id === 'gt-switcher-root' || id === 'gt-auth-root') return true;
+          }
+          return !!(e.target && (e.target.id === 'gt-switcher-root' || e.target.id === 'gt-auth-root'));
+        };
+
+        var arm = function (e) {
+          if (armed || ours(e)) return;
           armed = true;
           grab();
         };

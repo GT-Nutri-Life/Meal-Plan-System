@@ -3,3 +3,9 @@ Thumbs.db
 node_modules/
 *.log
 .sync-tmp/
+
+# Test dependencies are installed fresh in CI.
+package-lock.json
+
+# Release archives built outside the repo.
+*.tar.gz

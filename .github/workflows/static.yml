@@ -1,9 +1,10 @@
-# Deploy the portal and every bundled subsystem to GitHub Pages.
+# Verify the portal, then deploy it and every bundled subsystem to Pages.
 name: Deploy static content to Pages
 
 on:
   push:
     branches: ["main"]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -20,13 +21,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Every bundled page carries the switcher
         run: scripts/inject-nav.sh --check
-      - name: Registry parses and is internally consistent
+
+      - name: Registry, adapters and data flow agree with what is on disk
         run: scripts/verify-registry.js
+
+      - name: Install test dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Browser suites: portal, switcher, sign-in and cross-system handoff
+        run: node tests/run.js
 
   deploy:
     needs: verify
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
