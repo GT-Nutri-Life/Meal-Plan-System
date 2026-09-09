@@ -12,9 +12,15 @@
  * handful of page backgrounds that are set inline or by utility class, noted
  * at each use.
  *
- * Nothing here changes layout: no display, position, width, margin or padding
- * on page content. Restyling eleven independently written pages is only safe
- * because the sheet touches colour, type, radius and shadow and stops there.
+ * Above the phone breakpoint this sheet changes no layout at all — no display,
+ * position, width, margin or padding on page content. Restyling eleven
+ * independently written pages is only safe because it touches colour, type,
+ * radius and shadow and stops there.
+ *
+ * Below 560px that restraint is dropped deliberately, in the MOBILE section at
+ * the foot of the file. Several pages set a two-column grid as their narrowest
+ * case and simply overflow a phone; leaving their layout alone there would be
+ * preserving something already broken.
  */
 
 :root {
@@ -51,6 +57,54 @@
   --gt-display:'Playfair Display',Georgia,serif;
 
   color-scheme: light;
+}
+
+/* ---------------------------------------------------------------------------
+   DARK
+   Three mechanisms are in play across the bundle and all three must work: the
+   portal and About the Dietitian use html[data-theme], the calendar generators
+   toggle a class on <body>, and a reader may simply have their OS set to dark.
+   Only the token values change — every rule below reads through them, so the
+   page background rule that carries !important paints dark rather than
+   fighting the page's own toggle, which is what it used to do.
+   --------------------------------------------------------------------------- */
+html.gt-themed[data-theme="dark"],
+html.gt-themed body.dark-mode,
+html.gt-themed body.dark {
+  --gt-page:#16211C;
+  --gt-wash:linear-gradient(155deg,#16211C 0%,#1A2420 48%,#151F23 100%);
+  --gt-card:#1E2B25;
+  --gt-soft:#22302A;
+  --gt-sunken:#1A2620;
+  --gt-border:#2E3F37;
+  --gt-border-strong:#3E5348;
+  --gt-ink:#E9F1EC;
+  --gt-ink-2:#C3D8CB;
+  --gt-ink-3:#9BB8A8;
+  --gt-sh-s:0 1px 2px rgba(0,0,0,.30);
+  --gt-sh-m:0 6px 20px rgba(0,0,0,.36);
+  --gt-sh-l:0 14px 40px rgba(0,0,0,.44);
+  color-scheme: dark;
+}
+
+/* The OS preference, unless the page has explicitly said it is light. */
+@media (prefers-color-scheme: dark) {
+  html.gt-themed:not([data-theme="light"]) {
+    --gt-page:#16211C;
+    --gt-wash:linear-gradient(155deg,#16211C 0%,#1A2420 48%,#151F23 100%);
+    --gt-card:#1E2B25;
+    --gt-soft:#22302A;
+    --gt-sunken:#1A2620;
+    --gt-border:#2E3F37;
+    --gt-border-strong:#3E5348;
+    --gt-ink:#E9F1EC;
+    --gt-ink-2:#C3D8CB;
+    --gt-ink-3:#9BB8A8;
+    --gt-sh-s:0 1px 2px rgba(0,0,0,.30);
+    --gt-sh-m:0 6px 20px rgba(0,0,0,.36);
+    --gt-sh-l:0 14px 40px rgba(0,0,0,.44);
+    color-scheme: dark;
+  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -172,6 +226,257 @@ html.gt-themed tbody tr:nth-child(even) { background-color: rgba(241,247,243,.5)
    page and "light text on a dark bar" on another, so a single value broke one
    of them every time. scripts/recolor-apps.js rewrites those declarations at
    their definition instead, where the meaning of each is known. */
+
+/* ---------------------------------------------------------------------------
+   DARK — the Tailwind utilities the pages hardcode.
+
+   gt-tailwind.js gives every colour utility a pastel value, but a *fixed* one:
+   the Play CDN only emits a dark variant for classes written as `dark:`, and
+   these pages have none. So `text-gray-700` stays dark ink, and the moment the
+   card underneath it turns dark it becomes unreadable.
+
+   Only the utilities that actually appear in this bundle are listed — the
+   counts in the comments are their real occurrences, so this stays honest
+   about what it covers rather than pretending to be exhaustive.
+   --------------------------------------------------------------------------- */
+html.gt-themed[data-theme="dark"] .text-gray-900, html.gt-themed[data-theme="dark"] .text-gray-800, html.gt-themed[data-theme="dark"] .text-gray-700,
+html.gt-themed[data-theme="dark"] .text-slate-900, html.gt-themed[data-theme="dark"] .text-slate-800, html.gt-themed[data-theme="dark"] .text-slate-700,
+html.gt-themed[data-theme="dark"] .text-zinc-800, html.gt-themed[data-theme="dark"] .text-neutral-800, html.gt-themed[data-theme="dark"] .text-stone-800 {
+  color: var(--gt-ink);                       /* text-gray-700 alone: 305 uses */
+}
+html.gt-themed[data-theme="dark"] .text-gray-600, html.gt-themed[data-theme="dark"] .text-slate-600, html.gt-themed[data-theme="dark"] .text-zinc-600 {
+  color: var(--gt-ink-2);
+}
+html.gt-themed[data-theme="dark"] .text-gray-500, html.gt-themed[data-theme="dark"] .text-gray-400,
+html.gt-themed[data-theme="dark"] .text-slate-500, html.gt-themed[data-theme="dark"] .text-slate-400 {
+  color: var(--gt-ink-3);
+}
+
+/* Pale tinted panels read as bright holes on a dark page. */
+html.gt-themed[data-theme="dark"] .bg-white { background-color: var(--gt-card); border-color: var(--gt-border); }
+html.gt-themed[data-theme="dark"] .bg-gray-50, html.gt-themed[data-theme="dark"] .bg-gray-100,
+html.gt-themed[data-theme="dark"] .bg-slate-50, html.gt-themed[data-theme="dark"] .bg-slate-100 { background-color: var(--gt-soft); }
+html.gt-themed[data-theme="dark"] .bg-blue-50, html.gt-themed[data-theme="dark"] .bg-teal-50, html.gt-themed[data-theme="dark"] .bg-green-50,
+html.gt-themed[data-theme="dark"] .bg-purple-50, html.gt-themed[data-theme="dark"] .bg-indigo-50, html.gt-themed[data-theme="dark"] .bg-red-50,
+html.gt-themed[data-theme="dark"] .bg-amber-50, html.gt-themed[data-theme="dark"] .bg-yellow-50 { background-color: var(--gt-sunken); }
+html.gt-themed[data-theme="dark"] .bg-gray-200, html.gt-themed[data-theme="dark"] .bg-gray-300 { background-color: var(--gt-border); }
+
+html.gt-themed[data-theme="dark"] .border-gray-200, html.gt-themed[data-theme="dark"] .border-gray-300,
+html.gt-themed[data-theme="dark"] .border-slate-200, html.gt-themed[data-theme="dark"] .border-slate-300 { border-color: var(--gt-border); }
+
+/* Form controls and tables follow the tokens already, but the striping and the
+   prefilled marker were mixed for a light ground. */
+html.gt-themed[data-theme="dark"] tbody tr:nth-child(even) { background-color: rgba(255,255,255,.025); }
+html.gt-themed[data-theme="dark"] .gt-prefilled {
+  background-color: rgba(158,207,182,.10);
+  border-color: rgba(158,207,182,.34);
+}
+html.gt-themed[data-theme="dark"] input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):focus,
+html.gt-themed[data-theme="dark"] select:focus, html.gt-themed[data-theme="dark"] textarea:focus {
+  border-color: var(--gt-sage-300);
+  box-shadow: 0 0 0 3px rgba(158,207,182,.20);
+  background-color: var(--gt-card);
+}
+html.gt-themed[data-theme="dark"] ::placeholder { color: var(--gt-ash-400); }
+
+html.gt-themed body.dark-mode .text-gray-900, html.gt-themed body.dark-mode .text-gray-800, html.gt-themed body.dark-mode .text-gray-700,
+html.gt-themed body.dark-mode .text-slate-900, html.gt-themed body.dark-mode .text-slate-800, html.gt-themed body.dark-mode .text-slate-700,
+html.gt-themed body.dark-mode .text-zinc-800, html.gt-themed body.dark-mode .text-neutral-800, html.gt-themed body.dark-mode .text-stone-800 {
+  color: var(--gt-ink);                       /* text-gray-700 alone: 305 uses */
+}
+html.gt-themed body.dark-mode .text-gray-600, html.gt-themed body.dark-mode .text-slate-600, html.gt-themed body.dark-mode .text-zinc-600 {
+  color: var(--gt-ink-2);
+}
+html.gt-themed body.dark-mode .text-gray-500, html.gt-themed body.dark-mode .text-gray-400,
+html.gt-themed body.dark-mode .text-slate-500, html.gt-themed body.dark-mode .text-slate-400 {
+  color: var(--gt-ink-3);
+}
+/* Pale tinted panels read as bright holes on a dark page. */
+html.gt-themed body.dark-mode .bg-white { background-color: var(--gt-card); border-color: var(--gt-border); }
+html.gt-themed body.dark-mode .bg-gray-50, html.gt-themed body.dark-mode .bg-gray-100,
+html.gt-themed body.dark-mode .bg-slate-50, html.gt-themed body.dark-mode .bg-slate-100 { background-color: var(--gt-soft); }
+html.gt-themed body.dark-mode .bg-blue-50, html.gt-themed body.dark-mode .bg-teal-50, html.gt-themed body.dark-mode .bg-green-50,
+html.gt-themed body.dark-mode .bg-purple-50, html.gt-themed body.dark-mode .bg-indigo-50, html.gt-themed body.dark-mode .bg-red-50,
+html.gt-themed body.dark-mode .bg-amber-50, html.gt-themed body.dark-mode .bg-yellow-50 { background-color: var(--gt-sunken); }
+html.gt-themed body.dark-mode .bg-gray-200, html.gt-themed body.dark-mode .bg-gray-300 { background-color: var(--gt-border); }
+html.gt-themed body.dark-mode .border-gray-200, html.gt-themed body.dark-mode .border-gray-300,
+html.gt-themed body.dark-mode .border-slate-200, html.gt-themed body.dark-mode .border-slate-300 { border-color: var(--gt-border); }
+/* Form controls and tables follow the tokens already, but the striping and the
+   prefilled marker were mixed for a light ground. */
+html.gt-themed body.dark-mode tbody tr:nth-child(even) { background-color: rgba(255,255,255,.025); }
+html.gt-themed body.dark-mode .gt-prefilled {
+  background-color: rgba(158,207,182,.10);
+  border-color: rgba(158,207,182,.34);
+}
+html.gt-themed body.dark-mode input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):focus,
+html.gt-themed body.dark-mode select:focus, html.gt-themed body.dark-mode textarea:focus {
+  border-color: var(--gt-sage-300);
+  box-shadow: 0 0 0 3px rgba(158,207,182,.20);
+  background-color: var(--gt-card);
+}
+html.gt-themed body.dark-mode ::placeholder { color: var(--gt-ash-400); }
+html.gt-themed body.dark .text-gray-900, html.gt-themed body.dark .text-gray-800, html.gt-themed body.dark .text-gray-700,
+html.gt-themed body.dark .text-slate-900, html.gt-themed body.dark .text-slate-800, html.gt-themed body.dark .text-slate-700,
+html.gt-themed body.dark .text-zinc-800, html.gt-themed body.dark .text-neutral-800, html.gt-themed body.dark .text-stone-800 {
+  color: var(--gt-ink);                       /* text-gray-700 alone: 305 uses */
+}
+html.gt-themed body.dark .text-gray-600, html.gt-themed body.dark .text-slate-600, html.gt-themed body.dark .text-zinc-600 {
+  color: var(--gt-ink-2);
+}
+html.gt-themed body.dark .text-gray-500, html.gt-themed body.dark .text-gray-400,
+html.gt-themed body.dark .text-slate-500, html.gt-themed body.dark .text-slate-400 {
+  color: var(--gt-ink-3);
+}
+
+/* Pale tinted panels read as bright holes on a dark page. */
+html.gt-themed body.dark .bg-white { background-color: var(--gt-card); border-color: var(--gt-border); }
+html.gt-themed body.dark .bg-gray-50, html.gt-themed body.dark .bg-gray-100,
+html.gt-themed body.dark .bg-slate-50, html.gt-themed body.dark .bg-slate-100 { background-color: var(--gt-soft); }
+html.gt-themed body.dark .bg-blue-50, html.gt-themed body.dark .bg-teal-50, html.gt-themed body.dark .bg-green-50,
+html.gt-themed body.dark .bg-purple-50, html.gt-themed body.dark .bg-indigo-50, html.gt-themed body.dark .bg-red-50,
+html.gt-themed body.dark .bg-amber-50, html.gt-themed body.dark .bg-yellow-50 { background-color: var(--gt-sunken); }
+html.gt-themed body.dark .bg-gray-200, html.gt-themed body.dark .bg-gray-300 { background-color: var(--gt-border); }
+
+html.gt-themed body.dark .border-gray-200, html.gt-themed body.dark .border-gray-300,
+html.gt-themed body.dark .border-slate-200, html.gt-themed body.dark .border-slate-300 { border-color: var(--gt-border); }
+
+/* Form controls and tables follow the tokens already, but the striping and the
+   prefilled marker were mixed for a light ground. */
+html.gt-themed body.dark tbody tr:nth-child(even) { background-color: rgba(255,255,255,.025); }
+html.gt-themed body.dark .gt-prefilled {
+  background-color: rgba(158,207,182,.10);
+  border-color: rgba(158,207,182,.34);
+}
+html.gt-themed body.dark input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):focus,
+html.gt-themed body.dark select:focus, html.gt-themed body.dark textarea:focus {
+  border-color: var(--gt-sage-300);
+  box-shadow: 0 0 0 3px rgba(158,207,182,.20);
+  background-color: var(--gt-card);
+}
+html.gt-themed body.dark ::placeholder { color: var(--gt-ash-400); }
+
+@media (prefers-color-scheme: dark) {
+html.gt-themed:not([data-theme="light"]) .text-gray-900, html.gt-themed:not([data-theme="light"]) .text-gray-800, html.gt-themed:not([data-theme="light"]) .text-gray-700,
+html.gt-themed:not([data-theme="light"]) .text-slate-900, html.gt-themed:not([data-theme="light"]) .text-slate-800, html.gt-themed:not([data-theme="light"]) .text-slate-700,
+html.gt-themed:not([data-theme="light"]) .text-zinc-800, html.gt-themed:not([data-theme="light"]) .text-neutral-800, html.gt-themed:not([data-theme="light"]) .text-stone-800 {
+  color: var(--gt-ink);                       /* text-gray-700 alone: 305 uses */
+}
+html.gt-themed:not([data-theme="light"]) .text-gray-600, html.gt-themed:not([data-theme="light"]) .text-slate-600, html.gt-themed:not([data-theme="light"]) .text-zinc-600 {
+  color: var(--gt-ink-2);
+}
+html.gt-themed:not([data-theme="light"]) .text-gray-500, html.gt-themed:not([data-theme="light"]) .text-gray-400,
+html.gt-themed:not([data-theme="light"]) .text-slate-500, html.gt-themed:not([data-theme="light"]) .text-slate-400 {
+  color: var(--gt-ink-3);
+}
+
+/* Pale tinted panels read as bright holes on a dark page. */
+html.gt-themed:not([data-theme="light"]) .bg-white { background-color: var(--gt-card); border-color: var(--gt-border); }
+html.gt-themed:not([data-theme="light"]) .bg-gray-50, html.gt-themed:not([data-theme="light"]) .bg-gray-100,
+html.gt-themed:not([data-theme="light"]) .bg-slate-50, html.gt-themed:not([data-theme="light"]) .bg-slate-100 { background-color: var(--gt-soft); }
+html.gt-themed:not([data-theme="light"]) .bg-blue-50, html.gt-themed:not([data-theme="light"]) .bg-teal-50, html.gt-themed:not([data-theme="light"]) .bg-green-50,
+html.gt-themed:not([data-theme="light"]) .bg-purple-50, html.gt-themed:not([data-theme="light"]) .bg-indigo-50, html.gt-themed:not([data-theme="light"]) .bg-red-50,
+html.gt-themed:not([data-theme="light"]) .bg-amber-50, html.gt-themed:not([data-theme="light"]) .bg-yellow-50 { background-color: var(--gt-sunken); }
+html.gt-themed:not([data-theme="light"]) .bg-gray-200, html.gt-themed:not([data-theme="light"]) .bg-gray-300 { background-color: var(--gt-border); }
+
+html.gt-themed:not([data-theme="light"]) .border-gray-200, html.gt-themed:not([data-theme="light"]) .border-gray-300,
+html.gt-themed:not([data-theme="light"]) .border-slate-200, html.gt-themed:not([data-theme="light"]) .border-slate-300 { border-color: var(--gt-border); }
+
+/* Form controls and tables follow the tokens already, but the striping and the
+   prefilled marker were mixed for a light ground. */
+html.gt-themed:not([data-theme="light"]) tbody tr:nth-child(even) { background-color: rgba(255,255,255,.025); }
+html.gt-themed:not([data-theme="light"]) .gt-prefilled {
+  background-color: rgba(158,207,182,.10);
+  border-color: rgba(158,207,182,.34);
+}
+html.gt-themed:not([data-theme="light"]) input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):focus,
+html.gt-themed:not([data-theme="light"]) select:focus, html.gt-themed:not([data-theme="light"]) textarea:focus {
+  border-color: var(--gt-sage-300);
+  box-shadow: 0 0 0 3px rgba(158,207,182,.20);
+  background-color: var(--gt-card);
+}
+html.gt-themed:not([data-theme="light"]) ::placeholder { color: var(--gt-ash-400); }
+
+}
+
+/* ---------------------------------------------------------------------------
+   MOBILE
+
+   This is the one place the sheet changes layout, and it does so on purpose.
+   Measured at 390px, ICU NutriPlan overflowed the viewport by 137px: its own
+   narrowest breakpoint is `@media (max-width:768px){ .form-grid{1fr 1fr} }`,
+   so a phone gets two columns of 200px-minimum fields and the right-hand one
+   falls off the screen. Several pages make the same assumption.
+
+   Everything here is inside a phone breakpoint, so nothing above 560px moves.
+   --------------------------------------------------------------------------- */
+@media (max-width: 560px) {
+  /* One column. `grid-template-columns` is inert on anything that is not a
+     grid container, so the broad selectors cost nothing on other elements. */
+  html.gt-themed [class*="grid-cols-"],
+  html.gt-themed [style*="grid-template-columns"],
+  html.gt-themed .form-grid,
+  html.gt-themed .result-grid,
+  html.gt-themed .supp-selector,
+  html.gt-themed .fc-grid,
+  html.gt-themed .rpt-grid,
+  html.gt-themed .pd-grid,
+  html.gt-themed .pd-stats,
+  html.gt-themed .pd-cols,
+  html.gt-themed .pd-boxes,
+  html.gt-themed .fgrid,
+  html.gt-themed .cards,
+  html.gt-themed .cg,
+  html.gt-themed .rg,
+  html.gt-themed .sg,
+  html.gt-themed .hg,
+  html.gt-themed .ag,
+  html.gt-themed .pg {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* A clinical table is the one thing that must not be squeezed — the columns
+     mean something. Let it scroll inside its own box instead. */
+  html.gt-themed table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Nothing should push the page sideways. */
+  html.gt-themed img,
+  html.gt-themed svg,
+  html.gt-themed video,
+  html.gt-themed pre { max-width: 100%; height: auto; }
+
+  /* Rows of tabs and steps scroll rather than overflow. */
+  html.gt-themed .steps-nav,
+  html.gt-themed .tabs,
+  html.gt-themed [role="tablist"] {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Comfortable targets. 44px is the usual guidance; inside a dense table the
+     columns are already scrollable, so a smaller floor keeps those usable. */
+  html.gt-themed button,
+  html.gt-themed select,
+  html.gt-themed input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=hidden]),
+  html.gt-themed [role="button"] { min-height: 40px; }
+
+  html.gt-themed table button,
+  html.gt-themed table select,
+  html.gt-themed table input:not([type=checkbox]):not([type=radio]) { min-height: 32px; }
+
+  html.gt-themed input[type=checkbox],
+  html.gt-themed input[type=radio] { min-width: 20px; min-height: 20px; }
+
+  /* 16px is the threshold below which iOS Safari zooms the page on focus. */
+  html.gt-themed input:not([type=checkbox]):not([type=radio]):not([type=range]),
+  html.gt-themed select,
+  html.gt-themed textarea { font-size: 16px; }
+}
 
 /* --------------------------------------------------------------------------
    Print. Every one of these tools ends in a handout for a client, and the

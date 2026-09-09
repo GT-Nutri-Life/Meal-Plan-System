@@ -49,6 +49,7 @@ function query(table) {
   }
 
   function result() {
+    if (api._error) return { data: null, error: api._error };
     if (pending) return { data: pending, error: null };
     var out = rows.filter(matches);
     if (orderBy) {
@@ -62,8 +63,52 @@ function query(table) {
   }
 
   var api = {
+    /*
+     * Insert, and reject a duplicate the way the real index does.
+     *
+     * The client library used to save with upsert, and this stub happily
+     * accepted the onConflict target it passed — so the suites went green
+     * while every save against the real database failed, because the unique
+     * index is on lower(btrim(name)) and Postgres will not match a column
+     * list to an expression index. Modelling the rejection here is what stops
+     * that class of bug passing tests again.
+     */
+    insert: function (row) {
+      var clash = rows.filter(function (r) {
+        return String(r.user_id) === String(row.user_id) &&
+               String(r.name || '').trim().toLowerCase() ===
+               String(row.name || '').trim().toLowerCase();
+      })[0];
+      if (clash) {
+        pending = null;
+        api._error = { code: '23505',
+          message: 'duplicate key value violates unique constraint "gt_clients_user_name_key"' };
+        return api;
+      }
+      var saved = Object.assign({ id: 'row-' + (rows.length + 1), archived: false,
+                                  updated_at: new Date().toISOString() }, row);
+      rows.push(saved);
+      window.__GT_DB__[table] = saved;
+      pending = saved;
+      return api;
+    },
+
     upsert: function (row, opts) {
-      var key = (opts && opts.onConflict) ? String(opts.onConflict).split(',') : ['id'];
+      var target = opts && opts.onConflict ? String(opts.onConflict) : '';
+
+      // gt_clients is unique on lower(btrim(name)), an expression index.
+      // Postgres cannot match a column list against one and rejects the
+      // statement outright, so naming `name` as a conflict target must fail
+      // here too — otherwise the suites would once again pass while every
+      // real save errored.
+      if (table === 'gt_clients' && /\bname\b/.test(target)) {
+        pending = null;
+        api._error = { code: '42P10',
+          message: 'there is no unique or exclusion constraint matching the ON CONFLICT specification' };
+        return api;
+      }
+
+      var key = target ? target.split(',') : ['id'];
       var existing = rows.filter(function (r) {
         return key.every(function (k) {
           return String(r[k] || '').toLowerCase() === String(row[k] || '').toLowerCase();
