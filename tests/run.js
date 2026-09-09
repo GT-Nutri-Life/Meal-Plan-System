@@ -5,6 +5,7 @@
  *   node tests/run.js              both suites
  *   node tests/run.js portal       just the portal/switcher suite
  *   node tests/run.js handoff      just the sign-in/handoff suite
+ *   node tests/run.js crossref     just the cross-system prefill suite
  *
  * Exits non-zero if any check fails, so CI can gate a deploy on it.
  */
@@ -52,7 +53,11 @@ const STUB = fs.readFileSync(path.join(__dirname, 'stub-supabase.js'), 'utf8');
     const suites = [];
     if (which === 'all' || which === 'portal')  suites.push(require('./portal.test'));
     if (which === 'all' || which === 'handoff') suites.push(require('./handoff.test'));
-    if (!suites.length) { console.error(`Unknown suite "${which}". Use: portal | handoff | all`); process.exit(2); }
+    if (which === 'all' || which === 'crossref') suites.push(require('./crossref.test'));
+    if (!suites.length) {
+      console.error(`Unknown suite "${which}". Use: portal | handoff | crossref | all`);
+      process.exit(2);
+    }
 
     for (const suite of suites) {
       const r = await suite({ browser, context, newIsolated, B, C, reporter });
