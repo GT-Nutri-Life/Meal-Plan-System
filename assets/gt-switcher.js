@@ -316,6 +316,10 @@
 
         var arm = function (e) {
           if (armed || ours(e)) return;
+          // A prefill fires the same events typing does. Capturing the page
+          // back into the record while we are writing into it would overwrite
+          // the record with whatever placeholders the page happened to hold.
+          if (CTX.isWriting && CTX.isWriting()) return;
           armed = true;
           grab();
         };

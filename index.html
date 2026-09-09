@@ -22,18 +22,21 @@
 
 <style>
 /* ---------------------------------------------------------------
-   Palette and type inherited from the About-Dietitian site, so the
-   portal reads as the same practice rather than a separate product.
+   The pastel palette, shared with every bundled subsystem. The values
+   are the sage and warm-grey steps defined once in assets/gt-palette.js
+   — kept as literals here because the portal's stylesheet is inline and
+   renders before any script runs.
    --------------------------------------------------------------- */
 :root{
-  --bg:#FAFBF9; --bg-card:#FFFFFF; --bg-soft:#F2F6F3;
-  --text:#1B2A22; --text2:#3D5A4C; --text3:#5F8474; --inv:#FAFBF9;
-  --ac:#2D7A5F; --ac2:#3A9E7A;
-  --ac-bg:rgba(45,122,95,.06); --ac-bdr:rgba(45,122,95,.14);
-  --bdr:rgba(45,122,95,.10);
-  --sh-s:0 1px 3px rgba(27,42,34,.04);
-  --sh-m:0 4px 16px rgba(27,42,34,.06);
-  --sh-l:0 16px 44px rgba(27,42,34,.10);
+  --bg:#F7FAF8; --bg-card:#FFFFFF; --bg-soft:#F1F7F3;
+  --text:#22322A; --text2:#46574F; --text3:#63796D; --inv:#F7FAF8;
+  --ac:#3E7F60; --ac2:#4E9E77;
+  --ac-bg:rgba(78,158,119,.07); --ac-bdr:rgba(78,158,119,.20);
+  --bdr:#DDEAE2;
+  --wash:linear-gradient(155deg,#F2F8F4 0%,#FAF8F4 48%,#F1F5FC 100%);
+  --sh-s:0 1px 2px rgba(34,50,42,.05);
+  --sh-m:0 6px 20px rgba(34,50,42,.07);
+  --sh-l:0 14px 40px rgba(34,50,42,.09);
   --rs:8px; --rm:14px; --rl:20px; --rxl:28px; --rf:9999px;
   --ease:cubic-bezier(.16,1,.3,1);
   --fd:'Playfair Display',Georgia,serif;
@@ -42,11 +45,12 @@
   --nh:68px;
 }
 html[data-theme="dark"]{
-  --bg:#0F1A14; --bg-card:#1A2B22; --bg-soft:#16261E;
-  --text:#E8F0EB; --text2:#B8D1C3; --text3:#89AE9B; --inv:#0F1A14;
-  --ac:#4AE09A; --ac2:#3CC48A;
-  --ac-bg:rgba(74,224,154,.06); --ac-bdr:rgba(74,224,154,.18);
-  --bdr:rgba(74,224,154,.09);
+  --bg:#14211B; --bg-card:#1D2E26; --bg-soft:#192821;
+  --text:#E9F1EC; --text2:#C0D6C9; --text3:#94B3A3; --inv:#14211B;
+  --ac:#9ECFB6; --ac2:#BFE0CE;
+  --ac-bg:rgba(158,207,182,.08); --ac-bdr:rgba(158,207,182,.22);
+  --bdr:rgba(158,207,182,.14);
+  --wash:linear-gradient(155deg,#14211B 0%,#182420 48%,#151F21 100%);
   --sh-s:0 1px 3px rgba(0,0,0,.24);
   --sh-m:0 4px 16px rgba(0,0,0,.30);
   --sh-l:0 16px 44px rgba(0,0,0,.42);
@@ -55,7 +59,8 @@ html[data-theme="dark"]{
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;scroll-padding-top:calc(var(--nh) + 16px);-webkit-text-size-adjust:100%}
 body{
-  font-family:var(--fb); background:var(--bg); color:var(--text);
+  font-family:var(--fb); background:var(--bg); background-image:var(--wash);
+  background-attachment:fixed; color:var(--text);
   line-height:1.65; overflow-x:hidden; -webkit-font-smoothing:antialiased;
   transition:background .35s var(--ease), color .35s var(--ease);
 }
@@ -266,6 +271,9 @@ footer{padding:40px 0 56px;border-top:1px solid var(--bdr);background:var(--bg-s
       <span class="bname">GT <em>Meal Plan System</em></span>
     </div>
     <div class="tact">
+      <!-- The shared client control mounts here rather than bringing its own
+           header bar, so the portal keeps the masthead it already has. -->
+      <span data-gt-client-slot></span>
       <a class="ghost" href="apps/about-dietitian/index.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
         About the dietitian
@@ -384,9 +392,11 @@ footer{padding:40px 0 56px;border-top:1px solid var(--bdr);background:var(--bg-s
   </div>
 </footer>
 
+<script src="assets/gt-palette.js"></script>
 <script src="assets/registry.js"></script>
 <script src="assets/gt-context.js"></script>
 <script src="assets/gt-auth.js"></script>
+<script src="assets/gt-chrome.js"></script>
 <script>
 (function () {
   'use strict';

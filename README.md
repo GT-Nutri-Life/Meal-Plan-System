@@ -31,15 +31,21 @@ without going back to a menu.
 index.html                  the portal — searchable, grouped catalogue
 assets/
   registry.js               single source of truth: tools, categories, data flow
+  gt-palette.js             the pastel palette, defined once
+  gt-tailwind.js            merges that palette into each page's Tailwind config
+  gt-theme.css              the pastel skin: surfaces, forms, tables, print
+  gt-chrome.js              the shared page header and footer, and the client bar
   gt-context.js             the shared clinical record and the per-app adapters
   gt-auth.js                the shared sign-in gate
   gt-switcher.js            the switcher injected into every bundled page
   favicon.svg
-apps/<slug>/…               bundled subsystems, byte-identical to upstream
-                            apart from one injected <script> tag
+apps/<slug>/…               bundled subsystems, upstream copies with the shared
+                            layer injected and their colour literals repointed
 scripts/
   sync-apps.sh              refresh the bundled copies from upstream
-  inject-nav.sh             attach the switcher to bundled pages (idempotent)
+  inject-nav.sh             attach the shared layer to bundled pages (idempotent)
+  recolor-apps.js           repoint hardcoded colours to the palette (idempotent)
+  check-supabase.js         live connectivity check against the Supabase project
   verify-registry.js        catch registry/disk/adapter drift — run by CI
 tests/
   run.js                    entry point: node tests/run.js [portal|handoff]
@@ -48,6 +54,72 @@ tests/
   handoff.test.js           sign-in and the cross-system record
   stub-supabase.js          offline stand-in for the Supabase client
 ```
+
+## How the pastel theme reaches eleven different pages
+
+The bundled tools were written independently, against four different colour
+vocabularies: Tailwind's default scales, per-page Tailwind configs with their
+own names (`fbblue`, `brand`, `tablehd`), hand-rolled CSS custom properties,
+and bare hex literals. Restyling them one at a time would guarantee drift, so
+the palette is defined once in `assets/gt-palette.js` and reaches each
+vocabulary by its own route:
+
+| Where the colour lives | How it is repointed |
+|---|---|
+| Tailwind utility classes (`text-gray-700`, `bg-blue-50`) | `gt-tailwind.js` merges the palette into `tailwind.config` at runtime |
+| A page's own `tailwind.config` names | the same merge, which preserves their keys and re-points their values |
+| Hex and `rgba()` literals in a page's `<style>` block | `scripts/recolor-apps.js`, run once and checked by CI |
+| Shared surfaces, forms, tables, print | `gt-theme.css`, loaded last so it wins on cascade order |
+
+Two decisions are worth knowing about, because both were mistakes first:
+
+* **The skin sets no heading colour.** Several pages put a heading inside a
+  coloured banner and set it white; forcing an ink colour turned those
+  unreadable.
+* **CSS custom properties are repointed at their definition, not globally.**
+  A name like `--text` means "dark text on a light card" on one page and
+  "light text on a dark bar" on another, so one global value broke one of them
+  every time. `recolor-apps.js` has a per-page table for the one page —
+  ICU NutriPlan — that was designed dark and is now light.
+
+Every colour in the palette clears WCAG AA where it carries text: the 600
+steps sit at 4.7–5.5:1 on white and behind white labels, and the ratios are
+recorded next to each scale in `gt-palette.js`.
+
+## The client library
+
+The shared record follows the practitioner from tool to tool on its own. That
+is a single slot, so starting a second client overwrites the first. Saving one
+by name is a separate, deliberate act:
+
+* **Save client** in the page header commits the record in hand to
+  `gt_clients` under a name. Saving again under a name already in use updates
+  that client — enforced by a unique index on `(user_id, lower(name))`, not
+  just by the code that calls it.
+* **Open** restores that client's record and makes it the client in hand, so
+  every tool prefills from it.
+* Rows are per practitioner, under the same row-level security as the rest of
+  the schema: `auth.uid() = user_id and is_app_user()`.
+
+## Cross-references fill themselves
+
+A tool opened with a record in hand fills itself, rather than waiting to be
+asked. Two rules keep that safe:
+
+* **An unsaved record fills only empty fields.** It never replaces something
+  already on screen. An explicitly opened client is a stronger claim — "show
+  me this person" — and does overwrite.
+* **A prefill is not data entry.** Writing into a field fires `input` and
+  `change`, which is what makes the app's own listeners recalculate. The
+  switcher listens for those same events to decide the clinician has started
+  typing, at which point it captures the page back into the record. Left
+  alone, a prefill therefore triggered a capture of the page it had just
+  written — and on a page carrying placeholder values (BMI opens at 170 cm and
+  68 kg) that overwrote the real record with the placeholders.
+  `GTContext.isWriting()` is how a listener tells the two apart.
+
+What was filled is announced with an undo, since a number appearing in a
+clinical field on its own deserves an explanation.
 
 ## How navigation works
 
@@ -191,9 +263,14 @@ refreshed on demand, never edited in place:
 ```bash
 scripts/sync-apps.sh --dry-run     # what changed upstream?
 scripts/sync-apps.sh               # pull the changes down
-scripts/inject-nav.sh              # re-attach the switcher to fresh files
+scripts/inject-nav.sh              # re-attach the shared layer to fresh files
+scripts/recolor-apps.js            # repoint the colours a fresh copy brings back
 scripts/verify-registry.js         # confirm registry and disk agree
 ```
+
+Both `inject-nav.sh` and `recolor-apps.js` are idempotent, and CI runs each with
+`--check`, so a page that came back from upstream without the shared layer or
+still carrying its original colours fails the build rather than shipping.
 
 `sync-apps.sh` compares upstream against the bundled copy *with the injected tag
 removed*, so the injection itself never registers as a change. You can also sync
@@ -206,7 +283,7 @@ a single subsystem: `scripts/sync-apps.sh bmi-assessment`.
    repository is new).
 3. Add the slug, repository and file list to the `MAP` block in
    `scripts/sync-apps.sh`.
-4. Run `scripts/inject-nav.sh && scripts/verify-registry.js`.
+4. Run `scripts/inject-nav.sh && scripts/recolor-apps.js && scripts/verify-registry.js`.
 
 The portal and the switcher both pick it up with no further changes.
 
@@ -217,8 +294,17 @@ npm install                 # playwright
 npx playwright install chromium
 npm test                    # verification + both browser suites
 node tests/run.js portal    # just the catalogue and switcher
-node tests/run.js handoff   # just sign-in and the record
+node tests/run.js handoff   # just sign-in, the record and the client library
+npm run check:supabase      # live check against the Supabase project
 ```
+
+`check:supabase` is the one thing not wired into `npm test`. The suites stub
+Supabase on purpose, so CI never fails because a third-party service is having
+a bad morning — which leaves nothing that answers "is the project the deployed
+site points at actually reachable, and is the key it ships still good?". That
+script asks directly, reading the URL and key out of `assets/gt-auth.js` so it
+cannot drift from what the site serves. There is a manual-dispatch workflow,
+**Check Supabase connectivity**, that runs it on demand.
 
 `tests/run.js` starts two throwaway static servers: one serving the portal, and
 a **control** server that serves each bundled page with the injected `<script>`

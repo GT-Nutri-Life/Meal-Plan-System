@@ -127,25 +127,39 @@ module.exports = async function run({ browser, context, newIsolated, B, reporter
   await bmi.keyboard.press('Escape');
   await bmi.close();
 
-  // A fresh BMI page must reveal the collapsed disclosure it prefills into,
-  // otherwise the values land where nobody can see them.
+  // A page opened with a record in hand fills itself, and must reveal the
+  // collapsed disclosure it writes into — otherwise the values land where
+  // nobody can see them.
   {
     const p = await context.newPage();
     await p.goto(B + '/apps/bmi-assessment/index.html', { waitUntil: 'domcontentloaded' });
-    await p.waitForTimeout(1100);
-    ok(!(await p.locator('#moreDetails').evaluate((d) => d.open)), 'the age/sex disclosure starts collapsed');
-    await p.evaluate(() => window.GTContext.apply('bmi-assessment'));
-    await p.waitForTimeout(300);
-    ok(await p.locator('#moreDetails').evaluate((d) => d.open), 'prefilling opens the disclosure it wrote into');
+    await p.waitForTimeout(1600);
+    ok(await p.locator('#moreDetails').evaluate((d) => d.open),
+       'the age/sex disclosure opens because the page prefilled into it');
     ok(await p.locator('#ageVal').isVisible(), 'so the prefilled age is actually visible');
+    ok((await p.inputValue('#ageVal')) === '41', 'age arrived without being asked for');
+
+    // The placeholder guard: BMI opens at 170 cm / 68 kg, which are not
+    // measurements. The prefill must not have captured them back over the
+    // real record, and must not have overwritten them either.
+    const after = await p.evaluate(() => window.GTContext.get());
+    ok(after.measure.heightCm === 172,
+       `the record still holds the measured height (${after.measure.heightCm} cm)`);
+    ok(after.measure.weightKg === 82,
+       `and the measured weight (${after.measure.weightKg} kg)`);
     await p.close();
   }
 
   {
     const p = await context.newPage();
     await p.goto(B + '/apps/dietary-nutrition-assessment/index.html', { waitUntil: 'domcontentloaded' });
-    await p.waitForTimeout(1100);
-    ok((await p.inputValue('#energyReq')) === '', 'the exchange calculator starts empty');
+    await p.waitForTimeout(1600);
+    // No longer "starts empty": a record in hand fills the page on arrival,
+    // which is the point of carrying one between tools.
+    ok((await p.inputValue('#energyReq')) !== '',
+       'the exchange calculator arrives prefilled from the record');
+    ok(await p.locator('.gt-chrome-toast').count() === 1,
+       'and says so, rather than filling the fields silently');
 
     await p.locator('#gt-switcher-root .fab').click();
     await p.waitForTimeout(400);
@@ -168,10 +182,11 @@ module.exports = async function run({ browser, context, newIsolated, B, reporter
   {
     const p = await context.newPage();
     await p.goto(B + '/apps/meal-plan-generator/index.html', { waitUntil: 'domcontentloaded' });
-    await p.waitForTimeout(1400);
-    const filled = await p.evaluate(() => window.GTContext.apply('meal-plan-generator'));
+    await p.waitForTimeout(1800);
+    // The page has already filled itself on arrival, so the assertion is about
+    // the fields, not about how many an explicit re-apply still has left to do.
+    await p.evaluate(() => window.GTContext.apply('meal-plan-generator'));
     await p.waitForTimeout(600);
-    ok(filled >= 5, `the meal plan generator prefilled ${filled} fields`);
     ok((await p.inputValue('#patientHeight')) === '172', 'height reached the meal plan');
     ok((await p.inputValue('#patientWeight')) === '82', 'weight reached the meal plan');
     ok((await p.inputValue('#patientGender')) === 'Female', 'gender mapped to this app\'s vocabulary');
@@ -200,6 +215,98 @@ module.exports = async function run({ browser, context, newIsolated, B, reporter
     await p.click('#recclear');
     await p.waitForTimeout(300);
     ok(!(await p.locator('#recwrap').isVisible()), 'clearing the record empties the bar');
+    await p.close();
+  }
+
+  /* ---------------- the client library ------------------------------------- */
+  {
+    const p = await context.newPage();
+    await p.goto(B + '/apps/bmi-assessment/index.html', { waitUntil: 'domcontentloaded' });
+    await p.waitForTimeout(1200);
+
+    // Put a recognisable record in hand, then commit it to a named client.
+    await p.evaluate(() => window.GTContext.merge({
+      patient: { name: 'Nimal Perera', age: 52, sex: 'male' },
+      measure: { heightCm: 168, weightKg: 74 },
+      energy:  { tdee: 2100 }
+    }, 'bmi-assessment'));
+    await p.waitForTimeout(200);
+
+    const saved = await p.evaluate(() => window.GTContext.clients.save('Nimal Perera'));
+    ok(!!(saved && saved.id), `saving returns the stored client (${saved && saved.name})`);
+
+    const open1 = await p.evaluate(() => window.GTContext.clients.current());
+    ok(open1 && open1.name === 'Nimal Perera', 'and it becomes the client in hand');
+
+    const list1 = await p.evaluate(() => window.GTContext.clients.list());
+    ok(list1.length === 1, `the library lists it (${list1.length} client)`);
+
+    // Saving again under the same name updates rather than duplicating — the
+    // database enforces this too, with a unique index on (user_id, name).
+    await p.evaluate(() => window.GTContext.merge({ measure: { waistCm: 96 } }, 'bmi-assessment'));
+    await p.evaluate(() => window.GTContext.clients.save('Nimal Perera'));
+    const list2 = await p.evaluate(() => window.GTContext.clients.list());
+    ok(list2.length === 1, 'saving the same name again updates it rather than duplicating');
+
+    // A second client, then reopening the first, must bring back its record.
+    await p.evaluate(() => window.GTContext.clear());
+    await p.waitForTimeout(200);
+    await p.evaluate(() => window.GTContext.merge({
+      patient: { name: 'Kamala Silva', age: 34, sex: 'female' },
+      measure: { heightCm: 158, weightKg: 61 }
+    }, 'bmi-assessment'));
+    await p.evaluate(() => window.GTContext.clients.save('Kamala Silva'));
+    const list3 = await p.evaluate(() => window.GTContext.clients.list());
+    ok(list3.length === 2, `both clients are held (${list3.length})`);
+
+    const nimalId = list3.filter((c) => c.name === 'Nimal Perera')[0].id;
+    await p.evaluate((id) => window.GTContext.clients.open(id), nimalId);
+    await p.waitForTimeout(200);
+    const back = await p.evaluate(() => window.GTContext.get());
+    ok(back.patient.name === 'Nimal Perera', 'reopening a client restores its name');
+    ok(back.measure.heightCm === 168, `and its measurements (${back.measure.heightCm} cm)`);
+    ok(back.measure.waistCm === 96, 'including what was added after the first save');
+
+    // Deleting removes it from the library and lets go of it as the open client.
+    await p.evaluate((id) => window.GTContext.clients.remove(id), nimalId);
+    const list4 = await p.evaluate(() => window.GTContext.clients.list());
+    ok(list4.length === 1, 'deleting a client removes it from the library');
+    ok((await p.evaluate(() => window.GTContext.clients.current())) === null,
+       'and it is no longer the client in hand');
+
+    // A blank name is refused rather than creating an unnamed row.
+    const refused = await p.evaluate(async () => {
+      try { await window.GTContext.clients.save('   '); return null; }
+      catch (e) { return e.message; }
+    });
+    ok(!!refused, `a blank client name is refused (${refused})`);
+
+    await p.close();
+  }
+
+  /* ---------------- the shared header and footer ---------------------------- */
+  {
+    const p = await context.newPage();
+    await p.goto(B + '/apps/diet-plan-generator/index.html', { waitUntil: 'domcontentloaded' });
+    await p.waitForTimeout(1400);
+
+    ok((await p.locator('.gt-chrome-header').count()) === 1, 'every bundled page carries the shared header');
+    ok((await p.locator('.gt-chrome-footer').count()) === 1, 'and the shared footer');
+    ok(await p.evaluate(() => document.documentElement.classList.contains('gt-themed')),
+       'and is marked for the pastel skin');
+
+    const named = await p.locator('.gt-chrome-header').evaluate(
+      (h) => h.shadowRoot.querySelector('.tool').textContent);
+    ok(/Diet Plan Generator/.test(named), `the header names the tool it is sitting in (${named})`);
+
+    // The portal supplies its own masthead, so the chrome contributes only the
+    // client control there rather than stacking a second header on top.
+    const q = await context.newPage();
+    await q.goto(B + '/index.html', { waitUntil: 'domcontentloaded' });
+    await q.waitForTimeout(1200);
+    ok((await q.locator('.gt-chrome-header').count()) === 0, 'the portal keeps its own header');
+    ok((await q.locator('.gt-chrome-client').count()) === 1, 'and gets just the client control');
+    await q.close();
     await p.close();
   }
 

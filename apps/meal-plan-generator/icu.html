@@ -8,27 +8,27 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-primary: #0a0e17;
-    --bg-secondary: #111827;
-    --bg-card: #1a2236;
-    --bg-card-hover: #1f2a42;
-    --bg-input: #0d1321;
-    --border: #2a3654;
-    --border-focus: #3b82f6;
-    --text-primary: #e8edf5;
-    --text-secondary: #8896b3;
-    --text-muted: #5a6a8a;
-    --accent-blue: #3b82f6;
-    --accent-cyan: #06b6d4;
-    --accent-emerald: #10b981;
-    --accent-amber: #f59e0b;
-    --accent-rose: #f43f5e;
-    --accent-violet: #8b5cf6;
-    --gradient-1: linear-gradient(135deg, #3b82f6, #06b6d4);
-    --gradient-2: linear-gradient(135deg, #10b981, #06b6d4);
-    --gradient-3: linear-gradient(135deg, #f59e0b, #f43f5e);
+    --bg-primary: #F7FAF8;
+    --bg-secondary: #F1F7F3;
+    --bg-card: #FFFFFF;
+    --bg-card-hover: #EFF7F2;
+    --bg-input: #FFFFFF;
+    --border: #DDEAE2;
+    --border-focus: #5E8CC4;
+    --text-primary: #22322A;
+    --text-secondary: #46574F;
+    --text-muted: #63796D;
+    --accent-blue: #5E8CC4;
+    --accent-cyan: #489A93;
+    --accent-emerald: #4E9E77;
+    --accent-amber: #B08442;
+    --accent-rose: #B5555F;
+    --accent-violet: #8B7BC0;
+    --gradient-1: linear-gradient(135deg, #5E8CC4, #489A93);
+    --gradient-2: linear-gradient(135deg, #4E9E77, #489A93);
+    --gradient-3: linear-gradient(135deg, #B08442, #B5555F);
     --shadow-lg: 0 20px 40px rgba(0,0,0,0.4);
-    --shadow-glow: 0 0 30px rgba(59,130,246,0.15);
+    --shadow-glow: 0 0 30px rgba(94,140,196,0.15);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -52,7 +52,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(10,14,23,0.85);
+    background: rgba(247,250,248,0.85);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
     padding: 0 2rem;
@@ -80,7 +80,7 @@
     font-size: 18px;
     font-weight: 700;
     color: white;
-    box-shadow: 0 0 20px rgba(59,130,246,0.3);
+    box-shadow: 0 0 20px rgba(94,140,196,0.3);
   }
   .logo-text {
     font-family: 'Playfair Display', serif;
@@ -93,8 +93,8 @@
     font-family: 'Space Mono', monospace;
     font-size: 0.65rem;
     padding: 4px 10px;
-    background: rgba(59,130,246,0.12);
-    border: 1px solid rgba(59,130,246,0.25);
+    background: rgba(94,140,196,0.12);
+    border: 1px solid rgba(94,140,196,0.25);
     border-radius: 20px;
     color: var(--accent-blue);
     letter-spacing: 0.08em;
@@ -116,7 +116,7 @@
     top: -100px; left: 50%;
     transform: translateX(-50%);
     width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(94,140,196,0.08) 0%, transparent 70%);
     pointer-events: none;
   }
   .hero h1 {
@@ -154,10 +154,10 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
   }
-  .g-tag.blue { background: rgba(59,130,246,0.1); color: var(--accent-blue); border: 1px solid rgba(59,130,246,0.2); }
-  .g-tag.cyan { background: rgba(6,182,212,0.1); color: var(--accent-cyan); border: 1px solid rgba(6,182,212,0.2); }
-  .g-tag.emerald { background: rgba(16,185,129,0.1); color: var(--accent-emerald); border: 1px solid rgba(16,185,129,0.2); }
-  .g-tag.amber { background: rgba(245,158,11,0.1); color: var(--accent-amber); border: 1px solid rgba(245,158,11,0.2); }
+  .g-tag.blue { background: rgba(94,140,196,0.1); color: var(--accent-blue); border: 1px solid rgba(94,140,196,0.2); }
+  .g-tag.cyan { background: rgba(72,154,147,0.1); color: var(--accent-cyan); border: 1px solid rgba(72,154,147,0.2); }
+  .g-tag.emerald { background: rgba(78,158,119,0.1); color: var(--accent-emerald); border: 1px solid rgba(78,158,119,0.2); }
+  .g-tag.amber { background: rgba(176,132,66,0.1); color: var(--accent-amber); border: 1px solid rgba(176,132,66,0.2); }
 
   /* Steps nav */
   .steps-nav {
@@ -227,7 +227,7 @@
     margin-bottom: 1.5rem;
     transition: all 0.3s;
   }
-  .card:hover { border-color: rgba(59,130,246,0.2); }
+  .card:hover { border-color: rgba(94,140,196,0.2); }
   .card-header {
     display: flex;
     align-items: center;
@@ -242,12 +242,12 @@
     justify-content: center;
     font-size: 1.1rem;
   }
-  .card-icon.blue { background: rgba(59,130,246,0.12); color: var(--accent-blue); }
-  .card-icon.cyan { background: rgba(6,182,212,0.12); color: var(--accent-cyan); }
-  .card-icon.emerald { background: rgba(16,185,129,0.12); color: var(--accent-emerald); }
-  .card-icon.amber { background: rgba(245,158,11,0.12); color: var(--accent-amber); }
-  .card-icon.rose { background: rgba(244,63,94,0.12); color: var(--accent-rose); }
-  .card-icon.violet { background: rgba(139,92,246,0.12); color: var(--accent-violet); }
+  .card-icon.blue { background: rgba(94,140,196,0.12); color: var(--accent-blue); }
+  .card-icon.cyan { background: rgba(72,154,147,0.12); color: var(--accent-cyan); }
+  .card-icon.emerald { background: rgba(78,158,119,0.12); color: var(--accent-emerald); }
+  .card-icon.amber { background: rgba(176,132,66,0.12); color: var(--accent-amber); }
+  .card-icon.rose { background: rgba(181,85,95,0.12); color: var(--accent-rose); }
+  .card-icon.violet { background: rgba(139,123,192,0.12); color: var(--accent-violet); }
   .card-title {
     font-weight: 600;
     font-size: 1rem;
@@ -285,7 +285,7 @@
   }
   .form-input:focus, .form-select:focus {
     border-color: var(--accent-blue);
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    box-shadow: 0 0 0 3px rgba(94,140,196,0.1);
   }
   .form-select { cursor: pointer; appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238896b3' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
@@ -312,9 +312,9 @@
   .btn-primary {
     background: var(--gradient-1);
     color: white;
-    box-shadow: 0 4px 15px rgba(59,130,246,0.3);
+    box-shadow: 0 4px 15px rgba(94,140,196,0.3);
   }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(94,140,196,0.4); }
   .btn-secondary {
     background: var(--bg-card);
     color: var(--text-primary);
@@ -345,11 +345,11 @@
     height: 3px;
   }
   .result-card.blue::before { background: var(--gradient-1); }
-  .result-card.cyan::before { background: linear-gradient(90deg, #06b6d4, #3b82f6); }
-  .result-card.emerald::before { background: linear-gradient(90deg, #10b981, #06b6d4); }
-  .result-card.amber::before { background: linear-gradient(90deg, #f59e0b, #f43f5e); }
-  .result-card.rose::before { background: linear-gradient(90deg, #f43f5e, #8b5cf6); }
-  .result-card.violet::before { background: linear-gradient(90deg, #8b5cf6, #3b82f6); }
+  .result-card.cyan::before { background: linear-gradient(90deg, #489A93, #5E8CC4); }
+  .result-card.emerald::before { background: linear-gradient(90deg, #4E9E77, #489A93); }
+  .result-card.amber::before { background: linear-gradient(90deg, #B08442, #B5555F); }
+  .result-card.rose::before { background: linear-gradient(90deg, #B5555F, #8B7BC0); }
+  .result-card.violet::before { background: linear-gradient(90deg, #8B7BC0, #5E8CC4); }
   .result-value {
     font-family: 'Space Mono', monospace;
     font-size: 1.6rem;
@@ -390,10 +390,10 @@
   }
   .supp-table td {
     padding: 10px 12px;
-    border-bottom: 1px solid rgba(42,54,84,0.5);
+    border-bottom: 1px solid rgba(221,234,226,0.5);
     color: var(--text-primary);
   }
-  .supp-table tr:hover td { background: rgba(59,130,246,0.04); }
+  .supp-table tr:hover td { background: rgba(94,140,196,0.04); }
   .supp-table .num { font-family: 'Space Mono', monospace; font-size: 0.75rem; }
   .table-scroll { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
 
@@ -433,7 +433,7 @@
     grid-template-columns: 80px 1fr 120px 120px;
     gap: 12px;
     padding: 12px 0;
-    border-bottom: 1px solid rgba(42,54,84,0.4);
+    border-bottom: 1px solid rgba(221,234,226,0.4);
     align-items: center;
     font-size: 0.82rem;
   }
@@ -455,8 +455,8 @@
   .disclaimer {
     margin-top: 2rem;
     padding: 1.25rem;
-    background: rgba(244,63,94,0.06);
-    border: 1px solid rgba(244,63,94,0.15);
+    background: rgba(181,85,95,0.06);
+    border: 1px solid rgba(181,85,95,0.15);
     border-radius: 12px;
     font-size: 0.78rem;
     color: var(--text-secondary);
@@ -479,8 +479,8 @@
     transition: all 0.2s;
     position: relative;
   }
-  .supp-option:hover { border-color: rgba(59,130,246,0.3); }
-  .supp-option.selected { border-color: var(--accent-blue); background: rgba(59,130,246,0.06); }
+  .supp-option:hover { border-color: rgba(94,140,196,0.3); }
+  .supp-option.selected { border-color: var(--accent-blue); background: rgba(94,140,196,0.06); }
   .supp-option .name { font-weight: 600; font-size: 0.85rem; margin-bottom: 4px; }
   .supp-option .mfg { font-size: 0.7rem; color: var(--text-muted); }
   .supp-option .meta {
@@ -523,7 +523,7 @@
     font-family: 'DM Sans', sans-serif;
   }
   .phase-pill.active {
-    background: rgba(59,130,246,0.1);
+    background: rgba(94,140,196,0.1);
     border-color: var(--accent-blue);
     color: var(--accent-blue);
   }
@@ -554,6 +554,9 @@
   @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.5} }
   .loading { animation: pulse 1.5s infinite; }
 </style>
+<script src="../../assets/gt-palette.js"></script>
+<script src="../../assets/gt-tailwind.js"></script>
+<link rel="stylesheet" href="../../assets/gt-theme.css">
 </head>
 <body>
 
@@ -888,7 +891,7 @@
           <div class="card-subtitle">Click to select — recommended formulas are highlighted based on patient diagnosis</div>
         </div>
       </div>
-      <div id="recommendationNote" style="padding:10px 14px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;margin-bottom:1rem;font-size:0.78rem;color:var(--accent-emerald)">
+      <div id="recommendationNote" style="padding:10px 14px;background:rgba(78,158,119,0.08);border:1px solid rgba(78,158,119,0.2);border-radius:10px;margin-bottom:1rem;font-size:0.78rem;color:var(--accent-emerald)">
         ✦ Recommended formulas for your patient are highlighted based on diagnosis and CKD status
       </div>
       <div class="supp-selector" id="suppSelector">
@@ -1526,7 +1529,7 @@ function setPhase(phase, el) {
 function renderFormulaTable() {
   const tbody = document.getElementById('formulaTableBody');
   tbody.innerHTML = FORMULAS.map(f => `
-    <tr${f.renal ? ' style="background:rgba(139,92,246,0.04)"' : ''}>
+    <tr${f.renal ? ' style="background:rgba(139,123,192,0.04)"' : ''}>
       <td><strong>${f.name}</strong></td>
       <td style="color:var(--text-muted)">${f.mfg}</td>
       <td class="num">${f.kcal}</td>
@@ -1535,8 +1538,8 @@ function renderFormulaTable() {
       <td class="num">${f.carbs}</td>
       <td class="num">${f.fiber}</td>
       <td class="num">${f.osm}</td>
-      <td><span style="font-size:0.68rem;padding:3px 8px;border-radius:6px;background:${f.renal ? 'rgba(139,92,246,0.12)' : 'rgba(59,130,246,0.1)'};color:${f.renal ? 'var(--accent-violet)' : 'var(--accent-blue)'}">${f.cat}</span></td>
-      <td>${f.renal ? '<span style="font-size:0.68rem;padding:3px 8px;border-radius:6px;background:rgba(139,92,246,0.15);color:var(--accent-violet)">KDOQI ✓</span>' : '<span style="font-size:0.68rem;color:var(--text-muted)">—</span>'}</td>
+      <td><span style="font-size:0.68rem;padding:3px 8px;border-radius:6px;background:${f.renal ? 'rgba(139,123,192,0.12)' : 'rgba(94,140,196,0.1)'};color:${f.renal ? 'var(--accent-violet)' : 'var(--accent-blue)'}">${f.cat}</span></td>
+      <td>${f.renal ? '<span style="font-size:0.68rem;padding:3px 8px;border-radius:6px;background:rgba(139,123,192,0.15);color:var(--accent-violet)">KDOQI ✓</span>' : '<span style="font-size:0.68rem;color:var(--text-muted)">—</span>'}</td>
       <td style="font-size:0.72rem;color:var(--text-muted)">${f.use}</td>
     </tr>
   `).join('');
@@ -1594,7 +1597,7 @@ function renderSupplementSelector() {
           <span>${f.protein}g prot/L</span>
           ${badges.map(b=>`<span style="color:var(--accent-amber)">${b}</span>`).join('')}
         </div>
-        ${f.renal ? `<div style="margin-top:6px;padding:5px 8px;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.15);border-radius:6px;font-size:0.65rem;color:var(--accent-violet)">
+        ${f.renal ? `<div style="margin-top:6px;padding:5px 8px;background:rgba(139,123,192,0.08);border:1px solid rgba(139,123,192,0.15);border-radius:6px;font-size:0.65rem;color:var(--accent-violet)">
           🔬 <strong>Renal:</strong> K⁺ ${f.renalProfile.potassium} · PO₄³⁻ ${f.renalProfile.phosphorus} · Ca²⁺ ${f.renalProfile.calcium} ${f.renalProfile.carnitine ? '· L-Carnitine' : ''} ${f.renalProfile.taurine ? '· Taurine' : ''}
         </div>` : ''}
       </div>
@@ -1683,7 +1686,7 @@ function generateFeedingSchedule(formula, totalVol, rate) {
   }
 
   const html = `
-    <div style="margin-bottom:1rem;padding:12px 16px;background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.15);border-radius:10px;font-size:0.8rem">
+    <div style="margin-bottom:1rem;padding:12px 16px;background:rgba(72,154,147,0.08);border:1px solid rgba(72,154,147,0.15);border-radius:10px;font-size:0.8rem">
       <strong style="color:var(--accent-cyan)">Formula:</strong> ${formula.name} (${formula.kcal} kcal/mL) &nbsp;|&nbsp;
       <strong style="color:var(--accent-cyan)">Target Volume:</strong> ${totalVol} mL/24hr &nbsp;|&nbsp;
       <strong style="color:var(--accent-cyan)">Rate:</strong> ${rate} mL/hr &nbsp;|&nbsp;
@@ -1875,7 +1878,7 @@ function generateClinicalRecs() {
   // KDOQI CKD-SPECIFIC RECOMMENDATIONS
   // =============================================
   if(ckdStage !== 'none') {
-    recs.push('<span style="display:inline-block;padding:4px 12px;border-radius:6px;background:rgba(139,92,246,0.12);color:var(--accent-violet);font-size:0.72rem;font-weight:600;letter-spacing:0.04em;margin-bottom:8px">NKF KDOQI 2020 GUIDELINES — CKD STAGE ' + ckdStage.toUpperCase() + '</span>');
+    recs.push('<span style="display:inline-block;padding:4px 12px;border-radius:6px;background:rgba(139,123,192,0.12);color:var(--accent-violet);font-size:0.72rem;font-weight:600;letter-spacing:0.04em;margin-bottom:8px">NKF KDOQI 2020 GUIDELINES — CKD STAGE ' + ckdStage.toUpperCase() + '</span>');
 
     // Energy recommendations per KDOQI
     recs.push('🟣 <strong>KDOQI Energy Target:</strong> For metabolically stable CKD patients, prescribe 25–35 kcal/kg/day based on age, sex, physical activity, body composition, and CKD stage (KDOQI 2020, Grade 1C for CKD 1–5D). Adjust for ICU stress factors concurrently.');
@@ -2050,7 +2053,7 @@ function renderKdoqiDashboard(formula, volume, actualProtein, actualKcal) {
       </div>` : ''}
     </div>
 
-    <div style="padding:14px 18px;background:rgba(139,92,246,0.06);border:1px solid rgba(139,92,246,0.15);border-radius:12px;margin-bottom:1.25rem">
+    <div style="padding:14px 18px;background:rgba(139,123,192,0.06);border:1px solid rgba(139,123,192,0.15);border-radius:12px;margin-bottom:1.25rem">
       <div style="font-weight:600;font-size:0.82rem;margin-bottom:10px;color:var(--accent-violet)">🔬 KDOQI Electrolyte & Renal Monitoring</div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;font-size:0.8rem">
         <div>
@@ -2069,12 +2072,12 @@ function renderKdoqiDashboard(formula, volume, actualProtein, actualKcal) {
     </div>
 
     ${icuOverride ? `
-    <div style="padding:12px 16px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);border-radius:10px;margin-bottom:1.25rem;font-size:0.78rem;color:var(--accent-amber)">
+    <div style="padding:12px 16px;background:rgba(176,132,66,0.06);border:1px solid rgba(176,132,66,0.15);border-radius:10px;margin-bottom:1.25rem;font-size:0.78rem;color:var(--accent-amber)">
       <strong>⚠️ ICU Override Active:</strong> Standard KDOQI protein restriction (${kdoqiProtRange}) is temporarily relaxed during acute illness to prevent catabolism. Current ICU protein target: ${energyCalcs.targetProtein}g/day (${energyCalcs.proteinPerKg} g/kg). Reassess when patient stabilizes and transitions out of ICU.
     </div>` : ''}
 
     ${dialysisType === 'pd' ? `
-    <div style="padding:12px 16px;background:rgba(6,182,212,0.06);border:1px solid rgba(6,182,212,0.15);border-radius:10px;margin-bottom:1.25rem;font-size:0.78rem;color:var(--accent-cyan)">
+    <div style="padding:12px 16px;background:rgba(72,154,147,0.06);border:1px solid rgba(72,154,147,0.15);border-radius:10px;margin-bottom:1.25rem;font-size:0.78rem;color:var(--accent-cyan)">
       <strong>📊 PD Glucose Absorption Estimate:</strong> Peritoneal dialysis patients absorb approximately <strong>~${pdGlucose} kcal/day</strong> from dextrose in dialysate. This should be subtracted from enteral caloric targets. Adjusted enteral target: <strong>~${actualKcal - pdGlucose} kcal/day</strong>. Also account for peritoneal protein losses (~5–15 g/day).
     </div>` : ''}
 
@@ -2114,5 +2117,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <script src="../../assets/gt-switcher.js" defer></script>
+<script src="../../assets/gt-chrome.js" defer></script>
 </body>
 </html>

@@ -15,12 +15,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #0EA5A5;
-            --primary-dark: #0B8686;
-            --light: #E6FBF9;
-            --background: #F3F7F8;
-            --accent: #F472B6;
-            --error-red: #EF4444;
+            --primary: #489A93;
+            --primary-dark: #3B7C76;
+            --light: #EAF6F5;
+            --background: #F1F7F3;
+            --accent: #D27E87;
+            --error-red: #B5555F;
         }
         body { font-family: 'Inter', sans-serif; background: var(--background); }
         h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; }
@@ -28,7 +28,7 @@
         .form-step.active { display: block !important; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .meal-template { cursor: pointer; transition: all 0.3s ease; }
-        .meal-template:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(14,165,165,0.2); }
+        .meal-template:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(72,154,147,0.2); }
         .checkbox-custom {
             --checkbox-size: 22px;
             appearance: none; width: var(--checkbox-size); height: var(--checkbox-size);
@@ -40,11 +40,11 @@
         .checkbox-custom:checked { background: var(--primary); border-color: var(--primary); }
         .checkbox-custom:checked::after { content: '✓'; position: absolute; color: white; font-size: 14px; font-weight: 700; top: 0px; left: 4px; }
         .error-border { border-color: var(--error-red) !important; }
-        .plate-canvas { width: min(240px, 72vw); height: auto; border: 6px solid #ffffff; box-shadow: 0 8px 24px rgba(15,23,42,0.12); }
+        .plate-canvas { width: min(240px, 72vw); height: auto; border: 6px solid #ffffff; box-shadow: 0 8px 24px rgba(34,50,42,0.12); }
         textarea { min-height: 8.5rem; resize: vertical; }
         .meal-schedule-textarea { min-height: 9.5rem; }
         .meal-time-input { border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.15rem 0.35rem; font-size: 0.85rem; font-weight: 500; background: white; color: #374151; cursor: text; outline: none; transition: border-color 0.2s; }
-        .meal-time-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(14,165,165,0.15); }
+        .meal-time-input:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(72,154,147,0.15); }
         .guidance-textarea { min-height: 9.5rem; }
         .address-textarea { min-height: 7.5rem; }
         @media (max-width: 768px) {
@@ -52,6 +52,9 @@
             .meal-time-input { font-size: 0.75rem; padding: 0.1rem 0.2rem; }
         }
     </style>
+<script src="../../assets/gt-palette.js"></script>
+<script src="../../assets/gt-tailwind.js"></script>
+<link rel="stylesheet" href="../../assets/gt-theme.css">
 </head>
 <body class="min-h-screen">
     <header class="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-6 md:py-8 shadow-lg">
@@ -525,7 +528,7 @@
                     <div class="mb-8 p-6 bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border-2 border-green-200">
                         <h3 class="text-xl font-bold text-green-800 mb-4 flex items-center gap-2"><i class="fas fa-language"></i> PDF Language</h3>
                         <div class="flex flex-wrap gap-4">
-                            <label data-lang-card="en" onclick="updateLangSelection('en')" class="flex items-center gap-3 cursor-pointer p-4 bg-white rounded-lg border-2 transition" style="border-color:#16a34a;background:#f0fdf4;">
+                            <label data-lang-card="en" onclick="updateLangSelection('en')" class="flex items-center gap-3 cursor-pointer p-4 bg-white rounded-lg border-2 transition" style="border-color:#3E7F60;background:#f0fdf4;">
                                 <input type="radio" name="pdfLanguage" id="pdfLangEn" value="en" checked class="w-5 h-5 accent-green-600" onchange="updateLangSelection('en')">
                                 <div><span class="block font-semibold text-gray-800">🇬🇧 English</span></div>
                             </label>
@@ -1175,7 +1178,7 @@
 
     function renderSpec(spec, isCont) {
         const title = isCont ? spec.title + ' ' + (spec.contWord || '(cont.)') : spec.title;
-        return '<div style="margin-bottom:' + spec.mb + 'px;"><div style="color:' + spec.color + ';font-size:' + spec.ts + 'px;font-weight:700;margin-bottom:' + spec.tmb + 'px;">' + title + '</div><div style="font-size:' + spec.cs + 'px;color:#111827;white-space:pre-wrap;line-height:' + spec.lh + ';padding-left:' + spec.pl + 'px;">' + spec.lines.join('\n') + '</div></div>';
+        return '<div style="margin-bottom:' + spec.mb + 'px;"><div style="color:' + spec.color + ';font-size:' + spec.ts + 'px;font-weight:700;margin-bottom:' + spec.tmb + 'px;">' + title + '</div><div style="font-size:' + spec.cs + 'px;color:#22322A;white-space:pre-wrap;line-height:' + spec.lh + ';padding-left:' + spec.pl + 'px;">' + spec.lines.join('\n') + '</div></div>';
     }
 
     const blockHTML = b => b.splittable ? renderSpec(b.spec, false) : b.html;
@@ -1234,7 +1237,7 @@
     function lHeader(fd, t, clean, inclHeader) {
         if (!inclHeader) return '';
         const name = clean(fd.provider.name) || 'Baby Feeding Plan', creds = clean(fd.provider.credentials), contact = [clean(fd.provider.phone), clean(fd.provider.email)].filter(Boolean).join(' | ');
-        return '<div style="background:#0EA5A5;width:794px;height:144px;display:flex;align-items:center;padding:0 57px;gap:20px;flex-shrink:0;box-sizing:border-box;"><div style="background:white;border-radius:50%;min-width:57px;width:57px;height:57px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#0EA5A5;font-size:22px;flex-shrink:0;">🍼</div><div style="min-width:0;"><div style="color:white;font-size:21px;font-weight:700;line-height:1.2;">' + name + '</div>' + (creds ? '<div style="color:rgba(255,255,255,0.88);font-size:15px;margin-top:5px;line-height:1.3;">' + creds + '</div>' : '') + (contact ? '<div style="color:rgba(255,255,255,0.72);font-size:12px;margin-top:5px;line-height:1.3;">' + contact + '</div>' : '') + '</div></div>';
+        return '<div style="background:#489A93;width:794px;height:144px;display:flex;align-items:center;padding:0 57px;gap:20px;flex-shrink:0;box-sizing:border-box;"><div style="background:white;border-radius:50%;min-width:57px;width:57px;height:57px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#489A93;font-size:22px;flex-shrink:0;">🍼</div><div style="min-width:0;"><div style="color:white;font-size:21px;font-weight:700;line-height:1.2;">' + name + '</div>' + (creds ? '<div style="color:rgba(255,255,255,0.88);font-size:15px;margin-top:5px;line-height:1.3;">' + creds + '</div>' : '') + (contact ? '<div style="color:rgba(255,255,255,0.72);font-size:12px;margin-top:5px;line-height:1.3;">' + contact + '</div>' : '') + '</div></div>';
     }
 
     function lFooter(t, now, pageNote, copyright) {
@@ -1248,13 +1251,13 @@
     function buildInfoBlocks(fd, t, clean, renderDate, growthImgSrc, plateImgSrc, inclChart, inclPlate, s) {
         const px = n => Math.round(n * s);
         const b = fd.baby, g = fd.growth;
-        const info = '<h2 style="text-align:center;color:#0EA5A5;font-size:' + px(21) + 'px;font-weight:700;margin:0 0 ' + px(14) + 'px 0;">' + t.mainTitle + '</h2><div style="background:#eefcfb;border:1.5px solid #b7ece6;border-radius:5px;padding:' + px(9) + 'px ' + px(16) + 'px ' + px(7) + 'px;"><table style="width:100%;border-collapse:collapse;font-size:' + px(13) + 'px;line-height:1.75;"><col style="width:36%"><col style="width:33%"><col style="width:31%"><tr><td style="padding:' + px(2) + 'px 8px;font-weight:700;">' + t.patient + ' ' + (clean(b.name) || t.notProvided) + '</td><td style="padding:' + px(2) + 'px 8px;"></td><td style="padding:' + px(2) + 'px 8px;font-weight:700;">' + t.date + ' ' + renderDate(b.date) + '</td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.age + ' ' + (b.dob ? formatAge(computeAgeMonths(b.dob, b.date)) : '—') + '</td><td style="padding:' + px(2) + 'px 8px;">' + t.sex + ' ' + (clean(b.sex) || '—') + '</td><td style="padding:' + px(2) + 'px 8px;"></td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.weight + ' ' + (clean(g.weight) || '—') + ' kg</td><td style="padding:' + px(2) + 'px 8px;">' + t.length + ' ' + (clean(g.length) || '—') + ' cm</td><td style="padding:' + px(2) + 'px 8px;">' + t.percentile + ' ' + (clean(g.percentile) || '—') + '</td></tr><tr><td colspan="3" style="padding:' + px(2) + 'px 8px;">' + t.followup + ' ' + renderDate(b.nextFollowupDate) + '</td></tr></table></div>';
+        const info = '<h2 style="text-align:center;color:#489A93;font-size:' + px(21) + 'px;font-weight:700;margin:0 0 ' + px(14) + 'px 0;">' + t.mainTitle + '</h2><div style="background:#eefcfb;border:1.5px solid #b7ece6;border-radius:5px;padding:' + px(9) + 'px ' + px(16) + 'px ' + px(7) + 'px;"><table style="width:100%;border-collapse:collapse;font-size:' + px(13) + 'px;line-height:1.75;"><col style="width:36%"><col style="width:33%"><col style="width:31%"><tr><td style="padding:' + px(2) + 'px 8px;font-weight:700;">' + t.patient + ' ' + (clean(b.name) || t.notProvided) + '</td><td style="padding:' + px(2) + 'px 8px;"></td><td style="padding:' + px(2) + 'px 8px;font-weight:700;">' + t.date + ' ' + renderDate(b.date) + '</td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.age + ' ' + (b.dob ? formatAge(computeAgeMonths(b.dob, b.date)) : '—') + '</td><td style="padding:' + px(2) + 'px 8px;">' + t.sex + ' ' + (clean(b.sex) || '—') + '</td><td style="padding:' + px(2) + 'px 8px;"></td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.weight + ' ' + (clean(g.weight) || '—') + ' kg</td><td style="padding:' + px(2) + 'px 8px;">' + t.length + ' ' + (clean(g.length) || '—') + ' cm</td><td style="padding:' + px(2) + 'px 8px;">' + t.percentile + ' ' + (clean(g.percentile) || '—') + '</td></tr><tr><td colspan="3" style="padding:' + px(2) + 'px 8px;">' + t.followup + ' ' + renderDate(b.nextFollowupDate) + '</td></tr></table></div>';
         const blocks = [{ splittable: false, keepWithNext: true, html: '<div style="margin-bottom:' + px(12) + 'px;">' + info + '</div>' }];
         if (growthImgSrc && inclChart) {
-            blocks.push({ splittable: false, keepWithNext: false, html: '<div style="text-align:center;margin-bottom:' + px(10) + 'px;padding-top:' + px(10) + 'px;border-top:1px solid #e5e7eb;"><div style="color:#0EA5A5;font-size:' + px(15) + 'px;font-weight:700;margin-bottom:' + px(4) + 'px;">' + t.growthChartTitle + '</div><img src="' + growthImgSrc + '" style="max-width:' + px(620) + 'px;max-height:' + px(320) + 'px;display:block;margin:0 auto;" /></div>' });
+            blocks.push({ splittable: false, keepWithNext: false, html: '<div style="text-align:center;margin-bottom:' + px(10) + 'px;padding-top:' + px(10) + 'px;border-top:1px solid #e5e7eb;"><div style="color:#489A93;font-size:' + px(15) + 'px;font-weight:700;margin-bottom:' + px(4) + 'px;">' + t.growthChartTitle + '</div><img src="' + growthImgSrc + '" style="max-width:' + px(620) + 'px;max-height:' + px(320) + 'px;display:block;margin:0 auto;" /></div>' });
         }
         if (plateImgSrc && inclPlate) {
-            blocks.push({ splittable: false, keepWithNext: false, html: '<div style="text-align:center;margin-bottom:' + px(6) + 'px;"><div style="color:#0EA5A5;font-size:' + px(15) + 'px;font-weight:700;margin-bottom:' + px(4) + 'px;">' + t.toddlerPlateTitle + '</div><img src="' + plateImgSrc + '" style="max-width:' + px(340) + 'px;display:block;margin:0 auto;" /></div>' });
+            blocks.push({ splittable: false, keepWithNext: false, html: '<div style="text-align:center;margin-bottom:' + px(6) + 'px;"><div style="color:#489A93;font-size:' + px(15) + 'px;font-weight:700;margin-bottom:' + px(4) + 'px;">' + t.toddlerPlateTitle + '</div><img src="' + plateImgSrc + '" style="max-width:' + px(340) + 'px;display:block;margin:0 auto;" /></div>' });
         }
         return blocks;
     }
@@ -1268,15 +1271,15 @@
         if (!inclTbl) {
             const specs = mealKeys.map(key => { const content = fmtOpts(fp.meals[optPropMap[key]]); if (!content) return null; return { splittable: true, spec: { title: getMealLabel(key), color: '#0d9488', ts: px(15), tmb: px(4), cs: px(13), lh: 1.7, pl: px(11), mb: px(12), lines: content.split('\n'), contWord: '(cont.)' } }; }).filter(Boolean);
             if (!specs.length) return [];
-            return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#0EA5A5;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(10) + 'px 0;">' + t.dailyMealSchedule + '</h2>' }, ...specs];
+            return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#489A93;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(10) + 'px 0;">' + t.dailyMealSchedule + '</h2>' }, ...specs];
         }
         const COL_STYLES = '<colgroup><col style="width:197px"><col style="width:483px"></colgroup>';
         const TABLE_WRAP = body => '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-family:' + t.fontFamily + ';">' + COL_STYLES + body + '</table>';
-        const thead = '<thead><tr><th style="background:#0EA5A5;color:white;padding:' + px(8) + 'px ' + px(10) + 'px;text-align:left;border:1px solid #0EA5A5;font-size:' + px(13) + 'px;font-weight:700;">' + t.mealTimeCol + '</th><th style="background:#0EA5A5;color:white;padding:' + px(8) + 'px ' + px(10) + 'px;text-align:left;border:1px solid #0EA5A5;font-size:' + px(13) + 'px;font-weight:700;">' + t.planDetailsCol + '</th></tr></thead>';
-        const rowsRaw = mealKeys.map(key => '<tr><td style="padding:' + px(8) + 'px ' + px(10) + 'px;font-size:' + px(12) + 'px;font-weight:700;color:#0d9488;vertical-align:top;border:1px solid #d1d5db;background:#f8fafc;">' + getMealLabel(key) + '</td><td style="padding:' + px(8) + 'px ' + px(10) + 'px;font-size:' + px(12) + 'px;color:#111827;vertical-align:top;border:1px solid #d1d5db;white-space:pre-wrap;line-height:1.7;">' + (fmtOpts(fp.meals[optPropMap[key]]) || '—') + '</td></tr>');
+        const thead = '<thead><tr><th style="background:#489A93;color:white;padding:' + px(8) + 'px ' + px(10) + 'px;text-align:left;border:1px solid #489A93;font-size:' + px(13) + 'px;font-weight:700;">' + t.mealTimeCol + '</th><th style="background:#489A93;color:white;padding:' + px(8) + 'px ' + px(10) + 'px;text-align:left;border:1px solid #489A93;font-size:' + px(13) + 'px;font-weight:700;">' + t.planDetailsCol + '</th></tr></thead>';
+        const rowsRaw = mealKeys.map(key => '<tr><td style="padding:' + px(8) + 'px ' + px(10) + 'px;font-size:' + px(12) + 'px;font-weight:700;color:#3B7C76;vertical-align:top;border:1px solid #d1d5db;background:#f8fafc;">' + getMealLabel(key) + '</td><td style="padding:' + px(8) + 'px ' + px(10) + 'px;font-size:' + px(12) + 'px;color:#22322A;vertical-align:top;border:1px solid #d1d5db;white-space:pre-wrap;line-height:1.7;">' + (fmtOpts(fp.meals[optPropMap[key]]) || '—') + '</td></tr>');
         ruler.innerHTML = TABLE_WRAP(thead); const theadH = ruler.offsetHeight + 2;
         const rows = rowsRaw.map(html => { ruler.innerHTML = TABLE_WRAP('<tbody>' + html + '</tbody>'); return { html, h: ruler.offsetHeight + 2 }; });
-        return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#0EA5A5;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(10) + 'px 0;">' + t.mealPlanTable + '</h2>' }, { type: 'table', thead, theadH, rows, wrap: TABLE_WRAP }];
+        return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#489A93;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(10) + 'px 0;">' + t.mealPlanTable + '</h2>' }, { type: 'table', thead, theadH, rows, wrap: TABLE_WRAP }];
     }
 
     function buildGuidelineBlocks(fd, t, clean, s) {
@@ -1287,7 +1290,7 @@
         const defs = [['dailyTargets', hydration, '#0284c7'], ['allergenNotes', sm(g.allergenNotes), '#a21caf'], ['thingsToConsider', checkedGL, '#7c3aed'], ['foodsToAvoid', sm(g.foodsToAvoid), '#dc2626'], ['specialInstructions', sm(g.specialInstructions), '#2563eb']];
         const specs = defs.map(([k, content, color]) => (content && content.trim()) ? { splittable: true, spec: { title: t[k], color, ts: px(15), tmb: px(4), cs: px(13), lh: 1.7, pl: px(11), mb: px(12), lines: content.split('\n'), contWord: '(cont.)' } } : null).filter(Boolean);
         if (!specs.length) return [];
-        return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#0EA5A5;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(12) + 'px 0;">' + t.guidelinesTitle + '</h2>' }, ...specs];
+        return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#489A93;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(12) + 'px 0;">' + t.guidelinesTitle + '</h2>' }, ...specs];
     }
 
     async function generatePDF(previewMode) {
@@ -1409,5 +1412,6 @@
     }
 </script>
 <script src="../../assets/gt-switcher.js" defer></script>
+<script src="../../assets/gt-chrome.js" defer></script>
 </body>
 </html>
