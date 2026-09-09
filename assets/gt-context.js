@@ -25,6 +25,12 @@
   var LS_KEY = 'gt-clinical-record';
   var TABLE  = 'gt_clinical_records';
 
+  // The named client library. gt_clinical_records is a single slot — the
+  // record in hand — so starting a second client overwrites the first. This
+  // is the durable side: any number of saved clients, reopened on demand.
+  var CLIENTS_TABLE = 'gt_clients';
+  var LS_OPEN = 'gt-open-client';
+
   /* ---------- canonical shape ----------------------------------------- */
 
   var PATHS = {
@@ -125,13 +131,45 @@
    * calculateBMI, BMI Assessment's slider sync), so dispatching both events is
    * what makes a prefill behave exactly like typing.
    */
+  /*
+   * Write mode.
+   *
+   * A prefill the clinician asked for may overwrite what is on screen — that
+   * is what they asked for. A prefill that happens on its own may not: it runs
+   * while they may already be typing, and silently replacing a measurement
+   * they entered would be a clinical error, not a convenience. So automatic
+   * fills only ever write into a field that is empty.
+   */
+  // `onlyEmpty` decides whether a write may replace what is on screen;
+  // `tracking` decides whether we record what was written, for the undo and
+  // the "this came from the record" highlight. They vary independently: an
+  // authoritative fill for an opened client overwrites *and* is tracked.
+  var writeMode = { onlyEmpty: false, tracking: false, touched: [] };
+
+  /*
+   * Depth counter, not a boolean, and read through GTContext.isWriting().
+   *
+   * A prefill fires 'input' and 'change' on every field it touches, because
+   * that is what makes it behave like typing to the app's own listeners. The
+   * switcher listens for those same events to decide the clinician has started
+   * entering data, at which point it begins capturing the page back into the
+   * record. Left alone, a prefill therefore triggers a capture of the page it
+   * just wrote — and on a page carrying its own placeholder values (BMI opens
+   * at 170 cm and 68 kg) that capture overwrites the real record with the
+   * placeholders. This flag is how a listener tells the difference between the
+   * clinician typing and us writing.
+   */
+  var writing = 0;
+
   function wr(el, value) {
     if (!el || blank(value)) return false;
     var v = String(value);
     if (el.value === v) return false;
+    if (writeMode.onlyEmpty && !blank(el.value)) return false;
     el.value = v;
     el.dispatchEvent(new Event('input',  { bubbles: true }));
     el.dispatchEvent(new Event('change', { bubbles: true }));
+    if (writeMode.tracking) writeMode.touched.push(el);
     return true;
   }
 
@@ -566,6 +604,139 @@
   }
 
   /* ==================================================================== *
+   * The client library                                                    *
+   * -------------------------------------------------------------------- *
+   * Saving is explicit. The record in hand follows the practitioner from   *
+   * tool to tool on its own, but committing it to a named client is a      *
+   * decision, so nothing is written here until it is asked for.            *
+   * ==================================================================== */
+
+  var openClient = null;      // { id, name } of the client currently loaded
+  var clientListeners = [];
+
+  function notifyClients() {
+    clientListeners.forEach(function (fn) { try { fn(openClient); } catch (e) {} });
+  }
+
+  function loadOpenClient() {
+    try {
+      var raw = localStorage.getItem(LS_OPEN);
+      openClient = raw ? JSON.parse(raw) : null;
+    } catch (e) { openClient = null; }
+    return openClient;
+  }
+
+  function setOpenClient(c) {
+    openClient = c || null;
+    try {
+      if (c) localStorage.setItem(LS_OPEN, JSON.stringify(c));
+      else localStorage.removeItem(LS_OPEN);
+    } catch (e) {}
+    notifyClients();
+  }
+
+  loadOpenClient();
+
+  /** The signed-in practitioner, or null. Every client call needs this. */
+  async function me() {
+    var client = sb();
+    if (!client) return null;
+    try {
+      var got = await client.auth.getUser();
+      return (got && got.data && got.data.user) || null;
+    } catch (e) { return null; }
+  }
+
+  /**
+   * Saving under a name that already exists updates that client rather than
+   * creating a second one — the unique index on (user_id, lower(name)) makes
+   * that the database's rule too, not just this function's intention.
+   */
+  async function saveClient(name, note) {
+    var client = sb(), user = await me();
+    if (!client || !user) throw new Error('Sign in to save a client.');
+    name = String(name || '').trim();
+    if (!name) throw new Error('Give the client a name.');
+
+    var rec = load();
+    var row = { user_id: user.id, name: name, record: rec };
+    if (note !== undefined) row.note = note;
+
+    var res = await client.from(CLIENTS_TABLE)
+      .upsert(row, { onConflict: 'user_id,name' })
+      .select('id,name')
+      .maybeSingle();
+
+    // The unique index is on lower(btrim(name)), which PostgREST cannot name
+    // as a conflict target, so a same-name save arrives as a duplicate-key
+    // error rather than an update. Fall back to an explicit update.
+    if (res.error) {
+      var found = await findClientByName(name);
+      if (!found) throw new Error(res.error.message || 'Could not save this client.');
+      var upd = await client.from(CLIENTS_TABLE)
+        .update({ name: name, record: rec })
+        .eq('id', found.id)
+        .select('id,name')
+        .maybeSingle();
+      if (upd.error) throw new Error(upd.error.message || 'Could not save this client.');
+      res = upd;
+    }
+
+    setOpenClient({ id: res.data.id, name: res.data.name });
+    return res.data;
+  }
+
+  async function findClientByName(name) {
+    var client = sb(), user = await me();
+    if (!client || !user) return null;
+    var res = await client.from(CLIENTS_TABLE)
+      .select('id,name')
+      .eq('user_id', user.id)
+      .ilike('name', String(name || '').trim())
+      .maybeSingle();
+    return res.error ? null : res.data;
+  }
+
+  async function listClients() {
+    var client = sb(), user = await me();
+    if (!client || !user) return [];
+    var res = await client.from(CLIENTS_TABLE)
+      .select('id,name,note,updated_at')
+      .eq('user_id', user.id)
+      .eq('archived', false)
+      .order('updated_at', { ascending: false })
+      .limit(200);
+    return res.error ? [] : (res.data || []);
+  }
+
+  /** Load a saved client over the record in hand, and remember which it is. */
+  async function openSavedClient(id) {
+    var client = sb();
+    if (!client) throw new Error('Sign in to open a client.');
+    var res = await client.from(CLIENTS_TABLE)
+      .select('id,name,record')
+      .eq('id', id)
+      .maybeSingle();
+    if (res.error || !res.data) throw new Error('Could not open that client.');
+
+    var rec = res.data.record && typeof res.data.record === 'object'
+      ? res.data.record : emptyRecord();
+    if (!rec.meta) rec.meta = { updatedAt: null, sources: {} };
+    if (!rec.meta.sources) rec.meta.sources = {};
+    persist(rec);
+    setOpenClient({ id: res.data.id, name: res.data.name });
+    return res.data;
+  }
+
+  async function deleteClient(id) {
+    var client = sb();
+    if (!client) throw new Error('Sign in to delete a client.');
+    var res = await client.from(CLIENTS_TABLE).delete().eq('id', id);
+    if (res.error) throw new Error(res.error.message || 'Could not delete that client.');
+    if (openClient && openClient.id === id) setOpenClient(null);
+  }
+
+  /* ==================================================================== *
    * Public API                                                            *
    * ==================================================================== */
 
@@ -615,11 +786,48 @@
       try { return this.merge(a.read(), toolId); } catch (e) { return 0; }
     },
 
+    /** True while a prefill is writing into the page. See `writing` above. */
+    isWriting: function () { return writing > 0; },
+
     /** Push the record into the current page. Returns fields filled. */
     apply: function (toolId) {
       var a = ADAPTERS[toolId];
       if (!a) return 0;
-      try { return a.write(load()); } catch (e) { return 0; }
+      writing++;
+      try { return a.write(load()); }
+      catch (e) { return 0; }
+      finally { writing--; }
+    },
+
+    /**
+     * The same, but safe to run unprompted: fills only the fields the page has
+     * left empty, and marks each one so the clinician can see at a glance what
+     * arrived from the previous tool and what they typed themselves.
+     *
+     * Returns { filled, elements }.
+     */
+    autofill: function (toolId) {
+      var a = ADAPTERS[toolId];
+      if (!a) return { filled: 0, elements: [] };
+
+      // Opening a saved client is an explicit "show me this person", so the
+      // record wins outright. An unsaved record in hand is a weaker claim —
+      // it fills the gaps and leaves whatever is already on screen alone.
+      writeMode.onlyEmpty = !openClient;
+      writeMode.tracking = true;
+      writeMode.touched = [];
+      var n = 0;
+      writing++;
+      try { n = a.write(load()); } catch (e) { n = 0; }
+      finally { writing--; }
+      var els = writeMode.touched.slice();
+      writeMode.onlyEmpty = false;
+      writeMode.tracking = false;
+      writeMode.touched = [];
+      els.forEach(function (el) {
+        try { el.classList.add('gt-prefilled'); } catch (e) {}
+      });
+      return { filled: n, elements: els };
     },
 
     /**
@@ -673,6 +881,20 @@
       return row;
     },
 
-    syncToCloud: pushToCloud
+    syncToCloud: pushToCloud,
+
+    /**
+     * The named client library. Distinct from the record in hand: `merge`
+     * and `capture` keep the working record current as the practitioner
+     * moves between tools, while these save and restore it under a name.
+     */
+    clients: {
+      list:    listClients,
+      save:    saveClient,
+      open:    openSavedClient,
+      remove:  deleteClient,
+      current: function () { return openClient; },
+      onChange: function (fn) { clientListeners.push(fn); }
+    }
   };
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -1,0 +1,194 @@
+/*!
+ * GT Meal Plan System — the pastel skin
+ * ------------------------------------------------------------------
+ * gt-tailwind.js reaches every Tailwind utility class in the bundle. This
+ * sheet covers what it cannot: the hex literals sitting in each page's own
+ * <style> block, the two pages that never loaded Tailwind at all, and the
+ * native form controls that no page styled consistently in the first place.
+ *
+ * It is loaded last, so it wins on cascade order alone at equal specificity.
+ * Where a page's own rule is more specific, the selectors below match that
+ * specificity rather than reaching for !important — which is reserved for the
+ * handful of page backgrounds that are set inline or by utility class, noted
+ * at each use.
+ *
+ * Nothing here changes layout: no display, position, width, margin or padding
+ * on page content. Restyling eleven independently written pages is only safe
+ * because the sheet touches colour, type, radius and shadow and stops there.
+ */
+
+:root {
+  --gt-sage-50:#EFF7F2;  --gt-sage-100:#DCEEE4; --gt-sage-200:#BFE0CE;
+  --gt-sage-300:#9ECFB6; --gt-sage-400:#6FB894; --gt-sage-500:#4E9E77;
+  --gt-sage-600:#3E7F60; --gt-sage-700:#326650; --gt-sage-800:#274F3F;
+
+  --gt-ash-50:#F7F9F8;   --gt-ash-100:#EEF3F0;  --gt-ash-200:#DFE8E3;
+  --gt-ash-300:#C9D6CE;  --gt-ash-400:#93A89B;  --gt-ash-500:#63796D;
+  --gt-ash-600:#5E7268;  --gt-ash-700:#46574F;  --gt-ash-800:#33413B;
+
+  --gt-sky-500:#5E8CC4;  --gt-sky-600:#4A76AB;
+  --gt-blush-500:#B5555F;--gt-blush-600:#A44E58;
+  --gt-butter-400:#D8A752;
+
+  --gt-page:#F7FAF8;
+  --gt-wash:linear-gradient(155deg,#F2F8F4 0%,#FAF8F4 48%,#F1F5FC 100%);
+  --gt-card:#FFFFFF;
+  --gt-soft:#F1F7F3;
+  --gt-sunken:#EDF3EF;
+  --gt-border:#DDEAE2;
+  --gt-border-strong:#C9DBD1;
+  --gt-ink:#22322A;
+  --gt-ink-2:#46574F;
+  --gt-ink-3:#63796D;
+
+  --gt-r-s:8px; --gt-r-m:12px; --gt-r-l:18px; --gt-r-xl:24px;
+  --gt-sh-s:0 1px 2px rgba(34,50,42,.05);
+  --gt-sh-m:0 6px 20px rgba(34,50,42,.07);
+  --gt-sh-l:0 14px 40px rgba(34,50,42,.09);
+  --gt-ease:cubic-bezier(.16,1,.3,1);
+
+  --gt-font:'Outfit',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --gt-display:'Playfair Display',Georgia,serif;
+
+  color-scheme: light;
+}
+
+/* ---------------------------------------------------------------------------
+   The page ground.
+   !important is warranted here and nowhere else in this file: the pages set
+   their background four different ways — a utility class on <body>, a hex in
+   their own stylesheet, a gradient, and one inline style — and the whole skin
+   reads as broken if any one of them shows through.
+   --------------------------------------------------------------------------- */
+html.gt-themed,
+html.gt-themed body {
+  background: var(--gt-page) !important;
+}
+html.gt-themed body {
+  background-image: var(--gt-wash) !important;
+  background-attachment: fixed !important;
+  color: var(--gt-ink);
+  font-family: var(--gt-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Headings pick up the display face, which is what makes the eleven pages
+   read as one practice rather than eleven products.
+   Type only — no colour. Several pages put a heading inside a coloured banner
+   and set it white; forcing an ink colour here turned those unreadable, so the
+   page keeps whatever colour it chose and the recolour pass handles the rest. */
+html.gt-themed h1, html.gt-themed h2, html.gt-themed h3 {
+  font-family: var(--gt-display);
+  letter-spacing: -.015em;
+}
+html.gt-themed h4, html.gt-themed h5, html.gt-themed h6 {
+  font-family: var(--gt-font);
+}
+
+/* --------------------------------------------------------------------------
+   Surfaces. Every page builds cards out of a white background plus a border,
+   so retinting those two things covers most of the bundle.
+   -------------------------------------------------------------------------- */
+html.gt-themed .bg-white {
+  background-color: var(--gt-card);
+  border-color: var(--gt-border);
+}
+html.gt-themed .shadow,
+html.gt-themed .shadow-md  { box-shadow: var(--gt-sh-m); }
+html.gt-themed .shadow-sm  { box-shadow: var(--gt-sh-s); }
+html.gt-themed .shadow-lg,
+html.gt-themed .shadow-xl,
+html.gt-themed .shadow-2xl { box-shadow: var(--gt-sh-l); }
+
+html.gt-themed hr { border-color: var(--gt-border); }
+
+/* --------------------------------------------------------------------------
+   Form controls. The biggest single win for "user friendly": eleven pages
+   worth of inputs currently render in four different styles, and several fall
+   back to the browser default. One treatment for all of them.
+   -------------------------------------------------------------------------- */
+html.gt-themed input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=submit]):not([type=button]),
+html.gt-themed select,
+html.gt-themed textarea {
+  background-color: var(--gt-card);
+  color: var(--gt-ink);
+  border: 1px solid var(--gt-border-strong);
+  border-radius: var(--gt-r-s);
+  font-family: var(--gt-font);
+  transition: border-color .16s var(--gt-ease), box-shadow .16s var(--gt-ease), background-color .16s var(--gt-ease);
+}
+html.gt-themed input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):hover,
+html.gt-themed select:hover,
+html.gt-themed textarea:hover { border-color: var(--gt-sage-300); }
+
+html.gt-themed input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):focus,
+html.gt-themed select:focus,
+html.gt-themed textarea:focus {
+  outline: none;
+  border-color: var(--gt-sage-500);
+  box-shadow: 0 0 0 3px rgba(78,158,119,.16);
+  background-color: #FFFFFF;
+}
+html.gt-themed ::placeholder { color: var(--gt-ash-400); opacity: 1; }
+
+html.gt-themed input[type=checkbox],
+html.gt-themed input[type=radio],
+html.gt-themed input[type=range] { accent-color: var(--gt-sage-500); }
+
+/* A field the shared record filled in, so the practitioner can tell at a
+   glance what carried over from the previous tool and what they typed. */
+html.gt-themed .gt-prefilled {
+  background-color: var(--gt-sage-50);
+  border-color: var(--gt-sage-300);
+}
+
+/* Keyboard focus, everywhere, including pages that removed it. */
+html.gt-themed a:focus-visible,
+html.gt-themed button:focus-visible,
+html.gt-themed [tabindex]:focus-visible {
+  outline: 2px solid var(--gt-sage-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   Tables. Four pages render clinical tables and each picked its own header
+   colour; a single soft header keeps them comparable at a glance.
+   -------------------------------------------------------------------------- */
+html.gt-themed thead th {
+  background-color: var(--gt-soft);
+  color: var(--gt-ink-2);
+  font-family: var(--gt-font);
+  font-weight: 600;
+  border-color: var(--gt-border);
+}
+html.gt-themed tbody td { border-color: var(--gt-border); }
+html.gt-themed tbody tr:nth-child(even) { background-color: rgba(241,247,243,.5); }
+
+/* The pages that drive themselves from their own custom properties are not
+   handled here. Redefining names like --text or --border globally looked
+   tidy and was wrong: the same name means "dark text on a light card" on one
+   page and "light text on a dark bar" on another, so a single value broke one
+   of them every time. scripts/recolor-apps.js rewrites those declarations at
+   their definition instead, where the meaning of each is known. */
+
+/* --------------------------------------------------------------------------
+   Print. Every one of these tools ends in a handout for a client, and the
+   pastel wash is wasted ink — drop it and keep the type.
+   -------------------------------------------------------------------------- */
+@media print {
+  html.gt-themed, html.gt-themed body {
+    background: #FFFFFF !important;
+    background-image: none !important;
+  }
+  html.gt-themed tbody tr:nth-child(even) { background-color: transparent; }
+  .gt-chrome-header, .gt-chrome-footer, #gt-switcher-root { display: none !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.gt-themed *, html.gt-themed *::before, html.gt-themed *::after {
+    animation-duration: .001ms !important;
+    transition-duration: .001ms !important;
+  }
+}

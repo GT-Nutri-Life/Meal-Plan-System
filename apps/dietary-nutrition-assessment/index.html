@@ -26,18 +26,18 @@ tailwind.config = {
 <style>
 /* ═══════════════════════════ SCREEN APP ═══════════════════════════ */
 html { -webkit-text-size-adjust: 100%; }
-body { background:#eef1f6; }
+body { background:#F1F7F3; }
 .num { font-variant-numeric: tabular-nums; }
 
-.fld { width:100%; background:#F2F2F2; border:1px solid #c9ced8; border-radius:4px;
-       padding:5px 8px; font-size:13px; line-height:1.25; color:#111827;
+.fld { width:100%; background:#F7F9F8; border:1px solid #C9D6CE; border-radius:4px;
+       padding:5px 8px; font-size:13px; line-height:1.25; color:#22322A;
        transition:border-color .12s, box-shadow .12s, background .12s; }
 .fld:hover { background:#ecf0f6; }
-.fld:focus { outline:none; background:#fff; border-color:#0066CC; box-shadow:0 0 0 3px rgba(0,102,204,.18); }
-.fld::placeholder { color:#9aa3b2; }
+.fld:focus { outline:none; background:#fff; border-color:#4A76AB; box-shadow:0 0 0 3px rgba(74,118,171,.18); }
+.fld::placeholder { color:#93A89B; }
 
 .exch { width:100%; text-align:center; font-weight:700; font-size:14px;
-        font-variant-numeric:tabular-nums; background:#FFF2CC; border:1px solid #E2C87A;
+        font-variant-numeric:tabular-nums; background:#FDF6EA; border:1px solid #F4DBA9;
         border-radius:4px; padding:5px 4px; color:#6b4e00; -moz-appearance:textfield; }
 .exch::-webkit-outer-spin-button,.exch::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .exch:focus { outline:none; border-color:#B8860B; box-shadow:0 0 0 3px rgba(184,134,11,.22); background:#fffaeb; }
@@ -47,16 +47,16 @@ body { background:#eef1f6; }
        background:transparent; border:1px solid transparent; border-radius:4px;
        padding:4px 6px; color:#475569; -moz-appearance:textfield; }
 .base { text-align:right; }
-.nm { text-align:left; font-size:11.5px; font-weight:600; color:#0f172a; }
+.nm { text-align:left; font-size:11.5px; font-weight:600; color:#22322A; }
 .base::-webkit-outer-spin-button,.base::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .base:hover,.nm:hover { border-color:#d5dae3; background:#fff; }
-.base:focus,.nm:focus { outline:none; background:#fff; border-color:#0066CC;
-       box-shadow:0 0 0 2px rgba(0,102,204,.15); color:#111827; }
+.base:focus,.nm:focus { outline:none; background:#fff; border-color:#4A76AB;
+       box-shadow:0 0 0 2px rgba(74,118,171,.15); color:#22322A; }
 
 .stepbtn { width:26px; height:26px; flex:none; display:inline-flex; align-items:center;
        justify-content:center; border:1px solid #d5dae3; background:#fff; border-radius:5px;
        color:#475569; font-weight:700; font-size:15px; line-height:1; user-select:none; }
-.stepbtn:hover { background:#f1f5f9; border-color:#b6bfcc; color:#0f172a; }
+.stepbtn:hover { background:#f1f5f9; border-color:#b6bfcc; color:#22322A; }
 .stepbtn:active { transform:translateY(1px); }
 
 .delbtn { width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center;
@@ -74,13 +74,13 @@ body { background:#eef1f6; }
 .tbl tbody tr:nth-child(even) .stickycol { background:#fafbfd; }
 .tbl tbody tr:hover .stickycol { background:#eff6ff; }
 .stickycol::after { content:''; position:absolute; top:0; right:-6px; bottom:0; width:6px;
-       background:linear-gradient(to right, rgba(15,23,42,.07), transparent); pointer-events:none; }
+       background:linear-gradient(to right, rgba(34,50,42,.07), transparent); pointer-events:none; }
 
 .rail { position:relative; height:34px; border-radius:6px; overflow:hidden; background:#eceff4; }
 .rail > span { display:block; height:100%; float:left; transition:width .28s cubic-bezier(.4,0,.2,1); }
-.tick { position:absolute; top:-5px; bottom:-5px; width:2px; background:#0f172a; opacity:.55; }
+.tick { position:absolute; top:-5px; bottom:-5px; width:2px; background:#22322A; opacity:.55; }
 .tick::after { content:attr(data-label); position:absolute; top:-16px; left:50%;
-       transform:translateX(-50%); font-size:9px; font-weight:700; color:#0f172a; opacity:.75; white-space:nowrap; }
+       transform:translateX(-50%); font-size:9px; font-weight:700; color:#22322A; opacity:.75; white-space:nowrap; }
 
 .pill { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:2px 9px;
         font-size:11px; font-weight:700; letter-spacing:.02em; }
@@ -91,14 +91,14 @@ body { background:#eef1f6; }
        padding:9px 15px; font-size:13.5px; font-weight:600; border:1px solid transparent;
        cursor:pointer; white-space:nowrap; transition:background .13s, border-color .13s, box-shadow .13s, transform .06s; }
 .btn:active { transform:translateY(1px); }
-.btn-primary{background:#0066CC;color:#fff;box-shadow:0 1px 2px rgba(0,102,204,.35)}
+.btn-primary{background:#4A76AB;color:#fff;box-shadow:0 1px 2px rgba(74,118,171,.35)}
 .btn-primary:hover{background:#0058b0}
 .btn-green{background:#2f7d32;color:#fff} .btn-green:hover{background:#276a29}
 .btn-ghost{background:#fff;color:#334155;border-color:#cbd5e1} .btn-ghost:hover{background:#f1f5f9;border-color:#94a3b8}
 .btn-sm{padding:6px 11px;font-size:12.5px}
-:focus-visible{outline:2px solid #0066CC;outline-offset:2px}
+:focus-visible{outline:2px solid #4A76AB;outline-offset:2px}
 
-.toast { position:fixed; left:50%; bottom:26px; transform:translate(-50%,14px); background:#0f172a;
+.toast { position:fixed; left:50%; bottom:26px; transform:translate(-50%,14px); background:#22322A;
        color:#fff; font-size:13px; font-weight:500; padding:10px 16px; border-radius:8px;
        opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; z-index:80; }
 .toast.show { opacity:1; transform:translate(-50%,0); }
@@ -131,18 +131,18 @@ body { background:#eef1f6; }
 
 /* Letterhead */
 .pd-head { display:flex; justify-content:space-between; align-items:flex-start; gap:8mm;
-       border-bottom:2pt solid #0066CC; padding-bottom:2.4mm; margin-bottom:3mm; }
-.pd-org  { font-size:5.9pt; font-weight:800; letter-spacing:.16em; color:#0066CC; text-transform:uppercase; }
+       border-bottom:2pt solid #4A76AB; padding-bottom:2.4mm; margin-bottom:3mm; }
+.pd-org  { font-size:5.9pt; font-weight:800; letter-spacing:.16em; color:#4A76AB; text-transform:uppercase; }
 .pd-title{ font-size:14pt; font-weight:800; letter-spacing:-.015em; line-height:1.08; margin:.8mm 0 .6mm; }
-.pd-sub  { font-size:6.8pt; color:#4a5568; }
+.pd-sub  { font-size:6.8pt; color:#5E7268; }
 .pd-meta { min-width:50mm; border-left:.6pt solid #cbd2dc; padding-left:3.4mm; }
 .pd-meta dl { display:grid; grid-template-columns:auto 1fr; gap:.7mm 3mm; margin:0; }
 .pd-meta dt { font-size:5.7pt; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#6b7280; align-self:center; }
 .pd-meta dd { margin:0; font-size:7.6pt; font-weight:600; text-align:right; }
 
 /* Section rules */
-.pd-h { font-size:6.4pt; font-weight:800; letter-spacing:.15em; text-transform:uppercase; color:#0F2B4A;
-        border-bottom:.8pt solid #0F2B4A; padding-bottom:.8mm; margin:3.4mm 0 1.8mm;
+.pd-h { font-size:6.4pt; font-weight:800; letter-spacing:.15em; text-transform:uppercase; color:#22322A;
+        border-bottom:.8pt solid #22322A; padding-bottom:.8mm; margin:3.4mm 0 1.8mm;
         display:flex; align-items:baseline; justify-content:space-between; gap:4mm; }
 .pd-h span { font-weight:600; letter-spacing:.03em; text-transform:none; font-size:6.2pt; color:#6b7280; }
 
@@ -164,7 +164,7 @@ body { background:#eef1f6; }
 
 /* Tables */
 .pd-t { width:100%; border-collapse:collapse; font-variant-numeric:tabular-nums; }
-.pd-t thead th { background:#0F2B4A; color:#fff; font-size:5.9pt; font-weight:700; letter-spacing:.05em;
+.pd-t thead th { background:#22322A; color:#fff; font-size:5.9pt; font-weight:700; letter-spacing:.05em;
        text-transform:uppercase; text-align:right; padding:1.3mm 1.6mm; border:0; line-height:1.2; }
 .pd-t thead th:first-child { text-align:left; }
 .pd-t tbody td { font-size:7.2pt; padding:.95mm 1.6mm; border-bottom:.4pt solid #e3e7ed; text-align:right; }
@@ -173,7 +173,7 @@ body { background:#eef1f6; }
 .pd-t tbody td.dim { color:#7b8494; font-weight:400; }
 .pd-t tbody tr.zero td { color:#98a1af; font-weight:400; }
 .pd-t tbody tr.zero td:first-child { font-weight:500; }
-.pd-t tfoot td { font-size:7.6pt; font-weight:800; padding:1.4mm 1.6mm; background:#0066CC; color:#fff; text-align:right; }
+.pd-t tfoot td { font-size:7.6pt; font-weight:800; padding:1.4mm 1.6mm; background:#4A76AB; color:#fff; text-align:right; }
 .pd-t tfoot td:first-child { text-align:left; letter-spacing:.05em; text-transform:uppercase; font-size:6.6pt; }
 .pd-t.plain tbody tr:nth-child(even) td { background:transparent; }
 .pd-note { font-size:6pt; color:#7b8494; margin-top:.9mm; }
@@ -186,8 +186,8 @@ body { background:#eef1f6; }
 .pd-cols { display:grid; grid-template-columns:1fr 1fr; gap:6mm; align-items:start; }
 
 .pd-boxes { display:grid; grid-template-columns:repeat(3,1fr); gap:2mm; }
-.pd-box { border:.7pt solid #c3cad4; border-top:1.8pt solid #0F2B4A; padding:1.6mm 2mm; }
-.pd-box.accent { border-top-color:#0066CC; }
+.pd-box { border:.7pt solid #c3cad4; border-top:1.8pt solid #22322A; padding:1.6mm 2mm; }
+.pd-box.accent { border-top-color:#4A76AB; }
 .pd-box .k { font-size:5.5pt; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#6b7280; }
 .pd-box .v { font-size:12pt; font-weight:800; line-height:1.1; margin-top:.4mm; font-variant-numeric:tabular-nums; }
 .pd-box .v small { font-size:5.8pt; font-weight:600; color:#6b7280; }
@@ -198,7 +198,7 @@ body { background:#eef1f6; }
 .pd-ratio .v { font-size:10.5pt; font-weight:800; font-variant-numeric:tabular-nums; }
 .pd-ratio .n { font-size:5.9pt; color:#6b7280; margin-left:auto; text-align:right; }
 
-.pd-verdict { border-left:2.2pt solid #0066CC; background:#f2f7fd; padding:1.7mm 2.6mm;
+.pd-verdict { border-left:2.2pt solid #4A76AB; background:#f2f7fd; padding:1.7mm 2.6mm;
               margin-top:2.6mm; font-size:7.4pt; line-height:1.38; }
 
 .pd-notes { border:.7pt solid #c3cad4; padding:1.8mm 2.4mm; min-height:13mm;
@@ -221,6 +221,9 @@ body { background:#eef1f6; }
            display:flex; justify-content:space-between; gap:5mm; }
 .pd-foot .cite { max-width:130mm; }
 </style>
+<script src="../../assets/gt-palette.js"></script>
+<script src="../../assets/gt-tailwind.js"></script>
+<link rel="stylesheet" href="../../assets/gt-theme.css">
 </head>
 
 <body class="font-sans text-slate-900 antialiased compact">
@@ -328,8 +331,8 @@ body { background:#eef1f6; }
     <div class="px-2 sm:px-7 py-3 overflow-x-auto">
       <table class="tbl w-full min-w-[600px] md:min-w-[960px] border-collapse">
         <thead>
-          <tr class="band bg-tablehd text-white text-left align-bottom" style="background:#70AD47">
-            <th class="stickycol px-1.5 sm:px-2 py-2 text-[10.5px] font-bold w-[36%] md:w-[21%]" style="background:#70AD47">Food group / item</th>
+          <tr class="band bg-tablehd text-white text-left align-bottom" style="background:#4E9E77">
+            <th class="stickycol px-1.5 sm:px-2 py-2 text-[10.5px] font-bold w-[36%] md:w-[21%]" style="background:#4E9E77">Food group / item</th>
             <th class="col-extra px-2 py-2 text-[10.5px] font-bold text-right">Base CHO<span class="font-normal opacity-80"> g</span></th>
             <th class="col-extra px-2 py-2 text-[10.5px] font-bold text-right">Base protein<span class="font-normal opacity-80"> g</span></th>
             <th class="col-extra px-2 py-2 text-[10.5px] font-bold text-right">Base fat<span class="font-normal opacity-80"> g</span></th>
@@ -344,8 +347,8 @@ body { background:#eef1f6; }
         </thead>
         <tbody id="foodBody"></tbody>
         <tfoot>
-          <tr class="band bg-brand text-white font-bold" style="background:#0066CC">
-            <td class="stickycol px-1.5 sm:px-2 py-2.5 text-[11.5px]" style="background:#0066CC">DAILY TOTAL</td>
+          <tr class="band bg-brand text-white font-bold" style="background:#4A76AB">
+            <td class="stickycol px-1.5 sm:px-2 py-2.5 text-[11.5px]" style="background:#4A76AB">DAILY TOTAL</td>
             <td class="col-extra" colspan="4"></td>
             <td class="num px-2 py-2.5 text-center text-[13px]" id="tExch">0</td>
             <td class="col-extra num px-2 py-2.5 text-right text-[13px]" id="tCho">0.0</td>
@@ -394,16 +397,16 @@ body { background:#eef1f6; }
       </div>
 
       <div class="rail" id="rail">
-        <span id="segCho" style="width:0%;background:#2E7D32"></span>
-        <span id="segPro" style="width:0%;background:#1565C0"></span>
-        <span id="segFat" style="width:0%;background:#EF6C00"></span>
+        <span id="segCho" style="width:0%;background:#3E7F60"></span>
+        <span id="segPro" style="width:0%;background:#4A76AB"></span>
+        <span id="segFat" style="width:0%;background:#B08442"></span>
         <div class="tick" style="left:45%" data-label="45"></div>
         <div class="tick" style="left:60%" data-label="60"></div>
       </div>
 
       <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
         <div class="rounded-lg border border-slate-200 px-3 py-2.5">
-          <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#2E7D32"></span>
+          <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#3E7F60"></span>
             <span class="text-[11px] font-bold text-slate-700">Carbohydrate</span>
             <span class="ml-auto pill neut" id="chip-cho">—</span></div>
           <div class="mt-1 flex items-baseline gap-2">
@@ -411,7 +414,7 @@ body { background:#eef1f6; }
             <span class="ml-auto text-[10.5px] text-slate-500">Target 45–60%</span></div>
         </div>
         <div class="rounded-lg border border-slate-200 px-3 py-2.5">
-          <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#1565C0"></span>
+          <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#4A76AB"></span>
             <span class="text-[11px] font-bold text-slate-700">Protein</span>
             <span class="ml-auto pill neut" id="chip-pro">—</span></div>
           <div class="mt-1 flex items-baseline gap-2">
@@ -419,7 +422,7 @@ body { background:#eef1f6; }
             <span class="ml-auto text-[10.5px] text-slate-500">Target 15–20%</span></div>
         </div>
         <div class="rounded-lg border border-slate-200 px-3 py-2.5">
-          <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#EF6C00"></span>
+          <div class="flex items-center gap-2"><span class="h-2.5 w-2.5 rounded-sm" style="background:#B08442"></span>
             <span class="text-[11px] font-bold text-slate-700">Fat</span>
             <span class="ml-auto pill neut" id="chip-fat">—</span></div>
           <div class="mt-1 flex items-baseline gap-2">
@@ -1146,5 +1149,6 @@ window.addEventListener("keydown", (e) => {
 recalc();
 </script>
 <script src="../../assets/gt-switcher.js" defer></script>
+<script src="../../assets/gt-chrome.js" defer></script>
 </body>
 </html>

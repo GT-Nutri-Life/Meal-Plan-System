@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <style>
-:root{--bg:#FAFBF9;--bg-card:#FFF;--text:#1B2A22;--text2:#3D5A4C;--text3:#5F8474;--inv:#FAFBF9;--ac:#2D7A5F;--ac2:#3A9E7A;--ac-bg:rgba(45,122,95,.06);--ac-bdr:rgba(45,122,95,.12);--ac-glow:rgba(45,122,95,.1);--bdr:rgba(45,122,95,.08);--sh-s:0 1px 3px rgba(27,42,34,.04);--sh-m:0 4px 16px rgba(27,42,34,.06);--sh-l:0 12px 36px rgba(27,42,34,.08);--sh-ac:0 6px 24px rgba(45,122,95,.12);--rs:8px;--rm:14px;--rl:20px;--rxl:28px;--rf:9999px;--ease:cubic-bezier(.16,1,.3,1);--fd:'Playfair Display',Georgia,serif;--fb:'Outfit',system-ui,sans-serif;--fm:'JetBrains Mono',monospace;--nh:72px}
+:root{--bg:#F7FAF8;--bg-card:#FFF;--text:#22322A;--text2:#46574F;--text3:#63796D;--inv:#F7FAF8;--ac:#3E7F60;--ac2:#4E9E77;--ac-bg:rgba(62,127,96,.06);--ac-bdr:rgba(62,127,96,.12);--ac-glow:rgba(62,127,96,.1);--bdr:rgba(62,127,96,.08);--sh-s:0 1px 3px rgba(34,50,42,.04);--sh-m:0 4px 16px rgba(34,50,42,.06);--sh-l:0 12px 36px rgba(34,50,42,.08);--sh-ac:0 6px 24px rgba(62,127,96,.12);--rs:8px;--rm:14px;--rl:20px;--rxl:28px;--rf:9999px;--ease:cubic-bezier(.16,1,.3,1);--fd:'Playfair Display',Georgia,serif;--fb:'Outfit',system-ui,sans-serif;--fm:'JetBrains Mono',monospace;--nh:72px}
 [data-theme="dark"]{--bg:#0F1A14;--bg-card:#1A2B22;--text:#E8F0EB;--text2:#B8D1C3;--text3:#89AE9B;--inv:#0F1A14;--ac:#4AE09A;--ac2:#3CC48A;--ac-bg:rgba(74,224,154,.05);--ac-bdr:rgba(74,224,154,.15);--ac-glow:rgba(74,224,154,.08);--bdr:rgba(74,224,154,.06);--sh-s:0 1px 3px rgba(0,0,0,.2);--sh-m:0 4px 16px rgba(0,0,0,.25);--sh-l:0 12px 36px rgba(0,0,0,.3);--sh-ac:0 6px 24px rgba(74,224,154,.08)}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth;scroll-padding-top:var(--nh)}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
@@ -127,12 +127,15 @@ section{padding:80px 0}@media(min-width:768px){section{padding:100px 0}}@media(m
 .rfn{font-weight:700;font-size:14px}.rfr{font-size:12px;color:var(--ac);margin-top:2px}.rfo{font-size:12px;color:var(--text3);margin-top:2px;line-height:1.5}
 .rfp{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2);margin-top:12px;padding-top:12px;border-top:1px solid var(--bdr)}
 
-.btt{position:fixed;bottom:24px;right:24px;width:42px;height:42px;background:var(--ac);color:var(--inv);border-radius:var(--rf);display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-ac);z-index:90;opacity:0;transform:translateY(12px);transition:opacity .3s,transform .3s;pointer-events:none}.btt.show{opacity:1;transform:translateY(0);pointer-events:auto}.btt:hover{box-shadow:0 8px 28px rgba(45,122,95,.2)}
+.btt{position:fixed;bottom:24px;right:24px;width:42px;height:42px;background:var(--ac);color:var(--inv);border-radius:var(--rf);display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-ac);z-index:90;opacity:0;transform:translateY(12px);transition:opacity .3s,transform .3s;pointer-events:none}.btt.show{opacity:1;transform:translateY(0);pointer-events:auto}.btt:hover{box-shadow:0 8px 28px rgba(62,127,96,.2)}
 footer{padding:24px 0;border-top:1px solid var(--bdr)}.fti{display:flex;align-items:center;justify-content:center}.ftx{font-size:12px;color:var(--text3)}
 .tst{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--text);color:var(--bg);padding:12px 24px;border-radius:var(--rf);font-size:14px;font-weight:500;z-index:10000;opacity:0;transition:all .4s var(--ease);pointer-events:none;box-shadow:var(--sh-l)}.tst.show{opacity:1;transform:translateX(-50%) translateY(0)}
 body::after{content:'';position:fixed;inset:0;pointer-events:none;opacity:.015;z-index:99998;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 @media print{.np{display:none!important}body{background:#fff;color:#000}body::after{display:none}section{padding:16px 0;page-break-inside:avoid}.hiw,.hbg,.shi{display:none}}
     </style>
+<script src="../../assets/gt-palette.js"></script>
+<script src="../../assets/gt-tailwind.js"></script>
+<link rel="stylesheet" href="../../assets/gt-theme.css">
 </head>
 <body>
 <a href="#main" class="skip np">Skip to main content</a>
@@ -370,5 +373,6 @@ document.addEventListener('keydown',e=>{if(e.altKey&&!e.ctrlKey&&!e.shiftKey){co
 })();
 </script>
 <script src="../../assets/gt-switcher.js" defer></script>
+<script src="../../assets/gt-chrome.js" defer></script>
 </body>
 </html>

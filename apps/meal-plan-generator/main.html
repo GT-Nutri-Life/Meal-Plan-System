@@ -19,17 +19,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-blue: #1877F2;
-            --dark-blue: #166FE5;
-            --light-blue: #E7F3FF;
-            --background: #F0F2F5;
+            --primary-blue: #4A76AB;
+            --dark-blue: #3C5F8A;
+            --light-blue: #EEF4FB;
+            --background: #EEF3F0;
             --white: #FFFFFF;
-            --text-dark: #050505;
-            --text-secondary: #65676B;
-            --success-green: #42B72A;
-            --border: #CCD0D5;
-            --error-red: #EF4444;
-            --warning-orange: #F59E0B;
+            --text-dark: #22322A;
+            --text-secondary: #5E7268;
+            --success-green: #4E9E77;
+            --border: #DDEAE2;
+            --error-red: #B5555F;
+            --warning-orange: #B08442;
         }
         body { font-family: 'Inter', sans-serif; background: var(--background); }
         h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; }
@@ -37,7 +37,7 @@
         .form-step.active { display: block !important; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .meal-template { cursor: pointer; transition: all 0.3s ease; }
-        .meal-template:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(24,119,242,0.2); }
+        .meal-template:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(74,118,171,0.2); }
         .meal-template.selected { border-color: var(--primary-blue); background: var(--light-blue); }
         .checkbox-custom {
             --checkbox-size: 22px;
@@ -48,17 +48,17 @@
             vertical-align: middle; box-shadow: 0 1px 2px rgba(2,6,23,0.08);
         }
         .checkbox-custom:checked { background: var(--primary-blue); border-color: var(--primary-blue); }
-        .checkbox-custom:focus-visible { outline: 3px solid rgba(24,119,242,0.45); outline-offset: 2px; }
+        .checkbox-custom:focus-visible { outline: 3px solid rgba(74,118,171,0.45); outline-offset: 2px; }
         .checkbox-custom:checked::after { content: '✓'; position: absolute; color: white; font-size: 14px; font-weight: 700; top: 0px; left: 4px; }
         .error-border { border-color: var(--error-red) !important; }
         .floating-save-btn { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; }
         .step-scroll { overflow-x: auto; scrollbar-width: thin; }
-        .meal-plate-canvas { width: min(240px, 72vw); height: auto; border: 6px solid #ffffff; box-shadow: 0 8px 24px rgba(15,23,42,0.12); }
+        .meal-plate-canvas { width: min(240px, 72vw); height: auto; border: 6px solid #ffffff; box-shadow: 0 8px 24px rgba(34,50,42,0.12); }
         .chart-caption { max-width: 280px; }
         textarea { min-height: 8.5rem; resize: vertical; }
         .meal-schedule-textarea { min-height: 11.5rem; }
         .meal-time-input { border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.15rem 0.35rem; font-size: 0.85rem; font-weight: 500; background: white; color: #374151; cursor: text; outline: none; transition: border-color 0.2s; }
-        .meal-time-input:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.15); }
+        .meal-time-input:focus { border-color: #4A76AB; box-shadow: 0 0 0 2px rgba(74,118,171,0.15); }
         .guidance-textarea { min-height: 10.5rem; }
         .address-textarea { min-height: 8.5rem; }
         @media (max-width: 768px) {
@@ -70,6 +70,9 @@
             .address-textarea { min-height: 7.5rem; }
         }
     </style>
+<script src="../../assets/gt-palette.js"></script>
+<script src="../../assets/gt-tailwind.js"></script>
+<link rel="stylesheet" href="../../assets/gt-theme.css">
 </head>
 <body class="min-h-screen">
     <header class="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-6 md:py-8 shadow-lg">
@@ -597,7 +600,7 @@
                         <h3 class="text-xl font-bold text-green-800 mb-4 flex items-center gap-2"><i class="fas fa-language"></i> PDF Language</h3>
                         <p class="text-gray-700 mb-4">Select the language for the generated PDF document</p>
                         <div class="flex flex-wrap gap-4">
-                            <label data-lang-card="en" onclick="updateLangSelection('en')" class="flex items-center gap-3 cursor-pointer p-4 bg-white rounded-lg border-2 transition" style="border-color:#16a34a;background:#f0fdf4;">
+                            <label data-lang-card="en" onclick="updateLangSelection('en')" class="flex items-center gap-3 cursor-pointer p-4 bg-white rounded-lg border-2 transition" style="border-color:#3E7F60;background:#f0fdf4;">
                                 <input type="radio" name="pdfLanguage" id="pdfLangEn" value="en" checked class="w-5 h-5 accent-green-600" onchange="updateLangSelection('en')">
                                 <div><span class="block font-semibold text-gray-800">🇬🇧 English</span><span class="text-sm text-gray-500">Default language</span></div>
                             </label>
@@ -813,12 +816,12 @@
         __tplCache = {}; rows.forEach(r => { __tplCache[r.id] = r; });
         const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         const lib = rows.filter(r => r.is_library), mine = rows.filter(r => !r.is_library);
-        const row = (r, withDel) => '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:6px;"><span style="text-align:left;"><span style="font-weight:600;">' + esc(r.name) + '</span>' + (withDel ? '<br><span style="font-size:11px;color:#6b7280;">Updated ' + new Date(r.updated_at).toLocaleDateString() + '</span>' : '') + '</span><span style="display:flex;gap:6px;flex-shrink:0;"><button class="tpl-load" data-id="' + r.id + '" style="background:#0d9488;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Load</button>' + (withDel ? '<button class="tpl-del" data-id="' + r.id + '" title="Delete" style="background:#ef4444;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:13px;"><i class="fas fa-trash-alt"></i></button>' : '') + '</span></div>';
+        const row = (r, withDel) => '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:6px;"><span style="text-align:left;"><span style="font-weight:600;">' + esc(r.name) + '</span>' + (withDel ? '<br><span style="font-size:11px;color:#6b7280;">Updated ' + new Date(r.updated_at).toLocaleDateString() + '</span>' : '') + '</span><span style="display:flex;gap:6px;flex-shrink:0;"><button class="tpl-load" data-id="' + r.id + '" style="background:#3B7C76;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;">Load</button>' + (withDel ? '<button class="tpl-del" data-id="' + r.id + '" title="Delete" style="background:#B5555F;color:#fff;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:13px;"><i class="fas fa-trash-alt"></i></button>' : '') + '</span></div>';
         const libHTML = lib.length ? lib.map(r => row(r, false)).join('') : '<p style="color:#9ca3af;font-size:13px;">No library templates.</p>';
         const mineHTML = mine.length ? mine.map(r => row(r, true)).join('') : '<p style="color:#9ca3af;font-size:13px;">You have no saved templates yet.</p>';
         Swal.fire({
             title: 'Template Library', width: 640, showConfirmButton: false, showCloseButton: true,
-            html: '<div style="max-height:60vh;overflow:auto;"><h4 style="text-align:left;font-weight:700;color:#0f766e;margin:4px 0 8px;"><i class="fas fa-book"></i> Common Templates</h4>' + libHTML + '<h4 style="text-align:left;font-weight:700;color:#1e40af;margin:18px 0 8px;"><i class="fas fa-save"></i> My Templates</h4>' + mineHTML + '</div><p style="font-size:11px;color:#9ca3af;margin-top:10px;">Loading a template updates meals, guidelines & settings. Patient details are kept as-is.</p>',
+            html: '<div style="max-height:60vh;overflow:auto;"><h4 style="text-align:left;font-weight:700;color:#0f766e;margin:4px 0 8px;"><i class="fas fa-book"></i> Common Templates</h4>' + libHTML + '<h4 style="text-align:left;font-weight:700;color:#3C5F8A;margin:18px 0 8px;"><i class="fas fa-save"></i> My Templates</h4>' + mineHTML + '</div><p style="font-size:11px;color:#9ca3af;margin-top:10px;">Loading a template updates meals, guidelines & settings. Patient details are kept as-is.</p>',
             didOpen: () => { const c = Swal.getHtmlContainer(); c.querySelectorAll('.tpl-load').forEach(b => b.addEventListener('click', () => loadTemplate(b.dataset.id))); c.querySelectorAll('.tpl-del').forEach(b => b.addEventListener('click', () => deleteTemplate(b.dataset.id))); }
         });
     }
@@ -1977,7 +1980,7 @@
     // Render a splittable text block (heading + pre-wrap body) for a subset of lines.
     function renderSpec(spec, isCont) {
         const title = isCont ? spec.title + ' ' + (spec.contWord || '(cont.)') : spec.title;
-        return '<div style="margin-bottom:' + spec.mb + 'px;"><div style="color:' + spec.color + ';font-size:' + spec.ts + 'px;font-weight:700;margin-bottom:' + spec.tmb + 'px;">' + title + '</div><div style="font-size:' + spec.cs + 'px;color:#111827;white-space:pre-wrap;line-height:' + spec.lh + ';padding-left:' + spec.pl + 'px;">' + spec.lines.join('\n') + '</div></div>';
+        return '<div style="margin-bottom:' + spec.mb + 'px;"><div style="color:' + spec.color + ';font-size:' + spec.ts + 'px;font-weight:700;margin-bottom:' + spec.tmb + 'px;">' + title + '</div><div style="font-size:' + spec.cs + 'px;color:#22322A;white-space:pre-wrap;line-height:' + spec.lh + ';padding-left:' + spec.pl + 'px;">' + spec.lines.join('\n') + '</div></div>';
     }
 
     const blockHTML = b => b.splittable ? renderSpec(b.spec, false) : b.html;
@@ -2039,7 +2042,7 @@
     function lHeader(fd, t, clean, inclHeader) {
         if (!inclHeader) return '';
         const name = clean(fd.nutritionist.name) || 'Meal Plan', creds = clean(fd.nutritionist.credentials), contact = [clean(fd.nutritionist.phone), clean(fd.nutritionist.email)].filter(Boolean).join(' | ');
-        return '<div style="background:#1877F2;width:794px;height:144px;display:flex;align-items:center;padding:0 57px;gap:20px;flex-shrink:0;box-sizing:border-box;"><div style="background:white;border-radius:50%;min-width:57px;width:57px;height:57px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#1877F2;font-size:14px;flex-shrink:0;letter-spacing:0.5px;">MP</div><div style="min-width:0;"><div style="color:white;font-size:21px;font-weight:700;line-height:1.2;">' + name + '</div>' + (creds ? '<div style="color:rgba(255,255,255,0.88);font-size:15px;margin-top:5px;line-height:1.3;">' + creds + '</div>' : '') + (contact ? '<div style="color:rgba(255,255,255,0.72);font-size:12px;margin-top:5px;line-height:1.3;">' + contact + '</div>' : '') + '</div></div>';
+        return '<div style="background:#4A76AB;width:794px;height:144px;display:flex;align-items:center;padding:0 57px;gap:20px;flex-shrink:0;box-sizing:border-box;"><div style="background:white;border-radius:50%;min-width:57px;width:57px;height:57px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#4A76AB;font-size:14px;flex-shrink:0;letter-spacing:0.5px;">MP</div><div style="min-width:0;"><div style="color:white;font-size:21px;font-weight:700;line-height:1.2;">' + name + '</div>' + (creds ? '<div style="color:rgba(255,255,255,0.88);font-size:15px;margin-top:5px;line-height:1.3;">' + creds + '</div>' : '') + (contact ? '<div style="color:rgba(255,255,255,0.72);font-size:12px;margin-top:5px;line-height:1.3;">' + contact + '</div>' : '') + '</div></div>';
     }
 
     function lFooter(t, now, pageNote, copyright) {
@@ -2057,11 +2060,11 @@
         const p = fd.patient, m = fd.measurements, mp = fd.mealPlan;
         const plate = mp.mealPlate || {}, isDiab = plate.patientType === 'diabetic', ptd = mealPlateTypeConfig[isDiab ? 'diabetic' : 'nonDiabetic'];
         const prefs = []; if (mp.preferences?.vegetarian) prefs.push(t.vegetarian); if (mp.preferences?.nonVeg) prefs.push(t.nonVeg); if (mp.preferences?.lowCarb) prefs.push(t.lowCarb); if (mp.preferences?.highProtein) prefs.push(t.highProtein);
-        const info = '<h2 style="text-align:center;color:#1877F2;font-size:' + px(21) + 'px;font-weight:700;margin:0 0 ' + px(14) + 'px 0;">' + t.mainTitle + '</h2><div style="background:#f4f8ff;border:1.5px solid #d2ddef;border-radius:5px;padding:' + px(9) + 'px ' + px(16) + 'px ' + px(7) + 'px;"><table style="width:100%;border-collapse:collapse;font-size:' + px(13) + 'px;line-height:1.75;"><col style="width:36%"><col style="width:33%"><col style="width:31%"><tr><td style="padding:' + px(2) + 'px 8px;font-weight:700;">' + t.patient + ' ' + (clean(p.name) || t.notProvided) + '</td><td style="padding:' + px(2) + 'px 8px;"></td><td style="padding:' + px(2) + 'px 8px;font-weight:700;">' + t.date + ' ' + renderDate(p.date) + '</td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.age + ' ' + (clean(p.age) || '—') + ' ' + t.years + '</td><td style="padding:' + px(2) + 'px 8px;">' + t.gender + ' ' + (clean(p.gender) || '—') + '</td><td style="padding:' + px(2) + 'px 8px;"></td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.height + ' ' + (clean(m.height) || '—') + ' cm</td><td style="padding:' + px(2) + 'px 8px;">' + t.weight + ' ' + (clean(m.weight) || '—') + ' kg</td><td style="padding:' + px(2) + 'px 8px;">' + t.target + ' ' + (clean(m.targetWeight) || '—') + ' kg</td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.bmi + ' ' + (clean(m.bmi) || '—') + ' kg/m²</td><td style="padding:' + px(2) + 'px 8px;">' + t.calories + ' ' + (clean(mp.calorieTarget) || t.notSet) + ' kcal/day</td><td style="padding:' + px(2) + 'px 8px;"></td></tr><tr><td colspan="3" style="padding:' + px(2) + 'px 8px;">' + t.followup + ' ' + renderDate(p.nextFollowupDate) + '</td></tr></table></div>' + (prefs.length ? '<div style="font-size:' + px(11) + 'px;color:#475569;font-style:italic;margin:' + px(8) + 'px 0;">' + t.dietaryPrefs + ' ' + prefs.join(', ') + '</div>' : '');
+        const info = '<h2 style="text-align:center;color:#4A76AB;font-size:' + px(21) + 'px;font-weight:700;margin:0 0 ' + px(14) + 'px 0;">' + t.mainTitle + '</h2><div style="background:#f4f8ff;border:1.5px solid #d2ddef;border-radius:5px;padding:' + px(9) + 'px ' + px(16) + 'px ' + px(7) + 'px;"><table style="width:100%;border-collapse:collapse;font-size:' + px(13) + 'px;line-height:1.75;"><col style="width:36%"><col style="width:33%"><col style="width:31%"><tr><td style="padding:' + px(2) + 'px 8px;font-weight:700;">' + t.patient + ' ' + (clean(p.name) || t.notProvided) + '</td><td style="padding:' + px(2) + 'px 8px;"></td><td style="padding:' + px(2) + 'px 8px;font-weight:700;">' + t.date + ' ' + renderDate(p.date) + '</td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.age + ' ' + (clean(p.age) || '—') + ' ' + t.years + '</td><td style="padding:' + px(2) + 'px 8px;">' + t.gender + ' ' + (clean(p.gender) || '—') + '</td><td style="padding:' + px(2) + 'px 8px;"></td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.height + ' ' + (clean(m.height) || '—') + ' cm</td><td style="padding:' + px(2) + 'px 8px;">' + t.weight + ' ' + (clean(m.weight) || '—') + ' kg</td><td style="padding:' + px(2) + 'px 8px;">' + t.target + ' ' + (clean(m.targetWeight) || '—') + ' kg</td></tr><tr><td style="padding:' + px(2) + 'px 8px;">' + t.bmi + ' ' + (clean(m.bmi) || '—') + ' kg/m²</td><td style="padding:' + px(2) + 'px 8px;">' + t.calories + ' ' + (clean(mp.calorieTarget) || t.notSet) + ' kcal/day</td><td style="padding:' + px(2) + 'px 8px;"></td></tr><tr><td colspan="3" style="padding:' + px(2) + 'px 8px;">' + t.followup + ' ' + renderDate(p.nextFollowupDate) + '</td></tr></table></div>' + (prefs.length ? '<div style="font-size:' + px(11) + 'px;color:#475569;font-style:italic;margin:' + px(8) + 'px 0;">' + t.dietaryPrefs + ' ' + prefs.join(', ') + '</div>' : '');
         const blocks = [{ splittable: false, keepWithNext: true, html: '<div style="margin-bottom:' + px(12) + 'px;">' + info + '</div>' }];
         let plateHTML = '';
         if (plateImgSrc && inclChart) {
-            plateHTML = '<div style="text-align:center;margin-bottom:' + px(6) + 'px;padding-top:' + px(10) + 'px;border-top:1px solid #e5e7eb;"><div style="color:#1877F2;font-size:' + px(15) + 'px;font-weight:700;margin-bottom:' + px(4) + 'px;">' + t.mealPlateRatio + '</div><div style="font-size:' + px(11) + 'px;color:#64748b;margin-bottom:' + px(6) + 'px;">' + t.patientType + ' ' + (isDiab ? t.diabetic : t.nonDiabetic) + '</div><img src="' + plateImgSrc + '" style="max-width:' + px(430) + 'px;max-height:' + px(360) + 'px;display:block;margin:0 auto;" /><div style="display:flex;justify-content:center;gap:' + px(24) + 'px;margin-top:' + px(6) + 'px;font-size:' + px(11) + 'px;color:#374151;"><span>' + ptd.legend[0] + ': ' + (plate.vegetables || 0) + '%</span><span>' + ptd.legend[1] + ': ' + (plate.protein || 0) + '%</span><span>' + ptd.legend[2] + ': ' + (plate.grains || 0) + '%</span></div></div>';
+            plateHTML = '<div style="text-align:center;margin-bottom:' + px(6) + 'px;padding-top:' + px(10) + 'px;border-top:1px solid #e5e7eb;"><div style="color:#4A76AB;font-size:' + px(15) + 'px;font-weight:700;margin-bottom:' + px(4) + 'px;">' + t.mealPlateRatio + '</div><div style="font-size:' + px(11) + 'px;color:#64748b;margin-bottom:' + px(6) + 'px;">' + t.patientType + ' ' + (isDiab ? t.diabetic : t.nonDiabetic) + '</div><img src="' + plateImgSrc + '" style="max-width:' + px(430) + 'px;max-height:' + px(360) + 'px;display:block;margin:0 auto;" /><div style="display:flex;justify-content:center;gap:' + px(24) + 'px;margin-top:' + px(6) + 'px;font-size:' + px(11) + 'px;color:#374151;"><span>' + ptd.legend[0] + ': ' + (plate.vegetables || 0) + '%</span><span>' + ptd.legend[1] + ': ' + (plate.protein || 0) + '%</span><span>' + ptd.legend[2] + ': ' + (plate.grains || 0) + '%</span></div></div>';
         } else if (inclChart || inclImage) {
             plateHTML = '<div style="text-align:center;margin-bottom:' + px(6) + 'px;"><img src="https://res.cloudinary.com/dkj22lm1g/image/upload/v1773588268/IMG-20260315-WA0081_rwxwet.jpg" style="max-width:' + px(500) + 'px;width:80%;display:block;margin:0 auto;" crossorigin="anonymous" /></div>';
         }
@@ -2080,15 +2083,15 @@
         if (!inclTbl) {
             const specs = mealKeys.map(key => { const content = fmtOpts(mp.meals[optPropMap[key]]); if (!content) return null; return { splittable: true, spec: { title: getMealLabel(key), color: '#1e40af', ts: px(15), tmb: px(4), cs: px(13), lh: 1.7, pl: px(11), mb: px(12), lines: content.split('\n'), contWord: '(cont.)' } }; }).filter(Boolean);
             if (!specs.length) return [];
-            return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#1877F2;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(10) + 'px 0;">' + t.dailyMealSchedule + '</h2>' }, ...specs];
+            return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#4A76AB;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(10) + 'px 0;">' + t.dailyMealSchedule + '</h2>' }, ...specs];
         }
         const COL_STYLES = '<colgroup><col style="width:197px"><col style="width:483px"></colgroup>';
         const TABLE_WRAP = body => '<table style="width:100%;border-collapse:collapse;table-layout:fixed;font-family:' + t.fontFamily + ';">' + COL_STYLES + body + '</table>';
-        const thead = '<thead><tr><th style="background:#1877F2;color:white;padding:' + px(8) + 'px ' + px(10) + 'px;text-align:left;border:1px solid #1877F2;font-size:' + px(13) + 'px;font-weight:700;">' + t.mealTimeCol + '</th><th style="background:#1877F2;color:white;padding:' + px(8) + 'px ' + px(10) + 'px;text-align:left;border:1px solid #1877F2;font-size:' + px(13) + 'px;font-weight:700;">' + t.planDetailsCol + '</th></tr></thead>';
-        const rowsRaw = mealKeys.map(key => '<tr><td style="padding:' + px(8) + 'px ' + px(10) + 'px;font-size:' + px(12) + 'px;font-weight:700;color:#1e40af;vertical-align:top;border:1px solid #d1d5db;background:#f8fafc;">' + getMealLabel(key) + '</td><td style="padding:' + px(8) + 'px ' + px(10) + 'px;font-size:' + px(12) + 'px;color:#111827;vertical-align:top;border:1px solid #d1d5db;white-space:pre-wrap;line-height:1.7;">' + (fmtOpts(mp.meals[optPropMap[key]]) || '—') + '</td></tr>');
+        const thead = '<thead><tr><th style="background:#4A76AB;color:white;padding:' + px(8) + 'px ' + px(10) + 'px;text-align:left;border:1px solid #4A76AB;font-size:' + px(13) + 'px;font-weight:700;">' + t.mealTimeCol + '</th><th style="background:#4A76AB;color:white;padding:' + px(8) + 'px ' + px(10) + 'px;text-align:left;border:1px solid #4A76AB;font-size:' + px(13) + 'px;font-weight:700;">' + t.planDetailsCol + '</th></tr></thead>';
+        const rowsRaw = mealKeys.map(key => '<tr><td style="padding:' + px(8) + 'px ' + px(10) + 'px;font-size:' + px(12) + 'px;font-weight:700;color:#3C5F8A;vertical-align:top;border:1px solid #d1d5db;background:#f8fafc;">' + getMealLabel(key) + '</td><td style="padding:' + px(8) + 'px ' + px(10) + 'px;font-size:' + px(12) + 'px;color:#22322A;vertical-align:top;border:1px solid #d1d5db;white-space:pre-wrap;line-height:1.7;">' + (fmtOpts(mp.meals[optPropMap[key]]) || '—') + '</td></tr>');
         ruler.innerHTML = TABLE_WRAP(thead); const theadH = ruler.offsetHeight + 2;
         const rows = rowsRaw.map(html => { ruler.innerHTML = TABLE_WRAP('<tbody>' + html + '</tbody>'); return { html, h: ruler.offsetHeight + 2 }; });
-        return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#1877F2;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(10) + 'px 0;">' + t.mealPlanTable + '</h2>' }, { type: 'table', thead, theadH, rows, wrap: TABLE_WRAP }];
+        return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#4A76AB;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(10) + 'px 0;">' + t.mealPlanTable + '</h2>' }, { type: 'table', thead, theadH, rows, wrap: TABLE_WRAP }];
     }
 
     // ── Guideline blocks: heading (keep-with-next) + one splittable block each ─────
@@ -2100,7 +2103,7 @@
         const defs = [['dailyTargets', hydration, '#0284c7'], ['exerciseRec', sm(g.exercise), '#059669'], ['thingsToConsider', checkedGL, '#7c3aed'], ['foodsToAvoid', sm(g.foodsToAvoid), '#dc2626'], ['specialInstructions', sm(g.specialInstructions), '#2563eb']];
         const specs = defs.map(([k, content, color]) => (content && content.trim()) ? { splittable: true, spec: { title: t[k], color, ts: px(15), tmb: px(4), cs: px(13), lh: 1.7, pl: px(11), mb: px(12), lines: content.split('\n'), contWord: '(cont.)' } } : null).filter(Boolean);
         if (!specs.length) return [];
-        return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#1877F2;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(12) + 'px 0;">' + t.guidelinesTitle + '</h2>' }, ...specs];
+        return [{ splittable: false, keepWithNext: true, html: '<h2 style="color:#4A76AB;font-size:' + px(20) + 'px;font-weight:700;margin:0 0 ' + px(12) + 'px 0;">' + t.guidelinesTitle + '</h2>' }, ...specs];
     }
 
     async function generateLocalizedPDF(lang, previewMode = false) {
@@ -2238,5 +2241,6 @@
     initAuth();
 </script>
 <script src="../../assets/gt-switcher.js" defer></script>
+<script src="../../assets/gt-chrome.js" defer></script>
 </body>
 </html>

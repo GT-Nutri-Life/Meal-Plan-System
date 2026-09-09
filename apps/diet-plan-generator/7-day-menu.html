@@ -12,22 +12,22 @@
             font-family: 'Inter', sans-serif;
         }
         .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7566A8 0%, #5E5288 100%);
         }
         .card-shadow {
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
         }
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #7566A8;
+            box-shadow: 0 0 0 3px rgba(117,102,168, 0.1);
         }
         .menu-option {
             position: relative;
             padding-left: 1.5rem;
         }
         .remove-option-btn {
-            background: #ef4444;
+            background: #B5555F;
             color: white;
             border: none;
             padding: 0.25rem 0.5rem;
@@ -37,10 +37,10 @@
             transition: background-color 0.2s;
         }
         .remove-option-btn:hover {
-            background: #dc2626;
+            background: #A44E58;
         }
         .add-option-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #7566A8 0%, #5E5288 100%);
             color: white;
             border: none;
             padding: 0.5rem 1rem;
@@ -54,7 +54,7 @@
             opacity: 0.9;
         }
         .day-section {
-            border-left: 4px solid #667eea;
+            border-left: 4px solid #7566A8;
         }
         .meal-card {
             background: linear-gradient(to right, #f9fafb, #ffffff);
@@ -65,7 +65,7 @@
             transform: scale(0.98);
         }
         .move-btn {
-            background: #667eea;
+            background: #7566A8;
             color: white;
             border: none;
             padding: 0.35rem 0.6rem;
@@ -88,6 +88,9 @@
             opacity: 0.6;
         }
     </style>
+<script src="../../assets/gt-palette.js"></script>
+<script src="../../assets/gt-tailwind.js"></script>
+<link rel="stylesheet" href="../../assets/gt-theme.css">
 </head>
 <body class="bg-gray-50">
     <!-- Header -->
@@ -1088,5 +1091,6 @@
         document.addEventListener('DOMContentLoaded', initializeForm);
     </script>
 <script src="../../assets/gt-switcher.js" defer></script>
+<script src="../../assets/gt-chrome.js" defer></script>
 </body>
 </html>

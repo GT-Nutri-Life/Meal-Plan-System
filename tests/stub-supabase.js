@@ -20,6 +20,108 @@ window.GT_TEST_CREDENTIALS = {
   offList:  { email: 'stranger@example.com',            password: 'correct-horse' }
 };
 
+/*
+ * A tiny stand-in for PostgREST.
+ *
+ * The original stub held one row per table, which was all the shared clinical
+ * record ever needed. The client library needs more than that — it lists,
+ * filters, orders and updates many rows — so this is a small in-memory table
+ * with just the operators that assets/gt-context.js actually calls.
+ *
+ * window.__GT_DB__[table] still exposes the most recently written row, because
+ * the existing suites assert against it directly.
+ */
+window.__GT_ROWS__ = window.__GT_ROWS__ || {};
+
+function query(table) {
+  var rows = (window.__GT_ROWS__[table] = window.__GT_ROWS__[table] || []);
+  var filters = [];
+  var pending = null;         // the row(s) an upsert/update just produced
+  var orderBy = null, limit = null;
+
+  function matches(row) {
+    return filters.every(function (f) {
+      var v = row[f.col];
+      if (f.op === 'eq') return String(v) === String(f.val);
+      if (f.op === 'ilike') return String(v || '').toLowerCase() === String(f.val || '').toLowerCase();
+      return true;
+    });
+  }
+
+  function result() {
+    if (pending) return { data: pending, error: null };
+    var out = rows.filter(matches);
+    if (orderBy) {
+      out = out.slice().sort(function (a, b) {
+        var x = a[orderBy.field], y = b[orderBy.field];
+        return orderBy.asc ? (x > y ? 1 : x < y ? -1 : 0) : (x < y ? 1 : x > y ? -1 : 0);
+      });
+    }
+    if (limit !== null) out = out.slice(0, limit);
+    return { data: out, error: null };
+  }
+
+  var api = {
+    upsert: function (row, opts) {
+      var key = (opts && opts.onConflict) ? String(opts.onConflict).split(',') : ['id'];
+      var existing = rows.filter(function (r) {
+        return key.every(function (k) {
+          return String(r[k] || '').toLowerCase() === String(row[k] || '').toLowerCase();
+        });
+      })[0];
+      var saved;
+      if (existing) {
+        Object.keys(row).forEach(function (k) { existing[k] = row[k]; });
+        existing.updated_at = new Date().toISOString();
+        saved = existing;
+      } else {
+        saved = Object.assign({ id: 'row-' + (rows.length + 1), archived: false,
+                                updated_at: new Date().toISOString() }, row);
+        rows.push(saved);
+      }
+      window.__GT_DB__[table] = saved;
+      pending = saved;
+      return api;
+    },
+    update: function (patch) {
+      pending = null;
+      api._patch = patch;
+      return api;
+    },
+    delete: function () { api._delete = true; return api; },
+    select: function () { return api; },
+    eq: function (col, val) {
+      filters.push({ op: 'eq', col: col, val: val });
+      if (api._delete) {
+        for (var i = rows.length - 1; i >= 0; i--) if (matches(rows[i])) rows.splice(i, 1);
+        if (window.__GT_DB__[table] && !rows.length) delete window.__GT_DB__[table];
+      } else if (api._patch) {
+        rows.filter(matches).forEach(function (r) {
+          Object.keys(api._patch).forEach(function (k) { r[k] = api._patch[k]; });
+          r.updated_at = new Date().toISOString();
+          window.__GT_DB__[table] = r;
+          pending = r;
+        });
+      }
+      return api;
+    },
+    ilike: function (col, val) { filters.push({ op: 'ilike', col: col, val: val }); return api; },
+    order: function (field, opts) {
+      orderBy = { field: field, asc: !!(opts && opts.ascending) };
+      return api;
+    },
+    limit: function (n) { limit = n; return api; },
+    maybeSingle: async function () {
+      var r = result();
+      var d = Array.isArray(r.data) ? (r.data[0] || null) : r.data;
+      return { data: d, error: null };
+    },
+    // Awaiting the builder itself resolves the query, the way PostgREST does.
+    then: function (resolve, reject) { return Promise.resolve(result()).then(resolve, reject); }
+  };
+  return api;
+}
+
 window.supabase = {
   createClient: function () {
     var cbs = [];
@@ -62,19 +164,7 @@ window.supabase = {
         updateUser: async function () { return { data: {}, error: null }; }
       },
 
-      from: function (table) {
-        return {
-          upsert: async function (row) { window.__GT_DB__[table] = row; return { error: null }; },
-          select: function () {
-            return { eq: function () { return { maybeSingle: async function () {
-              return { data: window.__GT_DB__[table] || null, error: null };
-            } }; } };
-          },
-          delete: function () {
-            return { eq: async function () { delete window.__GT_DB__[table]; return { error: null }; } };
-          }
-        };
-      }
+      from: function (table) { return query(table); }
     };
   }
 };

@@ -28,6 +28,9 @@ jobs:
       - name: Every bundled page carries the switcher
         run: scripts/inject-nav.sh --check
 
+      - name: Every bundled page is on the pastel palette
+        run: scripts/recolor-apps.js --check
+
       - name: Registry, adapters and data flow agree with what is on disk
         run: scripts/verify-registry.js
 
