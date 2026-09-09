@@ -41,15 +41,28 @@
     'patient.phone':   'Phone',
     'patient.email':   'Email',
     'patient.address': 'Address',
-    'patient.id':      'Patient ID',
-    'patient.ward':    'Ward',
+    'patient.id':         'Patient ID',
+    'patient.ward':       'Ward',
+    'patient.occupation': 'Occupation',
+    'patient.country':    'Country',
 
     'measure.heightCm':       'Height',
     'measure.weightKg':       'Weight',
     'measure.waistCm':        'Waist',
     'measure.targetWeightKg': 'Target weight',
+    'measure.hipCm':          'Hip',
+    'measure.bodyFatPct':     'Body fat',
     'measure.bmi':            'BMI',
     'measure.bmiCategory':    'BMI category',
+
+    /* Carried so a plan generator does not ask again for what the assessment
+       already recorded. Free text, and deliberately never auto-overwritten:
+       see the onlyEmpty rule in GTContext.autofill. */
+    'clinical.conditions':  'Medical conditions',
+    'clinical.diagnosis':   'Diagnosis',
+    'clinical.allergies':   'Allergies',
+    'clinical.medications': 'Medications',
+    'clinical.supplements': 'Supplements',
 
     'energy.bmr':      'BMR',
     'energy.tdee':     'Daily energy needs',
@@ -62,6 +75,25 @@
 
     'plan.calorieTarget': 'Calorie target',
     'plan.startDate':     'Plan start date',
+    'plan.goal':          'Plan goal',
+    'plan.durationWeeks': 'Plan duration',
+    'plan.proteinG':      'Protein target',
+    'plan.carbsG':        'Carbohydrate target',
+    'plan.fatG':          'Fat target',
+    'plan.waterIntake':   'Water intake',
+    'plan.exercise':      'Exercise',
+    'plan.foodsToAvoid':  'Foods to avoid',
+    'plan.notes':         'Plan notes',
+
+    /* Meal times, shared by the plan generator and both weekly menu builders.
+       The times a client actually eats are the thing every one of those tools
+       asks for first, and the thing nobody wants to type three times. */
+    'meals.bedTeaTime':       'Bed tea',
+    'meals.breakfastTime':    'Breakfast',
+    'meals.midMorningTime':   'Mid-morning snack',
+    'meals.lunchTime':        'Lunch',
+    'meals.eveningSnackTime': 'Evening snack',
+    'meals.dinnerTime':       'Dinner',
 
     'dietitian.name':        'Dietitian',
     'dietitian.credentials': 'Credentials',
@@ -74,7 +106,10 @@
     'measure.targetWeightKg': 'kg',
     'energy.bmr': 'kcal/day', 'energy.tdee': 'kcal/day', 'energy.target': 'kcal/day',
     'plan.calorieTarget': 'kcal/day',
-    'macros.choPct': '%', 'macros.proPct': '%', 'macros.fatPct': '%'
+    'macros.choPct': '%', 'macros.proPct': '%', 'macros.fatPct': '%',
+    'measure.hipCm': 'cm', 'measure.bodyFatPct': '%',
+    'plan.proteinG': 'g', 'plan.carbsG': 'g', 'plan.fatG': 'g',
+    'plan.durationWeeks': 'weeks'
   };
 
   /* ---------- tiny helpers --------------------------------------------- */
@@ -110,6 +145,34 @@
 
   var $ = function (id) { return document.getElementById(id); };
   var $n = function (name) { return document.querySelector('[name="' + name + '"]'); };
+
+  /**
+   * Find a field by id, or failing that by name.
+   *
+   * The two weekly menu builders present the same fields under different
+   * attributes — one gives its client name an id, the other only a name — and
+   * because a single adapter serves both, addressing it one way silently did
+   * nothing on the other page for the life of the feature. Ask for the field
+   * rather than for the attribute.
+   */
+  var $f = function (key) { return $(key) || $n(key); };
+
+  /**
+   * A macro target in grams.
+   *
+   * Grams win when the record holds them. Otherwise they are derived from the
+   * percentage split and the calorie target at the standard Atwater factors —
+   * 4 kcal/g for protein and carbohydrate, 9 for fat — which is the same sum
+   * the dietitian would do by hand, and the only way a split produced by the
+   * exchange calculator can reach a generator that asks for grams.
+   */
+  function gramsFor(rec, gramsKey, pctPath, kcalPerG, kcal) {
+    var direct = get(rec, 'plan.' + gramsKey);
+    if (!blank(direct)) return round(direct, 0);
+    var pct = num(get(rec, pctPath)), c = num(kcal);
+    if (pct === null || c === null) return null;
+    return round(c * (pct / 100) / kcalPerG, 0);
+  }
 
   /** Read a form control's value, or null when absent/empty. */
   function rd(el) {
@@ -225,6 +288,23 @@
    *         many fields it actually filled.                              *
    * ==================================================================== */
 
+  /*
+   * The meal slots the plan generator, the weekly menu builders and the
+   * calendar generator all share. Each names them slightly differently, so the
+   * mapping lives here once instead of three times.
+   *   id      what the weekly planners call the slot
+   *   path    the canonical meals.* key
+   *   mpg     the Meal Plan Generator's start-time field
+   */
+  var MEAL_SLOTS = [
+    { id: 'bedTea',           path: 'bedTeaTime',       mpg: 'earlyMorningStartTime' },
+    { id: 'breakfast',        path: 'breakfastTime',    mpg: 'breakfastStartTime' },
+    { id: 'midMorningSnack',  path: 'midMorningTime',   mpg: 'midMorningStartTime' },
+    { id: 'lunch',            path: 'lunchTime',        mpg: 'lunchStartTime' },
+    { id: 'eveningSnack',     path: 'eveningSnackTime', mpg: 'eveningSnackStartTime' },
+    { id: 'dinner',           path: 'dinnerTime',       mpg: 'dinnerStartTime' }
+  ];
+
   var ADAPTERS = {
 
     /* ---- BMI Assessment: the entry point for anthropometry and energy -- */
@@ -307,6 +387,7 @@
         var out = {};
         var map = {
           'pName': 'patient.name', 'pId': 'patient.id', 'pWard': 'patient.ward',
+          'notes': 'plan.notes',
           'pAge': 'patient.age', 'pHeight': 'measure.heightCm', 'pWeight': 'measure.weightKg',
           'energyReq': 'energy.target', 'reqCho': 'macros.choPct',
           'reqPro': 'macros.proPct', 'reqFat': 'macros.fatPct',
@@ -314,7 +395,7 @@
         };
         Object.keys(map).forEach(function (id) {
           var v = rd($(id));
-          if (v !== null) set(out, map[id], /^(pName|pId|pWard|pDietitian)$/.test(id) ? v : (num(v) !== null ? num(v) : v));
+          if (v !== null) set(out, map[id], /^(pName|pId|pWard|pDietitian|notes)$/.test(id) ? v : (num(v) !== null ? num(v) : v));
         });
         var sex = sexLower(rd($('pSex')));
         if (sex) set(out, 'patient.sex', sex);
@@ -325,6 +406,7 @@
         if (wr($('pName'),   get(rec, 'patient.name')))  n++;
         if (wr($('pId'),     get(rec, 'patient.id')))    n++;
         if (wr($('pWard'),   get(rec, 'patient.ward')))  n++;
+        if (wr($('notes'),   get(rec, 'plan.notes')))    n++;
         if (wr($('pAge'),    get(rec, 'patient.age')))   n++;
         if (wr($('pSex'),    sexTitle(get(rec, 'patient.sex')))) n++;
         if (wr($('pHeight'), get(rec, 'measure.heightCm'))) n++;
@@ -352,13 +434,19 @@
           'patientAddress': 'patient.address',
           'patientHeight': 'measure.heightCm', 'patientWeight': 'measure.weightKg',
           'targetWeight': 'measure.targetWeightKg',
-          'calorieTarget': 'plan.calorieTarget',
+          'calorieTarget': 'plan.calorieTarget', 'planDuration': 'plan.durationWeeks',
+          'waterIntake': 'plan.waterIntake', 'exerciseRecommendation': 'plan.exercise',
+          'foodsToAvoid': 'plan.foodsToAvoid', 'specialInstructions': 'plan.notes',
           'nutritionistName': 'dietitian.name', 'credentials': 'dietitian.credentials',
           'nutritionistPhone': 'dietitian.phone', 'nutritionistEmail': 'dietitian.email'
         };
         Object.keys(map).forEach(function (id) {
           var v = rd($(id));
           if (v !== null) set(out, map[id], v);
+        });
+        MEAL_SLOTS.forEach(function (m) {
+          var t = rd($(m.mpg));
+          if (t) set(out, 'meals.' + m.path, t);
         });
         var sex = sexLower(rd($('patientGender')));
         if (sex) set(out, 'patient.sex', sex);
@@ -370,6 +458,14 @@
       },
       write: function (rec) {
         var n = 0;
+        if (wr($('planDuration'),           get(rec, 'plan.durationWeeks')))     n++;
+        if (wr($('waterIntake'),            get(rec, 'plan.waterIntake')))       n++;
+        if (wr($('exerciseRecommendation'), get(rec, 'plan.exercise')))          n++;
+        if (wr($('foodsToAvoid'),           get(rec, 'plan.foodsToAvoid')))      n++;
+        if (wr($('specialInstructions'),    get(rec, 'plan.notes')))             n++;
+        MEAL_SLOTS.forEach(function (m) {
+          if (wr($(m.mpg), get(rec, 'meals.' + m.path))) n++;
+        });
         if (wr($('patientName'),    get(rec, 'patient.name')))    n++;
         if (wr($('patientAge'),     get(rec, 'patient.age')))     n++;
         if (wr($('patientGender'),  sexTitle(get(rec, 'patient.sex')))) n++;
@@ -408,6 +504,25 @@
         if ((v = rd($n('contact'))))       set(out, 'patient.phone', v);
         if ((v = rd($n('currentWeight')))) set(out, 'measure.weightKg', num(v));
         if ((v = rd($n('activityLevel')))) set(out, 'energy.activity', v);
+        if ((v = rd($n('occupation'))))    set(out, 'patient.occupation', v);
+        if ((v = rd($n('country'))))       set(out, 'patient.country', v);
+        if ((v = rd($n('targetWeight'))))  set(out, 'measure.targetWeightKg', num(v));
+        if ((v = rd($n('waist'))))         set(out, 'measure.waistCm', num(v));
+        if ((v = rd($n('hip'))))           set(out, 'measure.hipCm', num(v));
+        if ((v = rd($n('bodyFat'))))       set(out, 'measure.bodyFatPct', num(v));
+        if ((v = rd($n('allergies'))))     set(out, 'clinical.allergies', v);
+        if ((v = rd($n('medications'))))   set(out, 'clinical.medications', v);
+        if ((v = rd($n('supplements'))))   set(out, 'clinical.supplements', v);
+        if ((v = rd($n('water'))))         set(out, 'plan.waterIntake', v);
+        if ((v = rd($n('exercise'))))      set(out, 'plan.exercise', v);
+        if ((v = rd($n('dislikes'))))      set(out, 'plan.foodsToAvoid', v);
+        if ((v = rd($n('additionalNotes')))) set(out, 'plan.notes', v);
+
+        // Current conditions and history are two fields here and one canonical
+        // one; joined rather than letting the second silently win.
+        var conds = [rd($n('otherCurrentMedical')), rd($n('pastMedicalHistory'))]
+          .filter(function (x) { return !blank(x); });
+        if (conds.length) set(out, 'clinical.conditions', conds.join(' · '));
         var sex = sexLower(rd($n('gender')));
         if (sex) set(out, 'patient.sex', sex);
         // Height is split across a unit toggle.
@@ -430,6 +545,21 @@
         if (wr($n('contact'),  get(rec, 'patient.phone'))) n++;
         if (wr($n('gender'),   sexTitle(get(rec, 'patient.sex')))) n++;
         if (wr($n('currentWeight'), get(rec, 'measure.weightKg'))) n++;
+        if (wr($n('occupation'),   get(rec, 'patient.occupation')))     n++;
+        if (wr($n('country'),      get(rec, 'patient.country')))        n++;
+        if (wr($n('targetWeight'), get(rec, 'measure.targetWeightKg'))) n++;
+        if (wr($n('waist'),        get(rec, 'measure.waistCm')))        n++;
+        if (wr($n('hip'),          get(rec, 'measure.hipCm')))          n++;
+        if (wr($n('bodyFat'),      get(rec, 'measure.bodyFatPct')))     n++;
+        if (wr($n('allergies'),    get(rec, 'clinical.allergies')))     n++;
+        if (wr($n('medications'),  get(rec, 'clinical.medications')))   n++;
+        if (wr($n('supplements'),  get(rec, 'clinical.supplements')))   n++;
+        if (wr($n('otherCurrentMedical'), get(rec, 'clinical.conditions'))) n++;
+        if (wr($n('water'),        get(rec, 'plan.waterIntake')))       n++;
+        if (wr($n('exercise'),     get(rec, 'plan.exercise')))          n++;
+        if (wr($n('dislikes'),     get(rec, 'plan.foodsToAvoid')))      n++;
+        if (wr($n('additionalNotes'), get(rec, 'plan.notes')))          n++;
+        if (wr($n('activityLevel'), get(rec, 'energy.activity')))       n++;
         var cm = get(rec, 'measure.heightCm');
         if (!blank(cm)) {
           if (rd($('height-unit')) === 'ft') {
@@ -444,6 +574,14 @@
 
     /* ---- Diet Plan Calendar Generator: schedules the finished plan ------ */
     'diet-plan-calendar-generator': {
+      /*
+       * These three fields are grams — the labels read "Protein (g)" and the
+       * aria-labels say "Target protein in grams". They were mapped to
+       * macros.*Pct, so a 50/20/30 split arriving from the exchange
+       * calculator was written in as a 50 g carbohydrate target. Percentages
+       * and grams now live in separate canonical fields, and grams are
+       * derived from the split when only the split is known.
+       */
       read: function () {
         var out = {}, v;
         if ((v = rd($('patientName'))))    set(out, 'patient.name', v);
@@ -451,9 +589,13 @@
         if ((v = rd($('patientPhone'))))   set(out, 'patient.phone', v);
         if ((v = rd($('targetCalories')))) set(out, 'plan.calorieTarget', num(v));
         if ((v = rd($('startDate'))))      set(out, 'plan.startDate', v);
-        if ((v = rd($('targetCarbs'))))    set(out, 'macros.choPct', num(v));
-        if ((v = rd($('targetProtein'))))  set(out, 'macros.proPct', num(v));
-        if ((v = rd($('targetFats'))))     set(out, 'macros.fatPct', num(v));
+        if ((v = rd($('targetProtein'))))  set(out, 'plan.proteinG', num(v));
+        if ((v = rd($('targetCarbs'))))    set(out, 'plan.carbsG', num(v));
+        if ((v = rd($('targetFats'))))     set(out, 'plan.fatG', num(v));
+        if ((v = rd($('goal'))))           set(out, 'plan.goal', v);
+        if ((v = rd($('duration'))))       set(out, 'plan.durationWeeks', num(v));
+        if ((v = rd($('planNotes'))))      set(out, 'plan.notes', v);
+        if ((v = rd($('workoutType'))))    set(out, 'plan.exercise', v);
         return out;
       },
       write: function (rec) {
@@ -461,14 +603,21 @@
         if (wr($('patientName'),  get(rec, 'patient.name')))  n++;
         if (wr($('patientEmail'), get(rec, 'patient.email'))) n++;
         if (wr($('patientPhone'), get(rec, 'patient.phone'))) n++;
+
         var kcal = get(rec, 'plan.calorieTarget');
         if (blank(kcal)) kcal = get(rec, 'energy.target');
         if (blank(kcal)) kcal = get(rec, 'energy.tdee');
         if (wr($('targetCalories'), round(kcal, 0))) n++;
-        if (wr($('startDate'),      get(rec, 'plan.startDate'))) n++;
-        if (wr($('targetCarbs'),    get(rec, 'macros.choPct'))) n++;
-        if (wr($('targetProtein'),  get(rec, 'macros.proPct'))) n++;
-        if (wr($('targetFats'),     get(rec, 'macros.fatPct'))) n++;
+
+        if (wr($('startDate'), get(rec, 'plan.startDate'))) n++;
+        if (wr($('goal'),      get(rec, 'plan.goal')))      n++;
+        if (wr($('duration'),  get(rec, 'plan.durationWeeks'))) n++;
+        if (wr($('planNotes'), get(rec, 'plan.notes')))     n++;
+        if (wr($('workoutType'), get(rec, 'plan.exercise'))) n++;
+
+        if (wr($('targetProtein'), gramsFor(rec, 'proteinG', 'macros.proPct', 4, kcal))) n++;
+        if (wr($('targetCarbs'),   gramsFor(rec, 'carbsG',   'macros.choPct', 4, kcal))) n++;
+        if (wr($('targetFats'),    gramsFor(rec, 'fatG',     'macros.fatPct', 9, kcal))) n++;
         return n;
       }
     },
@@ -477,7 +626,8 @@
     'icu': {
       read: function () {
         var out = {}, v;
-        if ((v = rd($('patientId')))) set(out, 'patient.id', v);
+        if ((v = rd($('patientId'))))  set(out, 'patient.id', v);
+        if ((v = rd($('diagnosis'))))  set(out, 'clinical.diagnosis', v);
         if ((v = rd($('age'))))       set(out, 'patient.age', num(v));
         if ((v = rd($('height'))))    set(out, 'measure.heightCm', num(v));
         if ((v = rd($('weight'))))    set(out, 'measure.weightKg', num(v));
@@ -492,22 +642,43 @@
         if (wr($('gender'),    sexLower(get(rec, 'patient.sex')))) n++;
         if (wr($('height'),    get(rec, 'measure.heightCm'))) n++;
         if (wr($('weight'),    get(rec, 'measure.weightKg'))) n++;
+        if (wr($('diagnosis'), get(rec, 'clinical.diagnosis'))) n++;
         return n;
       }
     },
 
-    /* ---- The two weekly menu builders: client and start date ----------- */
+    /* ---- The two weekly menu builders --------------------------------- *
+     * These carried the client name and the start date and nothing else, and
+     * on the 7-Day Diet Menu Planner they carried neither: that page names its
+     * client field rather than giving it an id, and the shared adapter asked
+     * by id, so every prefill there silently did nothing. $f() asks for the
+     * field either way.
+     *
+     * A weekly menu is built around when the client eats, so the meal times
+     * travel with it. The planner writes them as <input type="time"> ids and
+     * the plan generator holds the same information as its own start times;
+     * both now read and write the one canonical set.
+     */
     'dpg-7-day-menu': {
       read: function () {
         var out = {}, v;
-        if ((v = rd($('clientName')))) set(out, 'patient.name', v);
-        if ((v = rd($('startDate'))))  set(out, 'plan.startDate', v);
+        if ((v = rd($f('clientName'))))   set(out, 'patient.name', v);
+        if ((v = rd($f('startDate'))))    set(out, 'plan.startDate', v);
+        if ((v = rd($f('specialNotes')))) set(out, 'plan.notes', v);
+        MEAL_SLOTS.forEach(function (m) {
+          var t = rd($f('mealTime-' + m.id));
+          if (t) set(out, 'meals.' + m.path, t);
+        });
         return out;
       },
       write: function (rec) {
         var n = 0;
-        if (wr($('clientName'), get(rec, 'patient.name')))    n++;
-        if (wr($('startDate'),  get(rec, 'plan.startDate')))  n++;
+        if (wr($f('clientName'),   get(rec, 'patient.name')))    n++;
+        if (wr($f('startDate'),    get(rec, 'plan.startDate')))  n++;
+        if (wr($f('specialNotes'), get(rec, 'plan.notes')))      n++;
+        MEAL_SLOTS.forEach(function (m) {
+          if (wr($f('mealTime-' + m.id), get(rec, 'meals.' + m.path))) n++;
+        });
         return n;
       }
     }
@@ -515,8 +686,31 @@
 
   // main.html is the Meal Plan Generator with a .docx export; identical fields.
   ADAPTERS['meal-plan-generator-docx'] = ADAPTERS['meal-plan-generator'];
-  // Both weekly menu builders expose clientName + startDate.
-  ADAPTERS['dpcg-7-day-menu'] = ADAPTERS['dpg-7-day-menu'];
+  /*
+   * The two weekly menu builders are near-twins but not twins, and aliasing
+   * one to the other hid that: the 7-Day Diet Menu Planner carries special
+   * notes and a time for each meal, while the calendar generator's planner
+   * carries a plan goal and neither of those. A shared adapter meant half its
+   * selectors matched nothing on whichever page it was running in, which is
+   * indistinguishable from a typo. Each now names only its own fields, so
+   * "every selector resolves" is a rule the suites can hold them to.
+   */
+  ADAPTERS['dpcg-7-day-menu'] = {
+    read: function () {
+      var out = {}, v;
+      if ((v = rd($f('clientName')))) set(out, 'patient.name', v);
+      if ((v = rd($f('startDate'))))  set(out, 'plan.startDate', v);
+      if ((v = rd($f('planGoal'))))   set(out, 'plan.goal', v);
+      return out;
+    },
+    write: function (rec) {
+      var n = 0;
+      if (wr($f('clientName'), get(rec, 'patient.name')))   n++;
+      if (wr($f('startDate'),  get(rec, 'plan.startDate'))) n++;
+      if (wr($f('planGoal'),   get(rec, 'plan.goal')))      n++;
+      return n;
+    }
+  };
 
   /*
    * Baby Growth & Feeding is deliberately not wired in. Its subject is an
@@ -533,7 +727,8 @@
   var cached = null;
 
   function emptyRecord() {
-    return { patient: {}, measure: {}, energy: {}, macros: {}, plan: {}, dietitian: {},
+    return { patient: {}, measure: {}, energy: {}, macros: {}, plan: {},
+             clinical: {}, meals: {}, dietitian: {},
              meta: { updatedAt: null, sources: {} } };
   }
 

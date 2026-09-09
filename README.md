@@ -101,6 +101,59 @@ by name is a separate, deliberate act:
 * Rows are per practitioner, under the same row-level security as the rest of
   the schema: `auth.uid() = user_id and is_app_user()`.
 
+## What crosses between subsystems
+
+One client record, 52 canonical fields, and an adapter per tool that maps it on
+and off that tool's own DOM. The apps stay ignorant of each other; the mapping
+lives in `assets/gt-context.js`.
+
+| Group | Carried |
+|---|---|
+| Patient | name, age, sex, date of birth, phone, email, address, patient ID, ward, occupation, country |
+| Measurements | height, weight, waist, hip, target weight, body fat, BMI and its category |
+| Energy | BMR, daily energy needs, activity level, energy prescription |
+| Macros | carbohydrate / protein / fat split, as percentages **and** as grams |
+| Clinical | conditions, diagnosis, allergies, medications, supplements |
+| Plan | calorie target, start date, goal, duration, water, exercise, foods to avoid, notes |
+| Meal times | bed tea, breakfast, mid-morning, lunch, evening snack, dinner |
+| Dietitian | name, credentials, phone, email |
+
+How much each tool exchanges, measured as a round trip — record in, page fills
+itself, page read back out:
+
+| Tool | Fields |
+|---|---|
+| Meal Plan Generator (and its Word export) | 27 |
+| Diet Plan Generator | 21 |
+| Dietary Nutrition Assessment | 13 |
+| Diet Plan Calendar Generator | 12 |
+| BMI Assessment | 10 |
+| 7-Day Diet Menu Planner | 9 |
+| ICU NutriPlan | 5 |
+| 7-Day Menu — multiple options | 3 |
+
+Baby Growth & Feeding stays deliberately unwired: its subject is an infant with
+its own name, birth date, weight and length, and prefilling it from an adult
+record would be a clinical error rather than a convenience.
+
+Two things this had wrong, both silent:
+
+* **The 7-Day Diet Menu Planner carried nothing at all.** Its client field
+  carries a `name` rather than an `id`, the adapter it shared with the other
+  weekly planner asked by id, and a lookup that finds nothing is
+  indistinguishable from a field that was already correct. `$f()` now asks for
+  the field either way, and the two planners have separate adapters because
+  they are not actually twins.
+* **Macro targets were percentages written into gram fields.** The calendar
+  generator's inputs are labelled "Protein (g)", but they were mapped to
+  `macros.*Pct`, so a 50/20/30 split arrived as a 50 g carbohydrate target.
+  Grams and percentages are now separate fields, and grams are derived from the
+  split at 4/4/9 kcal per gram when only the split is known.
+
+`tests/crossref.test.js` puts a complete client through every tool and asserts a
+floor on how much survives, so a field going dead fails the build instead of
+quietly not filling.
+
 ## Cross-references fill themselves
 
 A tool opened with a record in hand fills itself, rather than waiting to be
@@ -295,6 +348,7 @@ npx playwright install chromium
 npm test                    # verification + both browser suites
 node tests/run.js portal    # just the catalogue and switcher
 node tests/run.js handoff   # just sign-in, the record and the client library
+node tests/run.js crossref  # just the cross-system prefill checks
 npm run check:supabase      # live check against the Supabase project
 ```
 
