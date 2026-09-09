@@ -65,8 +65,17 @@ async function probe(name, url, options, judge) {
 
   // GoTrue is up. /health needs no key, so a failure here is the service or
   // the network, never the credentials.
-  await probe('auth service reachable', `${cfg.url}/auth/v1/health`, {},
+  const health = await probe('auth service reachable', `${cfg.url}/auth/v1/health`, {},
     (res) => ({ ok: res.ok }));
+
+  // If nothing reached the project at all, every check below would be
+  // reporting on the network rather than on Supabase. Say so once and stop,
+  // rather than printing six more failures that all mean the same thing.
+  if (!health || !health.res.ok) {
+    console.log('\nCould not reach the project. Everything below depends on that,');
+    console.log('so nothing further was checked.\n');
+    process.exit(1);
+  }
 
   // The publishable key the site ships is accepted by GoTrue. A 401 here is
   // the signature of a rotated or disabled key.
@@ -77,19 +86,30 @@ async function probe(name, url, options, judge) {
   await probe('rest api reachable', `${cfg.url}/rest/v1/`, { headers: asAnon },
     (res) => ({ ok: res.ok }));
 
-  // The two tables the client code reads must exist. Anonymous access is
-  // expected to come back empty or refused — that is RLS doing its job, and
-  // either way it proves the table is there and the request got through.
-  for (const table of ['meal_plan_templates', 'user_progress', 'gt_clinical_records']) {
+  /*
+   * The tables the client code reads must exist.
+   *
+   * Only a 200 counts. It is tempting to treat 401/403 as "RLS refused us,
+   * so the table must be there" — but nothing about those statuses proves the
+   * request ever reached PostgREST: a proxy in the way returns exactly the
+   * same thing, and this check then reports healthy tables on a machine that
+   * cannot see Supabase at all. RLS does not refuse a select in any case; it
+   * filters the rows and returns an empty array, which is the 200 below.
+   */
+  for (const table of ['meal_plan_templates', 'user_progress', 'gt_clinical_records', 'gt_clients']) {
     await probe(`table ${table} present`,
       `${cfg.url}/rest/v1/${table}?select=*&limit=1`, { headers: asAnon },
       (res, body) => {
         if (res.status === 404 || /does not exist/i.test(body)) return { ok: false, detail: 'table missing' };
-        if (res.status === 401 || res.status === 403) return { ok: true, detail: 'anon refused by RLS, as intended' };
+        if (res.status === 401 || res.status === 403) {
+          return { ok: false, detail: 'refused before PostgREST answered — key or network, not RLS' };
+        }
         if (res.ok) {
           let rows = [];
           try { rows = JSON.parse(body); } catch (e) {}
-          return { ok: true, detail: rows.length ? `${rows.length} row visible to anon` : 'no rows visible to anon, as intended' };
+          return { ok: true, detail: rows.length
+            ? `${rows.length} row readable anonymously — check this table's RLS`
+            : 'reachable, no rows exposed to anon' };
         }
         return { ok: false, detail: body.slice(0, 120) };
       });
