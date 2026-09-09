@@ -21,7 +21,7 @@
  *     for fixed UI, so nothing is ever covered.
  *   - The portal root is derived from this script's own URL, so the
  *     same file works at a domain root, under a project path such as
- *     /GT-Meal-Plan-System/, and from the local filesystem.
+ *     /Meal-Plan-System/, and from the local filesystem.
  */
 (function () {
   'use strict';

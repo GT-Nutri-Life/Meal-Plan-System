@@ -83,7 +83,7 @@ and always offers a route back to the portal.
 
 The portal root derives its own base path from the switcher script's URL, so
 the same files work at a domain root, under a project path such as
-`/GT-Meal-Plan-System/`, and from `file://`.
+`/Meal-Plan-System/`, and from `file://`.
 
 ## Signing in
 
@@ -237,6 +237,15 @@ off-allow-list account, public-page exemption, no double prompt — but not the
 live Supabase endpoint. Verify a real sign-in by hand after deploying.
 
 ## Deployment
+
+This repository is `GT-Nutri-Life/Meal-Plan-System`, published at
+<https://gt-nutri-life.github.io/Meal-Plan-System/>. Enable it under
+**Settings → Pages → Source: GitHub Actions**.
+
+The deployment path is not baked in anywhere: the switcher works out the portal
+root from its own script URL, so the same files serve correctly from a domain
+root, a project path, or `file://`.
+
 
 `.github/workflows/static.yml` runs on every push and pull request. It checks
 that every bundled page carries the switcher, that the registry, adapters and
