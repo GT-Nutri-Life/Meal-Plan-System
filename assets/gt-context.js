@@ -652,6 +652,23 @@
    * creating a second one — the unique index on (user_id, lower(name)) makes
    * that the database's rule too, not just this function's intention.
    */
+  /**
+   * Commit the record in hand to a named client.
+   *
+   * Saving under a name already in use updates that client rather than making
+   * a second one. That rule is enforced by a unique index on
+   * (user_id, lower(btrim(name))), and the index being on an *expression* is
+   * what shapes this function: PostgREST's upsert sends `ON CONFLICT
+   * (user_id, name)`, and Postgres will not match a column list against an
+   * expression index. It rejects the statement outright —
+   *
+   *   there is no unique or exclusion constraint matching the ON CONFLICT
+   *   specification
+   *
+   * — whether or not a row with that name exists, so upsert cannot be used
+   * here at all. Look the client up first and then insert or update, which is
+   * what the index means anyway.
+   */
   async function saveClient(name, note) {
     var client = sb(), user = await me();
     if (!client || !user) throw new Error('Sign in to save a client.');
@@ -659,28 +676,50 @@
     if (!name) throw new Error('Give the client a name.');
 
     var rec = load();
+
+    var existing = await findClientByName(name);
+    if (existing) return await updateClient(existing.id, name, rec, note);
+
     var row = { user_id: user.id, name: name, record: rec };
     if (note !== undefined) row.note = note;
 
     var res = await client.from(CLIENTS_TABLE)
-      .upsert(row, { onConflict: 'user_id,name' })
+      .insert(row)
       .select('id,name')
       .maybeSingle();
 
-    // The unique index is on lower(btrim(name)), which PostgREST cannot name
-    // as a conflict target, so a same-name save arrives as a duplicate-key
-    // error rather than an update. Fall back to an explicit update.
     if (res.error) {
-      var found = await findClientByName(name);
-      if (!found) throw new Error(res.error.message || 'Could not save this client.');
-      var upd = await client.from(CLIENTS_TABLE)
-        .update({ name: name, record: rec })
-        .eq('id', found.id)
-        .select('id,name')
-        .maybeSingle();
-      if (upd.error) throw new Error(upd.error.message || 'Could not save this client.');
-      res = upd;
+      // Someone saved the same name between the lookup and the insert. The
+      // index did its job; finish as the update this was always meant to be.
+      if (isDuplicate(res.error)) {
+        var found = await findClientByName(name);
+        if (found) return await updateClient(found.id, name, rec, note);
+      }
+      throw new Error(res.error.message || 'Could not save this client.');
     }
+
+    setOpenClient({ id: res.data.id, name: res.data.name });
+    return res.data;
+  }
+
+  /** Postgres reports a unique-index violation as SQLSTATE 23505. */
+  function isDuplicate(error) {
+    return !!error && (error.code === '23505' ||
+      /duplicate key|already exists/i.test(error.message || ''));
+  }
+
+  async function updateClient(id, name, rec, note) {
+    var client = sb();
+    var patch = { name: name, record: rec };
+    if (note !== undefined) patch.note = note;
+
+    var res = await client.from(CLIENTS_TABLE)
+      .update(patch)
+      .eq('id', id)
+      .select('id,name')
+      .maybeSingle();
+    if (res.error) throw new Error(res.error.message || 'Could not save this client.');
+    if (!res.data) throw new Error('Could not save this client.');
 
     setOpenClient({ id: res.data.id, name: res.data.name });
     return res.data;

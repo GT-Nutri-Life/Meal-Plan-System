@@ -88,7 +88,8 @@ svg{display:block;flex:none}
 .brand{display:flex;align-items:center;gap:11px;min-width:0}
 .mark{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:10px;
   background:var(--ac);color:var(--inv);font-family:var(--fd);font-size:15px;font-weight:700;letter-spacing:-.02em}
-.bname{font-family:var(--fd);font-size:17px;font-weight:700;letter-spacing:-.01em;white-space:nowrap}
+.bname{font-family:var(--fd);font-size:17px;font-weight:700;letter-spacing:-.01em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bname em{font-style:normal;color:var(--ac)}
 .tact{display:flex;align-items:center;gap:6px}
 .icobtn{display:grid;place-items:center;width:38px;height:38px;border-radius:var(--rf);
@@ -98,6 +99,15 @@ svg{display:block;flex:none}
   border-radius:var(--rf);font-size:13px;font-weight:500;color:var(--text2);transition:border-color .18s,color .18s,background .18s}
 .ghost:hover{border-color:var(--ac);color:var(--ac);background:var(--ac-bg)}
 @media(min-width:640px){.ghost{display:inline-flex}}
+/* On a phone the bar carries the brand, the client control and the theme
+   toggle in 390px. Without this the client control lands on top of the
+   practice name, which is what it did. */
+@media(max-width:560px){
+  .tbar{gap:8px}
+  .tact{gap:4px;min-width:0}
+  .brand{flex:1 1 auto}
+  .icobtn{width:40px;height:40px}
+}
 
 /* ---------------- hero ---------------- */
 #hero{padding:64px 0 34px;position:relative;overflow:hidden}

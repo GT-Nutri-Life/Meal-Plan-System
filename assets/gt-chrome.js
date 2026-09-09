@@ -81,6 +81,28 @@
     '--ease:cubic-bezier(.16,1,.3,1);',
     'all:initial;font-family:var(--f);',
     '}',
+
+    /*
+     * Dark.
+     *
+     * A shadow root cannot see the page's own theme: :host-context() would do
+     * it but is not implemented outside Chromium, and prefers-color-scheme
+     * only knows about the OS, not about a page whose toggle the user just
+     * pressed. So the theme is resolved in script (see watchTheme) and stamped
+     * on the host as data-theme, which every one of these rules reads.
+     */
+    ':host([data-theme="dark"]){',
+    '--bar-bg:rgba(22,33,28,.88);',
+    '--ash-100:#22302A;--ash-200:#2E3F37;--ash-300:#3E5348;--ash-400:#7E9A8B;',
+    '--ash-500:#9BB8A8;--ash-600:#C3D8CB;--ash-700:#E9F1EC;',
+    '--card:#1E2B25;--soft:#22302A;--border:#2E3F37;',
+    '--ink:#E9F1EC;--ink2:#C3D8CB;--ink3:#9BB8A8;',
+    /* On a dark ground the 600 steps read as muddy; the accent moves up the
+       scale so the chip, its label and the links keep their contrast. */
+    '--sage-50:#1F2E26;--sage-100:#24382E;--sage-200:#2F4A3C;',
+    '--sage-600:#7FC3A2;--sage-700:#9ECFB6;',
+    '}',
+
     ':host,*{box-sizing:border-box}',
     '[hidden]{display:none!important}'
   ].join('');
@@ -92,7 +114,7 @@
   var HEADER_CSS = TOKENS + [
     ':host{display:block}',
     '.bar{display:flex;align-items:center;gap:14px;padding:10px 20px;',
-    'background:rgba(255,255,255,.86);backdrop-filter:blur(14px) saturate(150%);',
+    'background:var(--bar-bg,rgba(255,255,255,.86));backdrop-filter:blur(14px) saturate(150%);',
     '-webkit-backdrop-filter:blur(14px) saturate(150%);',
     'border-bottom:1px solid var(--border);font:400 14px/1.5 var(--f);color:var(--ink)}',
 
@@ -129,6 +151,16 @@
     ' .tool{display:none}',
     ' .who span{display:none}',
     ' .client{padding-left:10px}',
+    '}',
+
+    /* Narrower still: with no client loaded the label says nothing the button
+       does not, so it goes and the control becomes a single compact target.
+       A loaded client keeps its name — that is the one thing worth the space. */
+    '@media (max-width:480px){',
+    ' .client{max-width:56vw}',
+    ' .client.empty{padding:4px;background:none;border-color:transparent}',
+    ' .client.empty .who{display:none}',
+    ' .chip{min-height:36px;display:inline-flex;align-items:center}',
     '}',
 
     /* the save / open panel */
@@ -468,6 +500,62 @@
     return host;
   }
 
+  /* ==================================================================== *
+   * Theme                                                                 *
+   * ==================================================================== */
+
+  /*
+   * Work out whether the page is currently dark.
+   *
+   * The bundle expresses it three ways and no single selector covers them: the
+   * portal and About the Dietitian set html[data-theme], the two calendar
+   * generators toggle a class on <body>, and a reader may simply have their OS
+   * set to dark with no page toggle involved. An explicit choice on the page
+   * beats the OS preference, in both directions.
+   */
+  function isDark() {
+    var explicit = doc.documentElement.getAttribute('data-theme');
+    if (explicit === 'dark') return true;
+    if (explicit === 'light') return false;
+    var b = doc.body;
+    if (b && (b.classList.contains('dark-mode') || b.classList.contains('dark'))) return true;
+    if (b && (b.classList.contains('light-mode') || b.classList.contains('light'))) return false;
+    return !!(root.matchMedia && root.matchMedia('(prefers-color-scheme: dark)').matches);
+  }
+
+  var themed = [];      // shadow hosts that follow the page theme
+
+  function applyTheme() {
+    var mode = isDark() ? 'dark' : 'light';
+    themed.forEach(function (host) {
+      if (host.getAttribute('data-theme') !== mode) host.setAttribute('data-theme', mode);
+    });
+  }
+
+  /** Register a host and keep it in step with the page from then on. */
+  function followTheme(host) {
+    themed.push(host);
+    applyTheme();
+  }
+
+  /*
+   * A shadow root cannot see the page's theme on its own — :host-context()
+   * would do it but is Chromium-only, and prefers-color-scheme knows about the
+   * OS rather than about a toggle the user just pressed. So the page is
+   * watched instead, and the answer stamped on each host as data-theme.
+   */
+  function watchTheme() {
+    var mo = new MutationObserver(applyTheme);
+    mo.observe(doc.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+    if (doc.body) mo.observe(doc.body, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+
+    if (root.matchMedia) {
+      var mq = root.matchMedia('(prefers-color-scheme: dark)');
+      if (mq.addEventListener) mq.addEventListener('change', applyTheme);
+      else if (mq.addListener) mq.addListener(applyTheme);
+    }
+  }
+
   /* ---------- helpers ----------------------------------------------------- */
 
   /* ==================================================================== *
@@ -537,8 +625,12 @@
       '</div>';
 
     doc.body.appendChild(host);
+    followTheme(host);
 
-    var close = function () { host.remove(); };
+    var close = function () {
+      themed = themed.filter(function (h) { return h !== host; });
+      host.remove();
+    };
     sr.querySelector('.x').addEventListener('click', close);
     sr.querySelector('.undo').addEventListener('click', function () {
       res.elements.forEach(function (el) {
@@ -615,6 +707,8 @@
     if (slot) {
       var control = buildClientControl();
       slot.appendChild(control.host);
+      followTheme(control.host);
+      watchTheme();
       root.GTChrome = { header: control, refresh: control.refresh };
       return;
     }
@@ -623,6 +717,9 @@
     body.insertBefore(header.host, body.firstChild);
     var footer = buildFooter(tool);
     body.appendChild(footer);
+    followTheme(header.host);
+    followTheme(footer);
+    watchTheme();
 
     root.GTChrome = { header: header, refresh: header.refresh, nudge: nudgeFixed };
 
@@ -651,7 +748,9 @@
           tool = found;
           var fresh = buildFooter(tool);
           footer.replaceWith(fresh);
+          themed = themed.filter(function (h) { return h !== footer; });
           footer = fresh;
+          followTheme(footer);
           header.setTool(tool, categoryName(tool));
         }
       }
