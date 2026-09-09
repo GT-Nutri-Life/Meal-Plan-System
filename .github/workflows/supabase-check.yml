@@ -1,0 +1,23 @@
+# Is the live Supabase project the deployed site points at actually reachable?
+#
+# Deliberately manual. The browser suites stub Supabase so CI never fails
+# because a third-party service is having a bad morning; this workflow is the
+# other half of that trade — run it on demand when you want the real answer.
+name: Check Supabase connectivity
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Probe the project named in assets/gt-auth.js
+        run: node scripts/check-supabase.js

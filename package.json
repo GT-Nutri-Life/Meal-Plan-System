@@ -6,6 +6,7 @@
   "scripts": {
     "verify": "scripts/inject-nav.sh --check && scripts/verify-registry.js",
     "test": "npm run verify && node tests/run.js",
+    "check:supabase": "node scripts/check-supabase.js",
     "test:portal": "node tests/run.js portal",
     "test:handoff": "node tests/run.js handoff",
     "serve": "node -e \"require('./tests/harness').serve({port:8000,strip:false}).then(()=>console.log('http://localhost:8000/'))\""

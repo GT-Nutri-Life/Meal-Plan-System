@@ -37,7 +37,7 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Browser suites: portal, switcher, sign-in and cross-system handoff
+      - name: "Browser suites: portal, switcher, sign-in and cross-system handoff"
         run: node tests/run.js
 
   deploy:
