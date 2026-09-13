@@ -57,7 +57,7 @@
             border-left: 4px solid #7566A8;
         }
         .meal-card {
-            background: linear-gradient(to right, #f9fafb, #ffffff);
+            background: linear-gradient(to right, var(--gt-soft,#F1F7F3), var(--gt-card,#FFFFFF));
             transition: all 0.3s ease;
         }
         .meal-card.moving {
@@ -83,7 +83,7 @@
             transform: translateY(-1px);
         }
         .move-btn:disabled {
-            background: #cbd5e1;
+            background: var(--gt-border,#DDEAE2);
             cursor: not-allowed;
             opacity: 0.6;
         }
@@ -91,6 +91,7 @@
 <script src="../../assets/gt-palette.js"></script>
 <script src="../../assets/gt-tailwind.js"></script>
 <link rel="stylesheet" href="../../assets/gt-theme.css">
+<script src="../../assets/gt-theme-boot.js"></script>
 </head>
 <body class="bg-gray-50">
     <!-- Header -->

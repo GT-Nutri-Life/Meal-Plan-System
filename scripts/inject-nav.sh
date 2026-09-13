@@ -6,6 +6,11 @@
 #
 #   assets/gt-theme.css      <head>, last — the pastel skin has to win on
 #                            cascade order over the page's own stylesheet.
+#   assets/gt-theme-boot.js  end of <head>, first of the three. It resolves the
+#                            shared theme and stamps it on <html> while the head
+#                            is still blocking, so a page never paints light and
+#                            then flips — which on a portal of eleven separate
+#                            documents would be a flash on every click.
 #   assets/gt-palette.js     end of <head>, in that order. Not next to the
 #   assets/gt-tailwind.js    Tailwind CDN tag, which would look tidier but is
 #                            wrong: two pages set a `tailwind.config` of their
@@ -41,37 +46,33 @@ for file in $(find "$ROOT/apps" -name '*.html' | sort); do
     continue
   fi
 
-  # --- 1. palette, Tailwind bridge and pastel skin, last in <head> ------
-  if ! grep -qF 'gt-theme.css' "$file"; then
-    why+=("theme")
+  # --- 1. theme boot, palette, Tailwind bridge and pastel skin, in <head> -
+  #
+  # Each tag is checked on its own. Guarding the whole block on one of them
+  # duplicated the other three the moment a fourth was added, which is exactly
+  # what happened when the theme boot script joined them.
+  HEAD_TAGS=""
+  add_head() {
+    grep -qF "$1" "$file" && return 0
+    why+=("${2}")
     changed=1
-    if [[ $CHECK -eq 0 ]]; then
-      HEAD_TAGS='<script src="../../assets/gt-palette.js"></script>
-<script src="../../assets/gt-tailwind.js"></script>
-<link rel="stylesheet" href="../../assets/gt-theme.css">'
-      if grep -qi '</head>' "$file"; then
-        HEAD_TAGS="$HEAD_TAGS" perl -0777 -i -pe 's{(.*)</head>}{$1 . $ENV{HEAD_TAGS} . "\n</head>"}se' "$file"
-      else
-        # No </head> to anchor to: put them before the first <body>, which is
-        # still inside the implicit head as far as the parser is concerned.
-        HEAD_TAGS="$HEAD_TAGS" perl -0777 -i -pe 's{<body}{$ENV{HEAD_TAGS} . "\n<body"}se' "$file"
-      fi
-    fi
-  fi
+    HEAD_TAGS="${HEAD_TAGS}${3}
+"
+  }
 
-  # --- 2. palette + Tailwind bridge, right after the Play CDN tag -------
-  if ! grep -qF 'gt-palette.js' "$file"; then
-    why+=("tailwind")
-    changed=1
-    if [[ $CHECK -eq 0 ]]; then
-      if grep -qF 'cdn.tailwindcss.com' "$file"; then
-        # After the CDN tag: the palette first, then the config that reads it.
-        perl -0777 -i -pe 's{(<script[^>]*src="https://cdn\.tailwindcss\.com"[^>]*>\s*</script>)}
-                           {$1 . qq{\n<script src="../../assets/gt-palette.js"></script>\n<script src="../../assets/gt-tailwind.js"></script>}}se' "$file"
-      else
-        # Not a Tailwind page: the palette still gets loaded, for the chrome.
-        perl -0777 -i -pe 's{(.*)</body>}{$1 . qq{<script src="../../assets/gt-palette.js"></script>\n</body>}}se' "$file"
-      fi
+  add_head 'gt-theme-boot.js' 'theme-boot' '<script src="../../assets/gt-theme-boot.js"></script>'
+  add_head 'gt-palette.js'    'palette'    '<script src="../../assets/gt-palette.js"></script>'
+  add_head 'gt-tailwind.js'   'tailwind'   '<script src="../../assets/gt-tailwind.js"></script>'
+  add_head 'gt-theme.css'     'skin'       '<link rel="stylesheet" href="../../assets/gt-theme.css">'
+
+  if [[ -n "$HEAD_TAGS" && $CHECK -eq 0 ]]; then
+    HEAD_TAGS="${HEAD_TAGS%$'\n'}"
+    if grep -qi '</head>' "$file"; then
+      HEAD_TAGS="$HEAD_TAGS" perl -0777 -i -pe 's{(.*)</head>}{$1 . $ENV{HEAD_TAGS} . "\n</head>"}se' "$file"
+    else
+      # No </head> to anchor to: put them before the first <body>, which is
+      # still inside the implicit head as far as the parser is concerned.
+      HEAD_TAGS="$HEAD_TAGS" perl -0777 -i -pe 's{<body}{$ENV{HEAD_TAGS} . "\n<body"}se' "$file"
     fi
   fi
 

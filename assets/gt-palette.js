@@ -81,26 +81,43 @@
   PALETTE.tailwindColors = {
     gray: ash, slate: ash, zinc: ash, neutral: ash, stone: ash,
     green: sage, emerald: sage, lime: sage,
-    blue: sky, indigo: lilac, violet: lilac, purple: lilac, fuchsia: lilac,
+    blue: sky, sky: sky, indigo: lilac, violet: lilac, purple: lilac, fuchsia: lilac,
     teal: aqua, cyan: aqua,
     red: blush, rose: blush, pink: blush,
     amber: butter, yellow: butter, orange: butter
   };
 
-  /* The named colours the individual pages invented for themselves. Left
-     unmapped they would be the only saturated things on the screen. */
+  /*
+   * The named colours the individual pages invented for themselves.
+   *
+   * The ones that paint a surface or carry body text point at the theme
+   * variables rather than at a fixed hex, so `bg-fbcard` and `text-fbtext`
+   * follow the theme like everything else. They were fixed pastels, which is
+   * why BMI Assessment — whose whole palette is built from these names — went
+   * on rendering a white card under light ink when the portal turned dark.
+   *
+   * Accents stay fixed at their 600 step, and deliberately. Each of these
+   * names serves as both a fill and an ink — `bg-brand` and `text-brand` —
+   * and Tailwind allows one value per name. Pointing them at the --gt-a-*
+   * variables made the ink read on a dark card and broke the fills: the
+   * masthead became a pale sky band still carrying its white heading, at
+   * 1.96:1. A 600 fill with a white label works in both themes, and the ink
+   * side is handled by the dark `.text-<name>` rules in gt-theme.css.
+   */
   PALETTE.legacyAliases = {
-    fbblue: sky[600], fbblue2: sky[700], fbblue3: sky[50],
-    fbbg: ash[100], fbcard: '#FFFFFF',
-    fbtext: PALETTE.surface.ink, fbsub: ash[600], fbsub2: ash[500],
-    fbline: ash[300], fbline2: ash[200], fbhover: ash[100],
+    fbblue: sky[600], fbblue2: sky[700], fbblue3: 'var(--gt-sunken,#EDF3EF)',
+    fbbg: 'var(--gt-soft,#F1F7F3)', fbcard: 'var(--gt-card,#FFFFFF)',
+    fbtext: 'var(--gt-ink,#22322A)', fbsub: 'var(--gt-ink-2,#46574F)',
+    fbsub2: 'var(--gt-ink-3,#63796D)',
+    fbline: 'var(--gt-border,#DDEAE2)', fbline2: 'var(--gt-border,#DDEAE2)',
+    fbhover: 'var(--gt-soft,#F1F7F3)',
     fbgreen: sage[500], fbgreen2: sage[600],
     fbyellow: butter[400], fborange: butter[500],
     fbred: blush[500], fbred2: blush[600],
     fbpurple: lilac[500],
 
     brand: sky[600], section: lilac[600], tablehd: sage[500], lime: sage[300],
-    cho: sage[600], pro: sky[600], fat: butter[600], ink: PALETTE.surface.ink
+    cho: sage[600], pro: sky[600], fat: butter[600], ink: 'var(--gt-ink,#22322A)'
   };
 
   root.GTPalette = PALETTE;

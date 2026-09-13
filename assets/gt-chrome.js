@@ -146,6 +146,13 @@
 
     '.who-actions{display:flex;gap:6px;flex:none}',
 
+    /* Eight of the eleven bundled pages had no way to change theme at all —
+       BMI Assessment among them — so the control lives here, where every page
+       gets one. */
+    '.theme{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:9999px;',
+    'color:var(--ink3);font-size:15px;line-height:1;transition:background .16s var(--ease),color .16s}',
+    '.theme:hover{background:var(--soft);color:var(--ink)}',
+
     '@media (max-width:720px){',
     ' .bar{padding:8px 12px;gap:8px}',
     ' .tool{display:none}',
@@ -241,6 +248,7 @@
           '</span>' +
         '</a>' +
         '<span class="spacer"></span>' +
+        '<button type="button" class="theme" aria-label="Switch theme"></button>' +
         '<div class="client empty">' +
           '<span class="who"><b>No client loaded</b><span>Nothing saved yet</span></span>' +
           '<span class="who-actions">' +
@@ -260,6 +268,26 @@
     var saveBtn   = sr.querySelector('.save');
 
     saveBtn.addEventListener('click', function () { openPanel(sr); });
+
+    var themeBtn = sr.querySelector('.theme');
+    if (themeBtn) {
+      var paintThemeBtn = function (mode) {
+        themeBtn.textContent = mode === 'dark' ? '☀' : '☾';
+        themeBtn.setAttribute('aria-label',
+          mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+      };
+      paintThemeBtn(isDark() ? 'dark' : 'light');
+      themeBtn.addEventListener('click', function () {
+        if (root.GTTheme) { paintThemeBtn(root.GTTheme.toggle()); return; }
+        // No shared controller on the page: fall back to flipping it here.
+        var next = isDark() ? 'light' : 'dark';
+        doc.documentElement.setAttribute('data-theme', next);
+        doc.body.classList.toggle('dark-mode', next === 'dark');
+        paintThemeBtn(next);
+        applyTheme();
+      });
+      if (root.GTTheme) root.GTTheme.onChange(function (m) { paintThemeBtn(m); applyTheme(); });
+    }
 
     /** Reflect the record in hand and the open client into the header. */
     function refresh() {
@@ -514,6 +542,9 @@
    * beats the OS preference, in both directions.
    */
   function isDark() {
+    // The shared controller is the authority wherever it is loaded; the checks
+    // below are the fallback for a page that somehow has not got it.
+    if (root.GTTheme) return root.GTTheme.get() === 'dark';
     var explicit = doc.documentElement.getAttribute('data-theme');
     if (explicit === 'dark') return true;
     if (explicit === 'light') return false;

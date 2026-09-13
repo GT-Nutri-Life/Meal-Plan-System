@@ -73,7 +73,7 @@
         }
 
         .card {
-            background: white;
+            background: var(--gt-card,#FFFFFF);
             border-radius: 16px;
             padding: 1.5rem;
             margin-bottom: 1rem;
@@ -89,10 +89,10 @@
         input[type="text"], input[type="date"], input[type="time"], input[type="number"], textarea, select {
             width: 100%;
             padding: 0.75rem 1rem;
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--gt-border,#DDEAE2);
             border-radius: 10px;
             transition: all 0.3s ease;
-            background: white;
+            background: var(--gt-card,#FFFFFF);
         }
 
         input:focus, textarea:focus, select:focus {
@@ -119,8 +119,8 @@
         }
 
         .btn-secondary {
-            background: white;
-            color: #7566A8;
+            background: var(--gt-card,#FFFFFF);
+            color: var(--gt-a-lilac,#7566A8);
             padding: 0.75rem 1.5rem;
             border-radius: 10px;
             font-weight: 500;
@@ -200,14 +200,14 @@
         }
 
         .day-card {
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            background: linear-gradient(135deg, #f3f4f6 0%, var(--gt-border,#DDEAE2) 100%);
             border-radius: 16px;
             padding: 1.5rem;
             margin-bottom: 2rem;
         }
 
         .meal-section {
-            background: white;
+            background: var(--gt-card,#FFFFFF);
             border-radius: 12px;
             padding: 1.5rem;
             margin-bottom: 1rem;
@@ -215,8 +215,8 @@
         }
 
         .menu-option {
-            background: #f9fafb;
-            border: 2px solid #e5e7eb;
+            background: var(--gt-soft,#F1F7F3);
+            border: 2px solid var(--gt-border,#DDEAE2);
             border-radius: 10px;
             padding: 1rem;
             margin-bottom: 0.75rem;
@@ -242,13 +242,13 @@
         }
 
         .badge-green {
-            background: #d1fae5;
-            color: #3E7F60;
+            background: var(--gt-sunken,#EDF3EF);
+            color: var(--gt-a-sage,#3E7F60);
         }
 
         .badge-blue {
-            background: #dbeafe;
-            color: #4A76AB;
+            background: var(--gt-sunken,#EDF3EF);
+            color: var(--gt-a-sky,#4A76AB);
         }
 
         .toast {
@@ -346,7 +346,7 @@
         }
 
         body.dark-mode .text-gray-600 {
-            color: #a0aec0 !important;
+            color: var(--gt-ink-3,#63796D) !important;
         }
 
         .loading-overlay {
@@ -363,7 +363,7 @@
         }
 
         .loading-content {
-            background: white;
+            background: var(--gt-card,#FFFFFF);
             padding: 2rem;
             border-radius: 16px;
             text-align: center;
@@ -450,6 +450,7 @@
 <script src="../../assets/gt-palette.js"></script>
 <script src="../../assets/gt-tailwind.js"></script>
 <link rel="stylesheet" href="../../assets/gt-theme.css">
+<script src="../../assets/gt-theme-boot.js"></script>
 </head>
 <body class="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen py-8 px-4">
     <!-- Dark Mode Toggle -->
@@ -929,7 +930,7 @@
         function generatePreviewHTML(data) {
             let html = `
                 <div style="font-family: 'Inter', sans-serif;">
-                    <h1 style="color: #7566A8; font-size: 32px; margin-bottom: 20px;">7-Day Diet Menu Plan</h1>
+                    <h1 style="color: var(--gt-a-lilac,#7566A8); font-size: 32px; margin-bottom: 20px;">7-Day Diet Menu Plan</h1>
                     <p style="font-size: 18px; margin-bottom: 10px;"><strong>Client:</strong> ${data.clientName}</p>
                     <p style="font-size: 18px; margin-bottom: 10px;"><strong>Start Date:</strong> ${data.startDate}</p>
                     <p style="font-size: 18px; margin-bottom: 30px;"><strong>Goal:</strong> ${data.planGoal}</p>
@@ -952,7 +953,7 @@
                             <div style="margin-bottom: 8px; padding-left: 10px;">
                                 <p style="margin: 0;"><strong>Option ${optIndex + 1}:</strong> ${option.item}</p>
                                 ${option.description ? `<p style="margin: 0; color: #666; font-size: 14px;">${option.description}</p>` : ''}
-                                ${option.calories ? `<p style="margin: 0; color: #3E7F60; font-size: 14px;">${option.calories} calories</p>` : ''}
+                                ${option.calories ? `<p style="margin: 0; color: var(--gt-a-sage,#3E7F60); font-size: 14px;">${option.calories} calories</p>` : ''}
                             </div>
                         `;
                     });

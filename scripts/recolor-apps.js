@@ -114,6 +114,138 @@ function rgbOf(hex) {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
+/*
+ * Surfaces, rewritten to follow the theme.
+ *
+ * The pass above makes a page's colours pastel, but pastel *light*: a card
+ * hardcoded to #FFFFFF stays white when the portal goes dark, and the shared
+ * skin's light ink then lands on it. That is most of what "this page does not
+ * handle dark mode" actually means — measured across the bundle it was 68
+ * failing colour pairs, nearly all of them light-on-light.
+ *
+ * These point at the theme variables the skin already defines, which hold the
+ * same value in light mode and flip in dark. Only backgrounds and borders are
+ * touched: the same hex in a `color:` declaration is ink, not a surface, and
+ * must not follow the theme.
+ */
+const SURFACE = {
+  page:   ['#F7FAF8'],
+  card:   ['#FFFFFF', '#FEFEFE'],
+  soft:   ['#F7F9F8', '#F8FAFC', '#F3F4F4', '#EEF3F0', '#F1F7F3', '#F2F2F2',
+           '#FAFBF9', '#F0F2F5', '#F9FAFB', '#F5F5F5', '#FAFBFD', '#EFF6FF'],
+  sunken: ['#EFF7F2', '#EAF6F5', '#EEF4FB', '#F4F0FA', '#FCEFF0', '#FDF6EA',
+           '#DCEEE4', '#D9E1F2', '#E5EDF2', '#DBEAFE', '#D1FAE5', '#EDF3EF'],
+  border: ['#DDEAE2', '#DFE8E3', '#C9D6CE', '#E5E7EB', '#CBD5E1', '#D9D9D9',
+           '#D5D9D7', '#E4E6EB', '#CED0D4', '#E2E8F0', '#B6BBB9', '#E5E8EE']
+};
+
+const SURFACE_FALLBACK = { page: '#F7FAF8', card: '#FFFFFF', soft: '#F1F7F3', sunken: '#EDF3EF', border: '#DDEAE2' };
+const SURFACE_VAR = {};
+for (const [token, list] of Object.entries(SURFACE)) {
+  for (const hex of list) SURFACE_VAR[hex.toUpperCase()] = `var(--gt-${token},${SURFACE_FALLBACK[token]})`;
+}
+
+/* Declarations whose value paints a surface rather than ink. box-shadow is
+   left out on purpose: it is mostly rgba, and a soft shadow reads acceptably
+   in either theme.
+
+   Custom properties are included by name, because a page that drives itself
+   from its own variables — ICU NutriPlan sets --bg-card, --bg-input, --border
+   — never reaches the concrete declarations below. Those variables *are* its
+   surfaces. */
+const SURFACE_PROP = /^(background|background-color|border|border-top|border-right|border-bottom|border-left|border-color|border-top-color|border-right-color|border-bottom-color|border-left-color|outline|outline-color|--(bg|background|card|surface|panel|border)[-a-z0-9]*|--[a-z0-9]*-(bg|background|border)[-a-z0-9]*)$/i;
+
+/*
+ * Ink.
+ *
+ * The same treatment for text: the body greys point at --gt-ink and its two
+ * quieter steps, and the accents at --gt-a-*, which hold the 600 steps in
+ * light and the 300 steps in dark. Without this a page's own .badge-green
+ * keeps a mid-tone green that measures 3.3:1 on a dark card.
+ */
+const INK = {
+  '#22322A': 'var(--gt-ink,#22322A)',
+  '#46574F': 'var(--gt-ink-2,#46574F)',
+  '#63796D': 'var(--gt-ink-3,#63796D)',
+  '#3E7F60': 'var(--gt-a-sage,#3E7F60)',
+  '#4A76AB': 'var(--gt-a-sky,#4A76AB)',
+  '#7566A8': 'var(--gt-a-lilac,#7566A8)',
+  '#3B7C76': 'var(--gt-a-aqua,#3B7C76)',
+  '#A44E58': 'var(--gt-a-blush,#A44E58)',
+  '#B5555F': 'var(--gt-a-blush,#A44E58)',
+  '#8A6737': 'var(--gt-a-butter,#8A6737)',
+  '#B08442': 'var(--gt-a-butter,#8A6737)',
+  /* Stock Tailwind/Chakra greys the pages wrote in by hand. */
+  '#A0AEC0': 'var(--gt-ink-3,#63796D)',
+  '#6B7280': 'var(--gt-ink-3,#63796D)',
+  '#334155': 'var(--gt-ink-2,#46574F)',
+  '#0F172A': 'var(--gt-ink,#22322A)',
+  '#111827': 'var(--gt-ink,#22322A)',
+  '#1F2937': 'var(--gt-ink,#22322A)',
+  '#4B5563': 'var(--gt-ink-2,#46574F)',
+  '#718096': 'var(--gt-ink-3,#63796D)',
+  /* The 500 steps, which pages use for accent text. */
+  '#5E8CC4': 'var(--gt-a-sky,#4A76AB)',
+  '#489A93': 'var(--gt-a-aqua,#3B7C76)',
+  '#4E9E77': 'var(--gt-a-sage,#3E7F60)',
+  '#8B7BC0': 'var(--gt-a-lilac,#7566A8)'
+};
+
+const INK_PROP = /^(color|fill|stroke|--(text|ink|fg|foreground|accent)[-a-z0-9]*|--[a-z0-9]*-(text|ink|fg|accent)[-a-z0-9]*)$/i;
+
+/* `background: white` appears 26 times across the bundle and never reached the
+   hex table, because it is a keyword. `color: white` appears 43 times and must
+   stay white — it is the label on a coloured fill. So the keyword is only
+   translated in a surface declaration. */
+const SURFACE_KEYWORD = /\bwhite\b/gi;
+
+/** Point a page's hardcoded surfaces and ink at the theme variables. */
+function themeSurfaces(css) {
+  let hits = 0;
+  const out = css.replace(/([-a-zA-Z0-9]+)\s*:\s*([^;{}]+)/g, (m, prop, value) => {
+    const name = prop.trim();
+    const table = SURFACE_PROP.test(name) ? SURFACE_VAR
+                : INK_PROP.test(name)     ? INK
+                : null;
+    if (!table) return m;
+    // Already pointed at a variable: leave it, or the fallback hex inside it
+    // would be rewritten again on every run.
+    if (value.includes('var(--gt-')) return m;
+    let next = value.replace(/#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g, (h) => {
+      const to = table[expand(h)];
+      if (!to) return h;
+      hits++;
+      return to;
+    });
+    if (table === SURFACE_VAR) {
+      next = next.replace(SURFACE_KEYWORD, () => { hits++; return 'var(--gt-card,#FFFFFF)'; });
+      /*
+       * A nearly-opaque near-white is a surface, and must follow the theme:
+       * ICU NutriPlan's sticky header is rgba(247,250,248,.85), which stayed
+       * light when the page went dark and then carried the shared skin's light
+       * ink at 1.2:1.
+       *
+       * A *translucent* white is not a surface — it is a highlight laid over
+       * something else, and the pages use it that way:
+       * `linear-gradient(45deg, transparent, rgba(255,255,255,0.1))` over a
+       * coloured banner. Converting those too turned the banners solid white
+       * and left their pale headings at 1:1 in light mode. So only alpha ≥ 0.7
+       * counts, and the alpha itself is dropped, there being no portable way
+       * to put a variable inside rgba().
+       */
+      next = next.replace(/rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*([\d.]+)\s*)?\)/g,
+        (m2, r, g, b, a) => {
+          if (!(+r > 200 && +g > 200 && +b > 200)) return m2;
+          if (a !== undefined && parseFloat(a) < 0.7) return m2;
+          hits++;
+          return 'var(--gt-card,#FFFFFF)';
+        });
+    }
+    return next === value ? m : prop + ': ' + next;
+  });
+  return { css: out, hits };
+}
+
 /**
  * Rewrite the colour literals inside one chunk of CSS.
  *
@@ -146,7 +278,8 @@ function recolorCss(css, pageMap) {
     }
   );
 
-  return { css: out, hits };
+  const surf = themeSurfaces(out);
+  return { css: surf.css, hits: hits + surf.hits };
 }
 
 /** Apply that to a page's <style> blocks and style="…" attributes only. */

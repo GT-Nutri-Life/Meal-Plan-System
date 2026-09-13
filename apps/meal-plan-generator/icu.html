@@ -8,22 +8,22 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Space+Mono:wght@400;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-primary: #F7FAF8;
-    --bg-secondary: #F1F7F3;
-    --bg-card: #FFFFFF;
-    --bg-card-hover: #EFF7F2;
-    --bg-input: #FFFFFF;
-    --border: #DDEAE2;
+    --bg-primary: var(--gt-page,#F7FAF8);
+    --bg-secondary: var(--gt-soft,#F1F7F3);
+    --bg-card: var(--gt-card,#FFFFFF);
+    --bg-card-hover: var(--gt-sunken,#EDF3EF);
+    --bg-input: var(--gt-card,#FFFFFF);
+    --border: var(--gt-border,#DDEAE2);
     --border-focus: #5E8CC4;
-    --text-primary: #22322A;
-    --text-secondary: #46574F;
-    --text-muted: #63796D;
-    --accent-blue: #5E8CC4;
-    --accent-cyan: #489A93;
-    --accent-emerald: #4E9E77;
-    --accent-amber: #B08442;
-    --accent-rose: #B5555F;
-    --accent-violet: #8B7BC0;
+    --text-primary: var(--gt-ink,#22322A);
+    --text-secondary: var(--gt-ink-2,#46574F);
+    --text-muted: var(--gt-ink-3,#63796D);
+    --accent-blue: var(--gt-a-sky,#4A76AB);
+    --accent-cyan: var(--gt-a-aqua,#3B7C76);
+    --accent-emerald: var(--gt-a-sage,#3E7F60);
+    --accent-amber: var(--gt-a-butter,#8A6737);
+    --accent-rose: var(--gt-a-blush,#A44E58);
+    --accent-violet: var(--gt-a-lilac,#7566A8);
     --gradient-1: linear-gradient(135deg, #5E8CC4, #489A93);
     --gradient-2: linear-gradient(135deg, #4E9E77, #489A93);
     --gradient-3: linear-gradient(135deg, #B08442, #B5555F);
@@ -52,7 +52,7 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(247,250,248,0.85);
+    background: var(--gt-card,#FFFFFF);
     backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border);
     padding: 0 2rem;
@@ -534,8 +534,8 @@
     .header, .steps-nav, .btn-row, .hero { display: none !important; }
     .section-panel { display: block !important; }
     .print-section { display: block; }
-    body { background: white; color: #1a1a1a; }
-    .card { border: 1px solid #ddd; background: white; }
+    body { background: var(--gt-card,#FFFFFF); color: #1a1a1a; }
+    .card { border: 1px solid #ddd; background: var(--gt-card,#FFFFFF); }
   }
 
   /* Responsive */
@@ -557,6 +557,7 @@
 <script src="../../assets/gt-palette.js"></script>
 <script src="../../assets/gt-tailwind.js"></script>
 <link rel="stylesheet" href="../../assets/gt-theme.css">
+<script src="../../assets/gt-theme-boot.js"></script>
 </head>
 <body>
 
