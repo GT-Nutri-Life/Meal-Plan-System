@@ -284,7 +284,7 @@
         }
 
         .card {
-            background: white;
+            background: var(--gt-card,#FFFFFF);
             border-radius: 16px;
             padding: 1.5rem;
             margin-bottom: 1rem;
@@ -300,10 +300,10 @@
         input[type="text"], input[type="date"], input[type="time"], input[type="number"], input[type="email"], textarea, select {
             width: 100%;
             padding: 0.75rem 1rem;
-            border: 2px solid #e2e8f0;
+            border: 2px solid var(--gt-border,#DDEAE2);
             border-radius: 10px;
             transition: all 0.3s ease;
-            background: white;
+            background: var(--gt-card,#FFFFFF);
         }
 
         input:focus, textarea:focus, select:focus {
@@ -328,8 +328,8 @@
         }
 
         .btn-secondary {
-            background: white;
-            color: #7566A8;
+            background: var(--gt-card,#FFFFFF);
+            color: var(--gt-a-lilac,#7566A8);
             padding: 0.75rem 1.5rem;
             border-radius: 10px;
             font-weight: 500;
@@ -422,17 +422,17 @@
             cursor: pointer;
             border-bottom: 3px solid transparent;
             transition: all 0.3s ease;
-            color: #6b7280;
+            color: var(--gt-ink-3,#63796D);
             font-weight: 500;
         }
 
         .tab.active {
             border-bottom-color: #7566A8;
-            color: #7566A8;
+            color: var(--gt-a-lilac,#7566A8);
         }
 
         .tab:hover {
-            color: #7566A8;
+            color: var(--gt-a-lilac,#7566A8);
         }
 
         .modal {
@@ -448,7 +448,7 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--gt-card,#FFFFFF);
             margin: 5% auto;
             padding: 2rem;
             border-radius: 20px;
@@ -489,7 +489,7 @@
         }
 
         .plan-preview {
-            background: white;
+            background: var(--gt-card,#FFFFFF);
             border-radius: 16px;
             padding: 2rem;
             margin-top: 2rem;
@@ -510,17 +510,17 @@
         }
 
         .badge-green {
-            background: #d1fae5;
-            color: #3E7F60;
+            background: var(--gt-sunken,#EDF3EF);
+            color: var(--gt-a-sage,#3E7F60);
         }
 
         .badge-blue {
-            background: #dbeafe;
-            color: #4A76AB;
+            background: var(--gt-sunken,#EDF3EF);
+            color: var(--gt-a-sky,#4A76AB);
         }
 
         .stats-card {
-            background: white;
+            background: var(--gt-card,#FFFFFF);
             border-radius: 12px;
             padding: 1.5rem;
             text-align: center;
@@ -529,7 +529,7 @@
 
         .progress-bar {
             height: 8px;
-            background: #e5e7eb;
+            background: var(--gt-border,#DDEAE2);
             border-radius: 10px;
             overflow: hidden;
         }
@@ -580,7 +580,7 @@
         }
 
         body.dark-mode .text-gray-600 {
-            color: #a0aec0 !important;
+            color: var(--gt-ink-3,#63796D) !important;
         }
 
         body.dark-mode .stats-card {
@@ -588,11 +588,11 @@
         }
 
         body.dark-mode .tab {
-            color: #a0aec0;
+            color: var(--gt-ink-3,#63796D);
         }
 
         body.dark-mode .tab.active {
-            color: #7566A8;
+            color: var(--gt-a-lilac,#7566A8);
         }
 
         body.dark-mode .modal-content {
@@ -657,7 +657,7 @@
         }
 
         .loading-content {
-            background: white;
+            background: var(--gt-card,#FFFFFF);
             padding: 2rem;
             border-radius: 16px;
             text-align: center;
@@ -719,7 +719,7 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: #e5e7eb;
+            background: var(--gt-border,#DDEAE2);
             z-index: 0;
         }
 
@@ -739,7 +739,7 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: #e5e7eb;
+            background: var(--gt-border,#DDEAE2);
             margin: 0 auto 0.5rem;
             display: flex;
             align-items: center;
@@ -763,12 +763,12 @@
 
         .progress-step-label {
             font-size: 0.75rem;
-            color: #6b7280;
+            color: var(--gt-ink-3,#63796D);
             font-weight: 500;
         }
 
         .progress-step.active .progress-step-label {
-            color: #7566A8;
+            color: var(--gt-a-lilac,#7566A8);
             font-weight: 600;
         }
 
@@ -796,7 +796,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: white;
+            background: var(--gt-card,#FFFFFF);
             padding: 2rem;
             border-radius: 16px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -1058,14 +1058,14 @@
         }
 
         .error-message {
-            color: #B5555F;
+            color: var(--gt-a-blush,#A44E58);
             font-size: 0.875rem;
             margin-top: 0.25rem;
         }
 
         /* ICS Validation Styles */
         .validation-results {
-            background: white;
+            background: var(--gt-card,#FFFFFF);
             border-radius: 16px;
             padding: 2rem;
             margin-top: 2rem;
@@ -1088,13 +1088,13 @@
         }
 
         .validation-item.success {
-            background: #d1fae5;
-            color: #3E7F60;
+            background: var(--gt-sunken,#EDF3EF);
+            color: var(--gt-a-sage,#3E7F60);
         }
 
         .validation-item.error {
             background: #fee2e2;
-            color: #A44E58;
+            color: var(--gt-a-blush,#A44E58);
         }
 
         .validation-item.warning {
@@ -1124,7 +1124,7 @@
             }
 
             body {
-                background: white !important;
+                background: var(--gt-card,#FFFFFF) !important;
             }
 
             .step, .card, .plan-preview {
@@ -1160,6 +1160,7 @@
 <script src="../../assets/gt-palette.js"></script>
 <script src="../../assets/gt-tailwind.js"></script>
 <link rel="stylesheet" href="../../assets/gt-theme.css">
+<script src="../../assets/gt-theme-boot.js"></script>
 </head>
 <body class="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen py-8 px-4">
     <!-- Skip to Main Content -->

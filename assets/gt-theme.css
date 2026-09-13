@@ -47,6 +47,13 @@
   --gt-ink-2:#46574F;
   --gt-ink-3:#63796D;
 
+  /* Accent ink, as variables rather than fixed hexes, because the step that
+     reads well on a white page is not the step that reads well on a dark one.
+     Light uses the 600s (4.7-5.5:1 on white); dark uses the 300s (7-8:1 on the
+     dark card). Pages point at these through scripts/recolor-apps.js. */
+  --gt-a-sage:#3E7F60; --gt-a-sky:#4A76AB; --gt-a-lilac:#7566A8;
+  --gt-a-aqua:#3B7C76; --gt-a-blush:#A44E58; --gt-a-butter:#8A6737;
+
   --gt-r-s:8px; --gt-r-m:12px; --gt-r-l:18px; --gt-r-xl:24px;
   --gt-sh-s:0 1px 2px rgba(34,50,42,.05);
   --gt-sh-m:0 6px 20px rgba(34,50,42,.07);
@@ -84,6 +91,8 @@ html.gt-themed body.dark {
   --gt-sh-s:0 1px 2px rgba(0,0,0,.30);
   --gt-sh-m:0 6px 20px rgba(0,0,0,.36);
   --gt-sh-l:0 14px 40px rgba(0,0,0,.44);
+  --gt-a-sage:#9ECFB6; --gt-a-sky:#9DBCE0; --gt-a-lilac:#BCACDD;
+  --gt-a-aqua:#87C8C2; --gt-a-blush:#E5A0A7; --gt-a-butter:#E9C277;
   color-scheme: dark;
 }
 
@@ -103,6 +112,8 @@ html.gt-themed body.dark {
     --gt-sh-s:0 1px 2px rgba(0,0,0,.30);
     --gt-sh-m:0 6px 20px rgba(0,0,0,.36);
     --gt-sh-l:0 14px 40px rgba(0,0,0,.44);
+    --gt-a-sage:#9ECFB6; --gt-a-sky:#9DBCE0; --gt-a-lilac:#BCACDD;
+    --gt-a-aqua:#87C8C2; --gt-a-blush:#E5A0A7; --gt-a-butter:#E9C277;
     color-scheme: dark;
   }
 }
@@ -396,6 +407,199 @@ html.gt-themed:not([data-theme="light"]) select:focus, html.gt-themed:not([data-
 }
 html.gt-themed:not([data-theme="light"]) ::placeholder { color: var(--gt-ash-400); }
 
+}
+
+
+/* Accent ink. The 500-700 steps are tuned for a white page and sit at 3:1 or
+   worse on a dark card; the 300 steps clear AA at 7-8:1 on both dark surfaces.
+   Fills are left alone — a mid-tone fill with a white label still works. */
+html.gt-themed[data-theme="dark"] .text-red-500, html.gt-themed[data-theme="dark"] .text-red-600, html.gt-themed[data-theme="dark"] .text-red-700,
+html.gt-themed[data-theme="dark"] .text-rose-500, html.gt-themed[data-theme="dark"] .text-rose-600, html.gt-themed[data-theme="dark"] .text-pink-600 { color:#E5A0A7; }
+html.gt-themed[data-theme="dark"] .text-blue-500, html.gt-themed[data-theme="dark"] .text-blue-600, html.gt-themed[data-theme="dark"] .text-blue-700, html.gt-themed[data-theme="dark"] .text-blue-800,
+html.gt-themed[data-theme="dark"] .text-sky-500, html.gt-themed[data-theme="dark"] .text-sky-600, html.gt-themed[data-theme="dark"] .text-sky-700 { color:#9DBCE0; }
+html.gt-themed[data-theme="dark"] .text-indigo-500, html.gt-themed[data-theme="dark"] .text-indigo-600, html.gt-themed[data-theme="dark"] .text-indigo-700,
+html.gt-themed[data-theme="dark"] .text-violet-600, html.gt-themed[data-theme="dark"] .text-purple-500, html.gt-themed[data-theme="dark"] .text-purple-600,
+html.gt-themed[data-theme="dark"] .text-purple-700, html.gt-themed[data-theme="dark"] .text-fuchsia-600 { color:#BCACDD; }
+html.gt-themed[data-theme="dark"] .text-teal-500, html.gt-themed[data-theme="dark"] .text-teal-600, html.gt-themed[data-theme="dark"] .text-teal-700, html.gt-themed[data-theme="dark"] .text-teal-800,
+html.gt-themed[data-theme="dark"] .text-cyan-600, html.gt-themed[data-theme="dark"] .text-cyan-700 { color:#87C8C2; }
+html.gt-themed[data-theme="dark"] .text-green-500, html.gt-themed[data-theme="dark"] .text-green-600, html.gt-themed[data-theme="dark"] .text-green-700,
+html.gt-themed[data-theme="dark"] .text-emerald-600, html.gt-themed[data-theme="dark"] .text-emerald-700, html.gt-themed[data-theme="dark"] .text-lime-600 { color:#9ECFB6; }
+html.gt-themed[data-theme="dark"] .text-amber-500, html.gt-themed[data-theme="dark"] .text-amber-600, html.gt-themed[data-theme="dark"] .text-amber-700,
+html.gt-themed[data-theme="dark"] .text-yellow-600, html.gt-themed[data-theme="dark"] .text-orange-500, html.gt-themed[data-theme="dark"] .text-orange-600 { color:#E9C277; }
+
+/* Pale tinted chips keep their own dark ink; on a dark page they need the
+   inverse, or a "badge" becomes light-on-light. */
+html.gt-themed[data-theme="dark"] .bg-blue-100, html.gt-themed[data-theme="dark"] .bg-sky-100, html.gt-themed[data-theme="dark"] .bg-indigo-100, html.gt-themed[data-theme="dark"] .bg-purple-100,
+html.gt-themed[data-theme="dark"] .bg-teal-100, html.gt-themed[data-theme="dark"] .bg-green-100, html.gt-themed[data-theme="dark"] .bg-emerald-100,
+html.gt-themed[data-theme="dark"] .bg-red-100, html.gt-themed[data-theme="dark"] .bg-amber-100, html.gt-themed[data-theme="dark"] .bg-yellow-100,
+html.gt-themed[data-theme="dark"] .bg-blue-50, html.gt-themed[data-theme="dark"] .bg-sky-50, html.gt-themed[data-theme="dark"] .bg-indigo-50, html.gt-themed[data-theme="dark"] .bg-purple-50,
+html.gt-themed[data-theme="dark"] .bg-teal-50, html.gt-themed[data-theme="dark"] .bg-green-50, html.gt-themed[data-theme="dark"] .bg-emerald-50,
+html.gt-themed[data-theme="dark"] .bg-red-50, html.gt-themed[data-theme="dark"] .bg-amber-50, html.gt-themed[data-theme="dark"] .bg-yellow-50 {
+  background-color: var(--gt-sunken);
+  border-color: var(--gt-border);
+}
+
+/* Accent ink. The 500-700 steps are tuned for a white page and sit at 3:1 or
+   worse on a dark card; the 300 steps clear AA at 7-8:1 on both dark surfaces.
+   Fills are left alone — a mid-tone fill with a white label still works. */
+html.gt-themed body.dark-mode .text-red-500, html.gt-themed body.dark-mode .text-red-600, html.gt-themed body.dark-mode .text-red-700,
+html.gt-themed body.dark-mode .text-rose-500, html.gt-themed body.dark-mode .text-rose-600, html.gt-themed body.dark-mode .text-pink-600 { color:#E5A0A7; }
+html.gt-themed body.dark-mode .text-blue-500, html.gt-themed body.dark-mode .text-blue-600, html.gt-themed body.dark-mode .text-blue-700, html.gt-themed body.dark-mode .text-blue-800,
+html.gt-themed body.dark-mode .text-sky-500, html.gt-themed body.dark-mode .text-sky-600, html.gt-themed body.dark-mode .text-sky-700 { color:#9DBCE0; }
+html.gt-themed body.dark-mode .text-indigo-500, html.gt-themed body.dark-mode .text-indigo-600, html.gt-themed body.dark-mode .text-indigo-700,
+html.gt-themed body.dark-mode .text-violet-600, html.gt-themed body.dark-mode .text-purple-500, html.gt-themed body.dark-mode .text-purple-600,
+html.gt-themed body.dark-mode .text-purple-700, html.gt-themed body.dark-mode .text-fuchsia-600 { color:#BCACDD; }
+html.gt-themed body.dark-mode .text-teal-500, html.gt-themed body.dark-mode .text-teal-600, html.gt-themed body.dark-mode .text-teal-700, html.gt-themed body.dark-mode .text-teal-800,
+html.gt-themed body.dark-mode .text-cyan-600, html.gt-themed body.dark-mode .text-cyan-700 { color:#87C8C2; }
+html.gt-themed body.dark-mode .text-green-500, html.gt-themed body.dark-mode .text-green-600, html.gt-themed body.dark-mode .text-green-700,
+html.gt-themed body.dark-mode .text-emerald-600, html.gt-themed body.dark-mode .text-emerald-700, html.gt-themed body.dark-mode .text-lime-600 { color:#9ECFB6; }
+html.gt-themed body.dark-mode .text-amber-500, html.gt-themed body.dark-mode .text-amber-600, html.gt-themed body.dark-mode .text-amber-700,
+html.gt-themed body.dark-mode .text-yellow-600, html.gt-themed body.dark-mode .text-orange-500, html.gt-themed body.dark-mode .text-orange-600 { color:#E9C277; }
+
+/* Pale tinted chips keep their own dark ink; on a dark page they need the
+   inverse, or a "badge" becomes light-on-light. */
+html.gt-themed body.dark-mode .bg-blue-100, html.gt-themed body.dark-mode .bg-sky-100, html.gt-themed body.dark-mode .bg-indigo-100, html.gt-themed body.dark-mode .bg-purple-100,
+html.gt-themed body.dark-mode .bg-teal-100, html.gt-themed body.dark-mode .bg-green-100, html.gt-themed body.dark-mode .bg-emerald-100,
+html.gt-themed body.dark-mode .bg-red-100, html.gt-themed body.dark-mode .bg-amber-100, html.gt-themed body.dark-mode .bg-yellow-100,
+html.gt-themed body.dark-mode .bg-blue-50, html.gt-themed body.dark-mode .bg-sky-50, html.gt-themed body.dark-mode .bg-indigo-50, html.gt-themed body.dark-mode .bg-purple-50,
+html.gt-themed body.dark-mode .bg-teal-50, html.gt-themed body.dark-mode .bg-green-50, html.gt-themed body.dark-mode .bg-emerald-50,
+html.gt-themed body.dark-mode .bg-red-50, html.gt-themed body.dark-mode .bg-amber-50, html.gt-themed body.dark-mode .bg-yellow-50 {
+  background-color: var(--gt-sunken);
+  border-color: var(--gt-border);
+}
+
+/* Accent ink. The 500-700 steps are tuned for a white page and sit at 3:1 or
+   worse on a dark card; the 300 steps clear AA at 7-8:1 on both dark surfaces.
+   Fills are left alone — a mid-tone fill with a white label still works. */
+html.gt-themed body.dark .text-red-500, html.gt-themed body.dark .text-red-600, html.gt-themed body.dark .text-red-700,
+html.gt-themed body.dark .text-rose-500, html.gt-themed body.dark .text-rose-600, html.gt-themed body.dark .text-pink-600 { color:#E5A0A7; }
+html.gt-themed body.dark .text-blue-500, html.gt-themed body.dark .text-blue-600, html.gt-themed body.dark .text-blue-700, html.gt-themed body.dark .text-blue-800,
+html.gt-themed body.dark .text-sky-500, html.gt-themed body.dark .text-sky-600, html.gt-themed body.dark .text-sky-700 { color:#9DBCE0; }
+html.gt-themed body.dark .text-indigo-500, html.gt-themed body.dark .text-indigo-600, html.gt-themed body.dark .text-indigo-700,
+html.gt-themed body.dark .text-violet-600, html.gt-themed body.dark .text-purple-500, html.gt-themed body.dark .text-purple-600,
+html.gt-themed body.dark .text-purple-700, html.gt-themed body.dark .text-fuchsia-600 { color:#BCACDD; }
+html.gt-themed body.dark .text-teal-500, html.gt-themed body.dark .text-teal-600, html.gt-themed body.dark .text-teal-700, html.gt-themed body.dark .text-teal-800,
+html.gt-themed body.dark .text-cyan-600, html.gt-themed body.dark .text-cyan-700 { color:#87C8C2; }
+html.gt-themed body.dark .text-green-500, html.gt-themed body.dark .text-green-600, html.gt-themed body.dark .text-green-700,
+html.gt-themed body.dark .text-emerald-600, html.gt-themed body.dark .text-emerald-700, html.gt-themed body.dark .text-lime-600 { color:#9ECFB6; }
+html.gt-themed body.dark .text-amber-500, html.gt-themed body.dark .text-amber-600, html.gt-themed body.dark .text-amber-700,
+html.gt-themed body.dark .text-yellow-600, html.gt-themed body.dark .text-orange-500, html.gt-themed body.dark .text-orange-600 { color:#E9C277; }
+
+/* Pale tinted chips keep their own dark ink; on a dark page they need the
+   inverse, or a "badge" becomes light-on-light. */
+html.gt-themed body.dark .bg-blue-100, html.gt-themed body.dark .bg-sky-100, html.gt-themed body.dark .bg-indigo-100, html.gt-themed body.dark .bg-purple-100,
+html.gt-themed body.dark .bg-teal-100, html.gt-themed body.dark .bg-green-100, html.gt-themed body.dark .bg-emerald-100,
+html.gt-themed body.dark .bg-red-100, html.gt-themed body.dark .bg-amber-100, html.gt-themed body.dark .bg-yellow-100,
+html.gt-themed body.dark .bg-blue-50, html.gt-themed body.dark .bg-sky-50, html.gt-themed body.dark .bg-indigo-50, html.gt-themed body.dark .bg-purple-50,
+html.gt-themed body.dark .bg-teal-50, html.gt-themed body.dark .bg-green-50, html.gt-themed body.dark .bg-emerald-50,
+html.gt-themed body.dark .bg-red-50, html.gt-themed body.dark .bg-amber-50, html.gt-themed body.dark .bg-yellow-50 {
+  background-color: var(--gt-sunken);
+  border-color: var(--gt-border);
+}
+@media (prefers-color-scheme: dark) {
+
+/* Accent ink. The 500-700 steps are tuned for a white page and sit at 3:1 or
+   worse on a dark card; the 300 steps clear AA at 7-8:1 on both dark surfaces.
+   Fills are left alone — a mid-tone fill with a white label still works. */
+html.gt-themed:not([data-theme="light"]) .text-red-500, html.gt-themed:not([data-theme="light"]) .text-red-600, html.gt-themed:not([data-theme="light"]) .text-red-700,
+html.gt-themed:not([data-theme="light"]) .text-rose-500, html.gt-themed:not([data-theme="light"]) .text-rose-600, html.gt-themed:not([data-theme="light"]) .text-pink-600 { color:#E5A0A7; }
+html.gt-themed:not([data-theme="light"]) .text-blue-500, html.gt-themed:not([data-theme="light"]) .text-blue-600, html.gt-themed:not([data-theme="light"]) .text-blue-700, html.gt-themed:not([data-theme="light"]) .text-blue-800,
+html.gt-themed:not([data-theme="light"]) .text-sky-500, html.gt-themed:not([data-theme="light"]) .text-sky-600, html.gt-themed:not([data-theme="light"]) .text-sky-700 { color:#9DBCE0; }
+html.gt-themed:not([data-theme="light"]) .text-indigo-500, html.gt-themed:not([data-theme="light"]) .text-indigo-600, html.gt-themed:not([data-theme="light"]) .text-indigo-700,
+html.gt-themed:not([data-theme="light"]) .text-violet-600, html.gt-themed:not([data-theme="light"]) .text-purple-500, html.gt-themed:not([data-theme="light"]) .text-purple-600,
+html.gt-themed:not([data-theme="light"]) .text-purple-700, html.gt-themed:not([data-theme="light"]) .text-fuchsia-600 { color:#BCACDD; }
+html.gt-themed:not([data-theme="light"]) .text-teal-500, html.gt-themed:not([data-theme="light"]) .text-teal-600, html.gt-themed:not([data-theme="light"]) .text-teal-700, html.gt-themed:not([data-theme="light"]) .text-teal-800,
+html.gt-themed:not([data-theme="light"]) .text-cyan-600, html.gt-themed:not([data-theme="light"]) .text-cyan-700 { color:#87C8C2; }
+html.gt-themed:not([data-theme="light"]) .text-green-500, html.gt-themed:not([data-theme="light"]) .text-green-600, html.gt-themed:not([data-theme="light"]) .text-green-700,
+html.gt-themed:not([data-theme="light"]) .text-emerald-600, html.gt-themed:not([data-theme="light"]) .text-emerald-700, html.gt-themed:not([data-theme="light"]) .text-lime-600 { color:#9ECFB6; }
+html.gt-themed:not([data-theme="light"]) .text-amber-500, html.gt-themed:not([data-theme="light"]) .text-amber-600, html.gt-themed:not([data-theme="light"]) .text-amber-700,
+html.gt-themed:not([data-theme="light"]) .text-yellow-600, html.gt-themed:not([data-theme="light"]) .text-orange-500, html.gt-themed:not([data-theme="light"]) .text-orange-600 { color:#E9C277; }
+
+/* Pale tinted chips keep their own dark ink; on a dark page they need the
+   inverse, or a "badge" becomes light-on-light. */
+html.gt-themed:not([data-theme="light"]) .bg-blue-100, html.gt-themed:not([data-theme="light"]) .bg-sky-100, html.gt-themed:not([data-theme="light"]) .bg-indigo-100, html.gt-themed:not([data-theme="light"]) .bg-purple-100,
+html.gt-themed:not([data-theme="light"]) .bg-teal-100, html.gt-themed:not([data-theme="light"]) .bg-green-100, html.gt-themed:not([data-theme="light"]) .bg-emerald-100,
+html.gt-themed:not([data-theme="light"]) .bg-red-100, html.gt-themed:not([data-theme="light"]) .bg-amber-100, html.gt-themed:not([data-theme="light"]) .bg-yellow-100,
+html.gt-themed:not([data-theme="light"]) .bg-blue-50, html.gt-themed:not([data-theme="light"]) .bg-sky-50, html.gt-themed:not([data-theme="light"]) .bg-indigo-50, html.gt-themed:not([data-theme="light"]) .bg-purple-50,
+html.gt-themed:not([data-theme="light"]) .bg-teal-50, html.gt-themed:not([data-theme="light"]) .bg-green-50, html.gt-themed:not([data-theme="light"]) .bg-emerald-50,
+html.gt-themed:not([data-theme="light"]) .bg-red-50, html.gt-themed:not([data-theme="light"]) .bg-amber-50, html.gt-themed:not([data-theme="light"]) .bg-yellow-50 {
+  background-color: var(--gt-sunken);
+  border-color: var(--gt-border);
+}
+}
+
+
+/* The per-page colour names serve as both fill and ink, so their value stays a
+   600 for the fills' sake (see gt-palette.js). Their ink side is corrected
+   here, where fill and text can finally be told apart. */
+html.gt-themed[data-theme="dark"] .text-brand, html.gt-themed[data-theme="dark"] .text-pro, html.gt-themed[data-theme="dark"] .text-fbblue { color:#9DBCE0; }
+html.gt-themed[data-theme="dark"] .text-section, html.gt-themed[data-theme="dark"] .text-fbpurple { color:#BCACDD; }
+html.gt-themed[data-theme="dark"] .text-cho, html.gt-themed[data-theme="dark"] .text-fbgreen, html.gt-themed[data-theme="dark"] .text-fbgreen2, html.gt-themed[data-theme="dark"] .text-tablehd { color:#9ECFB6; }
+html.gt-themed[data-theme="dark"] .text-fat, html.gt-themed[data-theme="dark"] .text-fbyellow, html.gt-themed[data-theme="dark"] .text-fborange { color:#E9C277; }
+html.gt-themed[data-theme="dark"] .text-fbred, html.gt-themed[data-theme="dark"] .text-fbred2 { color:#E5A0A7; }
+
+/* The per-page colour names serve as both fill and ink, so their value stays a
+   600 for the fills' sake (see gt-palette.js). Their ink side is corrected
+   here, where fill and text can finally be told apart. */
+html.gt-themed body.dark-mode .text-brand, html.gt-themed body.dark-mode .text-pro, html.gt-themed body.dark-mode .text-fbblue { color:#9DBCE0; }
+html.gt-themed body.dark-mode .text-section, html.gt-themed body.dark-mode .text-fbpurple { color:#BCACDD; }
+html.gt-themed body.dark-mode .text-cho, html.gt-themed body.dark-mode .text-fbgreen, html.gt-themed body.dark-mode .text-fbgreen2, html.gt-themed body.dark-mode .text-tablehd { color:#9ECFB6; }
+html.gt-themed body.dark-mode .text-fat, html.gt-themed body.dark-mode .text-fbyellow, html.gt-themed body.dark-mode .text-fborange { color:#E9C277; }
+html.gt-themed body.dark-mode .text-fbred, html.gt-themed body.dark-mode .text-fbred2 { color:#E5A0A7; }
+
+/* The per-page colour names serve as both fill and ink, so their value stays a
+   600 for the fills' sake (see gt-palette.js). Their ink side is corrected
+   here, where fill and text can finally be told apart. */
+html.gt-themed body.dark .text-brand, html.gt-themed body.dark .text-pro, html.gt-themed body.dark .text-fbblue { color:#9DBCE0; }
+html.gt-themed body.dark .text-section, html.gt-themed body.dark .text-fbpurple { color:#BCACDD; }
+html.gt-themed body.dark .text-cho, html.gt-themed body.dark .text-fbgreen, html.gt-themed body.dark .text-fbgreen2, html.gt-themed body.dark .text-tablehd { color:#9ECFB6; }
+html.gt-themed body.dark .text-fat, html.gt-themed body.dark .text-fbyellow, html.gt-themed body.dark .text-fborange { color:#E9C277; }
+html.gt-themed body.dark .text-fbred, html.gt-themed body.dark .text-fbred2 { color:#E5A0A7; }
+@media (prefers-color-scheme: dark) {
+
+/* The per-page colour names serve as both fill and ink, so their value stays a
+   600 for the fills' sake (see gt-palette.js). Their ink side is corrected
+   here, where fill and text can finally be told apart. */
+html.gt-themed:not([data-theme="light"]) .text-brand, html.gt-themed:not([data-theme="light"]) .text-pro, html.gt-themed:not([data-theme="light"]) .text-fbblue { color:#9DBCE0; }
+html.gt-themed:not([data-theme="light"]) .text-section, html.gt-themed:not([data-theme="light"]) .text-fbpurple { color:#BCACDD; }
+html.gt-themed:not([data-theme="light"]) .text-cho, html.gt-themed:not([data-theme="light"]) .text-fbgreen, html.gt-themed:not([data-theme="light"]) .text-fbgreen2, html.gt-themed:not([data-theme="light"]) .text-tablehd { color:#9ECFB6; }
+html.gt-themed:not([data-theme="light"]) .text-fat, html.gt-themed:not([data-theme="light"]) .text-fbyellow, html.gt-themed:not([data-theme="light"]) .text-fborange { color:#E9C277; }
+html.gt-themed:not([data-theme="light"]) .text-fbred, html.gt-themed:not([data-theme="light"]) .text-fbred2 { color:#E5A0A7; }
+}
+
+
+/* A few fills stay light in dark mode because they are meant to: a pale band
+   or chip that reads as a highlight. Body ink then lands on them the wrong way
+   round, so these carry dark ink explicitly rather than inheriting. */
+html.gt-themed[data-theme="dark"] .bg-lime, html.gt-themed[data-theme="dark"] .bg-tablehd, html.gt-themed[data-theme="dark"] .bg-fbyellow,
+html.gt-themed[data-theme="dark"] .bg-sage-200, html.gt-themed[data-theme="dark"] .bg-sage-300,
+html.gt-themed[data-theme="dark"] .ok, html.gt-themed[data-theme="dark"] .warn, html.gt-themed[data-theme="dark"] .bad { color:#22322A; }
+html.gt-themed[data-theme="dark"] .bg-lime *, html.gt-themed[data-theme="dark"] .bg-tablehd * { color:inherit; }
+
+/* A few fills stay light in dark mode because they are meant to: a pale band
+   or chip that reads as a highlight. Body ink then lands on them the wrong way
+   round, so these carry dark ink explicitly rather than inheriting. */
+html.gt-themed body.dark-mode .bg-lime, html.gt-themed body.dark-mode .bg-tablehd, html.gt-themed body.dark-mode .bg-fbyellow,
+html.gt-themed body.dark-mode .bg-sage-200, html.gt-themed body.dark-mode .bg-sage-300,
+html.gt-themed body.dark-mode .ok, html.gt-themed body.dark-mode .warn, html.gt-themed body.dark-mode .bad { color:#22322A; }
+html.gt-themed body.dark-mode .bg-lime *, html.gt-themed body.dark-mode .bg-tablehd * { color:inherit; }
+
+/* A few fills stay light in dark mode because they are meant to: a pale band
+   or chip that reads as a highlight. Body ink then lands on them the wrong way
+   round, so these carry dark ink explicitly rather than inheriting. */
+html.gt-themed body.dark .bg-lime, html.gt-themed body.dark .bg-tablehd, html.gt-themed body.dark .bg-fbyellow,
+html.gt-themed body.dark .bg-sage-200, html.gt-themed body.dark .bg-sage-300,
+html.gt-themed body.dark .ok, html.gt-themed body.dark .warn, html.gt-themed body.dark .bad { color:#22322A; }
+html.gt-themed body.dark .bg-lime *, html.gt-themed body.dark .bg-tablehd * { color:inherit; }
+@media (prefers-color-scheme: dark) {
+
+/* A few fills stay light in dark mode because they are meant to: a pale band
+   or chip that reads as a highlight. Body ink then lands on them the wrong way
+   round, so these carry dark ink explicitly rather than inheriting. */
+html.gt-themed:not([data-theme="light"]) .bg-lime, html.gt-themed:not([data-theme="light"]) .bg-tablehd, html.gt-themed:not([data-theme="light"]) .bg-fbyellow,
+html.gt-themed:not([data-theme="light"]) .bg-sage-200, html.gt-themed:not([data-theme="light"]) .bg-sage-300,
+html.gt-themed:not([data-theme="light"]) .ok, html.gt-themed:not([data-theme="light"]) .warn, html.gt-themed:not([data-theme="light"]) .bad { color:#22322A; }
+html.gt-themed:not([data-theme="light"]) .bg-lime *, html.gt-themed:not([data-theme="light"]) .bg-tablehd * { color:inherit; }
 }
 
 /* ---------------------------------------------------------------------------

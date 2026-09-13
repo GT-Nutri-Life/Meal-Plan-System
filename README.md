@@ -55,6 +55,37 @@ tests/
   stub-supabase.js          offline stand-in for the Supabase client
 ```
 
+## One theme, eleven separate documents
+
+The portal is not a single-page app. Every subsystem is its own HTML file, so
+"the theme" only exists if each document independently arrives at the same
+answer — and for a while none of them did. There were three mechanisms and
+three storage keys:
+
+| Where | Mechanism | Saved under |
+|---|---|---|
+| the portal | `html[data-theme]` | `gt-theme` |
+| About the Dietitian | `html[data-theme]` | `pt` |
+| both calendar tools | `body.dark-mode` | `darkMode` |
+
+and **eight of the eleven bundled pages had no theme code whatsoever**, so they
+could only ever follow the operating system. Choosing dark on the portal and
+opening BMI Assessment put you back in daylight, because nothing on that page
+could make it dark.
+
+`assets/gt-theme-boot.js` is the single source of truth. It loads first and
+synchronously in every `<head>` — applying the theme after first paint is what
+produces a white flash, which on a portal of eleven separate documents means a
+flash on every click. It writes the answer to all three mechanisms, keeps all
+three keys in step so each page's own toggle still works and still agrees, and
+watches for a page flipping its own class or attribute so that choice becomes
+everyone's. The shared header carries a toggle, which is how the eight pages
+without one got theirs.
+
+`tests/theme.test.js` holds it there: choose dark once, then assert every
+subsystem opens dark, that BMI reads light-on-dark, and that a calendar tool's
+own button still steers the rest of the portal.
+
 ## How the pastel theme reaches eleven different pages
 
 The bundled tools were written independently, against four different colour
@@ -69,6 +100,7 @@ vocabulary by its own route:
 | Tailwind utility classes (`text-gray-700`, `bg-blue-50`) | `gt-tailwind.js` merges the palette into `tailwind.config` at runtime |
 | A page's own `tailwind.config` names | the same merge, which preserves their keys and re-points their values |
 | Hex and `rgba()` literals in a page's `<style>` block | `scripts/recolor-apps.js`, run once and checked by CI |
+| Surfaces and ink a page hardcodes | the same script, pointed at the theme variables so they follow light and dark |
 | Shared surfaces, forms, tables, print | `gt-theme.css`, loaded last so it wins on cascade order |
 
 Two decisions are worth knowing about, because both were mistakes first:
@@ -83,8 +115,29 @@ Two decisions are worth knowing about, because both were mistakes first:
   ICU NutriPlan — that was designed dark and is now light.
 
 Every colour in the palette clears WCAG AA where it carries text: the 600
-steps sit at 4.7–5.5:1 on white and behind white labels, and the ratios are
-recorded next to each scale in `gt-palette.js`.
+steps sit at 4.7–5.5:1 on white and behind white labels, the 300 steps at
+7–8:1 on the dark card, and the ratios are recorded next to each scale in
+`gt-palette.js`. Accent names that serve as both a fill and an ink keep their
+600 value — Tailwind allows one value per name — and their ink side is
+corrected by the dark rules in `gt-theme.css`; pointing the name itself at a
+variable made the text read and turned the mastheads into pale bands still
+carrying their white headings.
+
+Measured across the bundle, every distinct text-on-background pair, against the
+background actually painted behind it:
+
+| | before | after |
+|---|---|---|
+| failing pairs, dark | 70 — and dark did not apply at all on eight pages | 21 |
+| failing pairs, light | 74 | 69 |
+
+A translucent white is the one case that needs judgement. At α ≥ 0.7 it is a
+surface and must follow the theme — ICU NutriPlan's sticky header is
+`rgba(247,250,248,.85)`, which stayed light and took the shared skin's light
+ink with it. Below that it is a highlight laid over something else
+(`linear-gradient(45deg, transparent, rgba(255,255,255,0.1))` over a coloured
+banner), and converting those too turned the banners solid white and left their
+pale headings at 1:1.
 
 ## The client library
 
@@ -349,6 +402,7 @@ npm test                    # verification + both browser suites
 node tests/run.js portal    # just the catalogue and switcher
 node tests/run.js handoff   # just sign-in, the record and the client library
 node tests/run.js crossref  # just the cross-system prefill checks
+node tests/run.js theme     # just the shared-theme checks
 npm run check:supabase      # live check against the Supabase project
 ```
 

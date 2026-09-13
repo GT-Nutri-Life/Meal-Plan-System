@@ -15,6 +15,10 @@
 <meta property="og:description" content="One entry point to every GT Nutri Life clinical nutrition subsystem.">
 <meta name="twitter:card" content="summary_large_image">
 
+<!-- First, and synchronous: it stamps the shared theme on <html> while the
+     head is still blocking, so the page never paints light and then flips. -->
+<script src="assets/gt-theme-boot.js"></script>
+
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -422,20 +426,25 @@ footer{padding:40px 0 56px;border-top:1px solid var(--bdr);background:var(--bg-s
   var tbtn = document.getElementById('theme');
   var ticon = document.getElementById('ticon');
 
-  function setTheme(t, save) {
-    html.setAttribute('data-theme', t);
+  /*
+   * The choice itself belongs to assets/gt-theme-boot.js, which every bundled
+   * page loads too — that is what makes the theme survive a move from here
+   * into a subsystem and back. This is only the button: it reflects the
+   * current theme and asks for a change.
+   */
+  function paintToggle(t) {
     ticon.innerHTML = t === 'dark' ? SUN : MOON;
     tbtn.setAttribute('aria-label', t === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
-    if (save) { try { localStorage.setItem('gt-theme', t); } catch (e) {} }
   }
 
-  var saved = null;
-  try { saved = localStorage.getItem('gt-theme'); } catch (e) {}
-  setTheme(saved || (window.matchMedia &&
-    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'), false);
+  paintToggle(window.GTTheme ? window.GTTheme.get() : html.getAttribute('data-theme') || 'light');
+  if (window.GTTheme) window.GTTheme.onChange(paintToggle);
 
   tbtn.addEventListener('click', function () {
-    setTheme(html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark', true);
+    if (window.GTTheme) { paintToggle(window.GTTheme.toggle()); return; }
+    var t = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', t);
+    paintToggle(t);
   });
 
   /* ---------- helpers ------------------------------------------------ */
