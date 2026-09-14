@@ -5,14 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Baby Growth &amp; Feeding Plan Generator | For Babies Under 2</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍼</text></svg>">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet">
+    <script>/* Tailwind is compiled ahead of time into assets/tailwind.css.
+   This stub keeps this page's own `tailwind.config` assignment harmless. */
+window.tailwind = window.tailwind || { config: {} };</script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet"></noscript>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'"><noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
+    <script src="../../assets/gt-lazy.js" defer></script>
+    <script data-gt-lazy="https://cdn.jsdelivr.net/npm/sweetalert2@11" data-gt-lazy-provides="Swal"></script>
+    <script data-gt-lazy="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" data-gt-lazy-provides="jspdf"></script>
+    <script data-gt-lazy="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" data-gt-lazy-provides="html2canvas"></script>
+    <script data-gt-lazy="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" data-gt-lazy-provides="Chart"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&display=swap" rel="stylesheet"></noscript>
     <style>
         :root {
             --primary: #489A93;
@@ -52,10 +55,9 @@
             .meal-time-input { font-size: 0.75rem; padding: 0.1rem 0.2rem; }
         }
     </style>
-<script src="../../assets/gt-palette.js"></script>
-<script src="../../assets/gt-tailwind.js"></script>
-<link rel="stylesheet" href="../../assets/gt-theme.css">
 <script src="../../assets/gt-theme-boot.js"></script>
+<link rel="stylesheet" href="../../assets/tailwind.css">
+<link rel="stylesheet" href="../../assets/gt-theme.css">
 </head>
 <body class="min-h-screen">
     <header class="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-6 md:py-8 shadow-lg">

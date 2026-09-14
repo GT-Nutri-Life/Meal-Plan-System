@@ -4,14 +4,18 @@
   "private": true,
   "description": "GT Nutri Life — unified clinical nutrition portal",
   "scripts": {
-    "verify": "scripts/inject-nav.sh --check && scripts/recolor-apps.js --check && scripts/verify-registry.js",
+    "verify": "scripts/inject-nav.sh --check && scripts/recolor-apps.js --check && scripts/defer-libs.js --check && node scripts/build-tailwind.js --check && scripts/verify-registry.js",
     "test": "npm run verify && node tests/run.js",
     "check:supabase": "node scripts/check-supabase.js",
     "test:portal": "node tests/run.js portal",
     "test:handoff": "node tests/run.js handoff",
     "serve": "node -e \"require('./tests/harness').serve({port:8000,strip:false}).then(()=>console.log('http://localhost:8000/'))\""
   },
+  "//": "cssnano, postcss and tailwindcss are pinned exactly, not with a caret: they build assets/tailwind.css, which is committed, and a minifier patch that changed one byte of its output would fail build-tailwind.js --check on an unrelated day.",
   "devDependencies": {
-    "playwright": "^1.49.1"
+    "cssnano": "8.0.10",
+    "playwright": "^1.49.1",
+    "postcss": "8.5.28",
+    "tailwindcss": "3.4.19"
   }
 }

@@ -101,6 +101,9 @@
        scale so the chip, its label and the links keep their contrast. */
     '--sage-50:#1F2E26;--sage-100:#24382E;--sage-200:#2F4A3C;',
     '--sage-600:#7FC3A2;--sage-700:#9ECFB6;',
+    /* The accent fill is a light mint here, so the label on it has to be dark
+       ink rather than white — white measured 2.05:1. */
+    '--on-accent:#16211C;',
     '}',
 
     ':host,*{box-sizing:border-box}',
@@ -135,11 +138,13 @@
     '.client.empty{background:var(--soft);border-color:var(--border)}',
     '.who{display:flex;flex-direction:column;min-width:0;line-height:1.25}',
     '.who b{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-    '.who span{font-size:10.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+    /* --ink3 on the tinted chip measured 4.29:1 — under AA by a hair. The
+       next step up clears it comfortably and costs nothing visually. */
+    '.who span{font-size:10.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
 
     'button{font-family:var(--f);cursor:pointer;border:0;background:none;color:inherit}',
     '.chip{flex:none;padding:6px 12px;border-radius:9999px;font:600 12px var(--f);',
-    'background:var(--sage-600);color:#fff;transition:background .16s var(--ease)}',
+    'background:var(--sage-600);color:var(--on-accent,#fff);transition:background .16s var(--ease)}',
     '.chip:hover{background:var(--sage-700)}',
     '.chip.ghost{background:transparent;color:var(--sage-700);border:1px solid var(--sage-300)}',
     '.chip.ghost:hover{background:var(--sage-100)}',
@@ -160,11 +165,27 @@
     ' .client{padding-left:10px}',
     '}',
 
+    /*
+     * Whose record is loaded matters more than the practice name, which is on
+     * every page anyway and next to a mark that says the same thing. Measured
+     * at 390px the name had 136px of the 234px it needed and read
+     * "Gayathri Thakshila Dissan…"; dropping the wordmark gives it the room.
+     */
+    '@media (max-width:560px){',
+    ' .names{display:none}',
+    ' .client{max-width:none;flex:1 1 auto;min-width:0}',
+    ' .who{flex:1 1 auto;min-width:0}',
+    /* Even with the wordmark gone a full name does not fit on one line beside
+       the button, so it wraps to two rather than ending in an ellipsis. A
+       client is identified by their whole name or not at all. */
+    ' .who b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;',
+    '   -webkit-box-orient:vertical;overflow:hidden;line-height:1.2;font-size:12.5px}',
+    '}',
+
     /* Narrower still: with no client loaded the label says nothing the button
        does not, so it goes and the control becomes a single compact target.
        A loaded client keeps its name — that is the one thing worth the space. */
     '@media (max-width:480px){',
-    ' .client{max-width:56vw}',
     ' .client.empty{padding:4px;background:none;border-color:transparent}',
     ' .client.empty .who{display:none}',
     ' .chip{min-height:36px;display:inline-flex;align-items:center}',

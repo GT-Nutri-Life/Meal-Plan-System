@@ -7,6 +7,7 @@
  *   node tests/run.js handoff      just the sign-in/handoff suite
  *   node tests/run.js crossref     just the cross-system prefill suite
  *   node tests/run.js theme        just the shared-theme suite
+ *   node tests/run.js lazy         just the deferred-library suite
  *
  * Exits non-zero if any check fails, so CI can gate a deploy on it.
  */
@@ -56,8 +57,9 @@ const STUB = fs.readFileSync(path.join(__dirname, 'stub-supabase.js'), 'utf8');
     if (which === 'all' || which === 'handoff') suites.push(require('./handoff.test'));
     if (which === 'all' || which === 'crossref') suites.push(require('./crossref.test'));
     if (which === 'all' || which === 'theme')    suites.push(require('./theme.test'));
+    if (which === 'all' || which === 'lazy')     suites.push(require('./lazy.test'));
     if (!suites.length) {
-      console.error(`Unknown suite "${which}". Use: portal | handoff | crossref | theme | all`);
+      console.error(`Unknown suite "${which}". Use: portal | handoff | crossref | theme | lazy | all`);
       process.exit(2);
     }
 
