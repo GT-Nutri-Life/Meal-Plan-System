@@ -79,7 +79,16 @@
     "--f:'Outfit',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;",
     "--fd:'Playfair Display',Georgia,serif;",
     '--ease:cubic-bezier(.16,1,.3,1);',
-    'all:initial;font-family:var(--f);',
+    /*
+     * `all:initial` is what keeps a page's own styles out of this shadow root,
+     * but it resets colour along with everything else, and the initial value
+     * of colour is black. The full header hid that by setting colour on .bar;
+     * the portal renders the client chip on its own, with no .bar, so the
+     * saved profile name inherited black — 1.48:1 on the dark chip, and not
+     * the theme's ink on the light one. Colour belongs here, where every
+     * mount path gets it, and it follows --ink into dark on its own.
+     */
+    'all:initial;font-family:var(--f);color:var(--ink);',
     '}',
 
     /*

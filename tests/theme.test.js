@@ -118,6 +118,69 @@ module.exports = async function run({ context, B, reporter }) {
     ok(now === 'dark', `and it switches the page (${now})`);
   }
 
+  /*
+   * The client chip mounts two ways: inside the shared header on a bundled
+   * page, and on its own in the portal's masthead, which has a header
+   * already. Only the first renders a .bar, and .bar was the one rule putting
+   * a colour back after `all:initial` reset it — so on the portal the saved
+   * profile name inherited the initial colour, black, which on the dark chip
+   * measured 1.48:1. Both mounts, both themes, or it is not fixed.
+   */
+  {
+    const CONTRAST = `((a, b) => {
+      const lin = (c) => { const m = (c||'').match(/[\\d.]+/g);
+        if (!m) return null;
+        const f = (v) => { v /= 255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); };
+        return 0.2126*f(+m[0]) + 0.7152*f(+m[1]) + 0.0722*f(+m[2]); };
+      const [x, y] = [lin(a), lin(b)].sort((p, q) => q - p);
+      return (x + 0.05) / (y + 0.05);
+    })`;
+
+    const seen = {};
+    for (const theme of ['light', 'dark']) {
+      for (const [where, url] of [['portal', '/index.html'],
+                                  ['bmi', '/apps/bmi-assessment/index.html']]) {
+        await p.goto(B + url, { waitUntil: 'domcontentloaded' });
+        await p.evaluate(([t, c]) => {
+          localStorage.setItem('gt-theme', t);
+          localStorage.setItem('gt-open-client', JSON.stringify(c));
+        }, [theme, { id: 'c-theme-probe', name: 'Ashen' }]);
+        await p.reload({ waitUntil: 'load' });
+        await p.waitForTimeout(900);
+
+        const got = await p.evaluate((contrastSrc) => {
+          const contrast = eval(contrastSrc);
+          const host = document.querySelector('.gt-chrome-client') ||
+                       document.querySelector('.gt-chrome-header');
+          if (!host || !host.shadowRoot) return null;
+          const el = host.shadowRoot.querySelector('.who b');
+          if (!el) return null;
+          let n = el, bg = null;
+          while (n) {
+            const b = getComputedStyle(n).backgroundColor;
+            if (b && !/rgba\(0, 0, 0, 0\)|transparent/.test(b)) { bg = b; break; }
+            n = n.parentElement || (n.getRootNode && n.getRootNode().host) || null;
+          }
+          return { ratio: contrast(getComputedStyle(el).color, bg),
+                   color: getComputedStyle(el).color };
+        }, CONTRAST);
+
+        ok(got && got.ratio >= 4.5,
+          `${where} in ${theme}: the saved profile name reads on its chip ` +
+          `(${got ? got.ratio.toFixed(2) : '?'}:1)`);
+        seen[theme + '/' + where] = got && got.color;
+      }
+
+      /* Contrast alone would not have caught this in light, where the initial
+         colour is black on a pale chip — a high ratio, and still the wrong
+         colour. The two mounts have to agree. */
+      ok(seen[theme + '/portal'] && seen[theme + '/portal'] === seen[theme + '/bmi'],
+        `and it is the theme's ink either way in ${theme} ` +
+        `(${seen[theme + '/portal']} vs ${seen[theme + '/bmi']})`);
+    }
+    await p.evaluate(() => localStorage.removeItem('gt-open-client'));
+  }
+
   await p.close();
   return r;
 };
