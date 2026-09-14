@@ -181,6 +181,59 @@ module.exports = async function run({ context, B, reporter }) {
     await p.evaluate(() => localStorage.removeItem('gt-open-client'));
   }
 
+  /*
+   * A pale gradient panel must not stay light on a dark page.
+   *
+   * This is the bug that reached a user. The bg-* dark overrides cover a flat
+   * pale surface; they do not cover `bg-gradient-to-br from-blue-50
+   * to-blue-100`, which Tailwind paints through --tw-gradient-from/to instead.
+   * The BMI result card, the meal plan configuration blocks and the PDF
+   * generation panel all stayed white while the ink on them flipped to light —
+   * 1.02:1, and invisible. None of it was caught because every one of those
+   * panels is behind an interaction, and the audit only looked at what a page
+   * renders on load.
+   */
+  {
+    const PALE = ['from-white', 'from-amber-50', 'from-blue-50', 'from-green-50', 'from-indigo-50',
+                  'from-orange-50', 'from-purple-50', 'from-teal-50', 'from-yellow-50',
+                  'to-blue-50', 'to-cyan-50', 'to-emerald-50', 'to-green-50', 'to-orange-50',
+                  'to-pink-50', 'to-purple-50', 'to-red-50', 'to-teal-50', 'to-yellow-50',
+                  'to-blue-100', 'to-teal-100'];
+
+    for (const [name, url] of [['mpg-main', '/apps/meal-plan-generator/main.html'],
+                               ['mpg', '/apps/meal-plan-generator/index.html'],
+                               ['babies', '/apps/meal-plan-generator/babies.html'],
+                               ['dpcg', '/apps/diet-plan-calendar-generator/index.html']]) {
+      await p.goto(B + url, { waitUntil: 'domcontentloaded' });
+      await p.evaluate(() => localStorage.setItem('gt-theme', 'dark'));
+      await p.reload({ waitUntil: 'load' });
+      await p.waitForTimeout(800);
+
+      const light = await p.evaluate((pale) => {
+        const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+        const bad = [];
+        for (const cls of pale) {
+          for (const el of document.querySelectorAll('.' + CSS.escape(cls))) {
+            const img = getComputedStyle(el).backgroundImage;
+            const stops = [...String(img).matchAll(/rgba?\(([^)]+)\)/g)]
+              .map((m) => m[1].split(/[,\s/]+/).filter(Boolean).map(Number))
+              .filter((n) => n.length < 4 || n[3] > 0.2);
+            for (const n of stops) {
+              const L = 0.2126 * lin(n[0]) + 0.7152 * lin(n[1]) + 0.0722 * lin(n[2]);
+              if (L > 0.5) { bad.push(cls + ' → rgb(' + n.slice(0, 3).join(',') + ')'); break; }
+            }
+          }
+        }
+        return [...new Set(bad)];
+      }, PALE);
+
+      ok(light.length === 0,
+        `${name}: no pale gradient panel stays light in dark (${light.length} found)` +
+        (light.length ? ' — ' + light.slice(0, 3).join(', ') : ''));
+    }
+    await p.evaluate(() => localStorage.setItem('gt-theme', 'light'));
+  }
+
   await p.close();
   return r;
 };

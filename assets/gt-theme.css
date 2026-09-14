@@ -411,22 +411,32 @@ html.gt-themed:not([data-theme="light"]) ::placeholder { color: var(--gt-ash-400
 }
 
 
-/* Accent ink. The 500-700 steps are tuned for a white page and sit at 3:1 or
+/* Accent ink. The 500-900 steps are tuned for a white page and sit at 3:1 or
    worse on a dark card; the 300 steps clear AA at 7-8:1 on both dark surfaces.
-   Fills are left alone — a mid-tone fill with a white label still works. */
+   Fills are left alone — a mid-tone fill with a white label still works.
+
+   The 800 and 900 steps were missed the first time round because the panels
+   carrying them — "PDF Language", "PDF Font Size Customization" — were pale
+   gradients that stayed light, so a dark heading on them still read. Fixing
+   the gradient turned those panels dark and left the heading at 1.49:1. */
 html.gt-themed[data-theme="dark"] .text-red-500, html.gt-themed[data-theme="dark"] .text-red-600, html.gt-themed[data-theme="dark"] .text-red-700,
 html.gt-themed[data-theme="dark"] .text-rose-500, html.gt-themed[data-theme="dark"] .text-rose-600, html.gt-themed[data-theme="dark"] .text-pink-600 { color:#E5A0A7; }
 html.gt-themed[data-theme="dark"] .text-blue-500, html.gt-themed[data-theme="dark"] .text-blue-600, html.gt-themed[data-theme="dark"] .text-blue-700, html.gt-themed[data-theme="dark"] .text-blue-800,
-html.gt-themed[data-theme="dark"] .text-sky-500, html.gt-themed[data-theme="dark"] .text-sky-600, html.gt-themed[data-theme="dark"] .text-sky-700 { color:#9DBCE0; }
+html.gt-themed[data-theme="dark"] .text-sky-500, html.gt-themed[data-theme="dark"] .text-sky-600, html.gt-themed[data-theme="dark"] .text-sky-700,
+html.gt-themed[data-theme="dark"] .text-blue-900, html.gt-themed[data-theme="dark"] .text-sky-800 { color:#9DBCE0; }
 html.gt-themed[data-theme="dark"] .text-indigo-500, html.gt-themed[data-theme="dark"] .text-indigo-600, html.gt-themed[data-theme="dark"] .text-indigo-700,
 html.gt-themed[data-theme="dark"] .text-violet-600, html.gt-themed[data-theme="dark"] .text-purple-500, html.gt-themed[data-theme="dark"] .text-purple-600,
-html.gt-themed[data-theme="dark"] .text-purple-700, html.gt-themed[data-theme="dark"] .text-fuchsia-600 { color:#BCACDD; }
+html.gt-themed[data-theme="dark"] .text-purple-700, html.gt-themed[data-theme="dark"] .text-fuchsia-600,
+html.gt-themed[data-theme="dark"] .text-purple-800, html.gt-themed[data-theme="dark"] .text-purple-900, html.gt-themed[data-theme="dark"] .text-indigo-800, html.gt-themed[data-theme="dark"] .text-violet-800 { color:#BCACDD; }
 html.gt-themed[data-theme="dark"] .text-teal-500, html.gt-themed[data-theme="dark"] .text-teal-600, html.gt-themed[data-theme="dark"] .text-teal-700, html.gt-themed[data-theme="dark"] .text-teal-800,
-html.gt-themed[data-theme="dark"] .text-cyan-600, html.gt-themed[data-theme="dark"] .text-cyan-700 { color:#87C8C2; }
+html.gt-themed[data-theme="dark"] .text-cyan-600, html.gt-themed[data-theme="dark"] .text-cyan-700,
+html.gt-themed[data-theme="dark"] .text-teal-900, html.gt-themed[data-theme="dark"] .text-cyan-800 { color:#87C8C2; }
 html.gt-themed[data-theme="dark"] .text-green-500, html.gt-themed[data-theme="dark"] .text-green-600, html.gt-themed[data-theme="dark"] .text-green-700,
-html.gt-themed[data-theme="dark"] .text-emerald-600, html.gt-themed[data-theme="dark"] .text-emerald-700, html.gt-themed[data-theme="dark"] .text-lime-600 { color:#9ECFB6; }
+html.gt-themed[data-theme="dark"] .text-emerald-600, html.gt-themed[data-theme="dark"] .text-emerald-700, html.gt-themed[data-theme="dark"] .text-lime-600,
+html.gt-themed[data-theme="dark"] .text-green-800, html.gt-themed[data-theme="dark"] .text-green-900, html.gt-themed[data-theme="dark"] .text-emerald-800 { color:#9ECFB6; }
 html.gt-themed[data-theme="dark"] .text-amber-500, html.gt-themed[data-theme="dark"] .text-amber-600, html.gt-themed[data-theme="dark"] .text-amber-700,
-html.gt-themed[data-theme="dark"] .text-yellow-600, html.gt-themed[data-theme="dark"] .text-orange-500, html.gt-themed[data-theme="dark"] .text-orange-600 { color:#E9C277; }
+html.gt-themed[data-theme="dark"] .text-yellow-600, html.gt-themed[data-theme="dark"] .text-orange-500, html.gt-themed[data-theme="dark"] .text-orange-600,
+html.gt-themed[data-theme="dark"] .text-amber-800, html.gt-themed[data-theme="dark"] .text-amber-900, html.gt-themed[data-theme="dark"] .text-yellow-800, html.gt-themed[data-theme="dark"] .text-yellow-900, html.gt-themed[data-theme="dark"] .text-orange-700 { color:#E9C277; }
 
 /* Pale tinted chips keep their own dark ink; on a dark page they need the
    inverse, or a "badge" becomes light-on-light. */
@@ -446,16 +456,21 @@ html.gt-themed[data-theme="dark"] .bg-red-50, html.gt-themed[data-theme="dark"] 
 html.gt-themed body.dark-mode .text-red-500, html.gt-themed body.dark-mode .text-red-600, html.gt-themed body.dark-mode .text-red-700,
 html.gt-themed body.dark-mode .text-rose-500, html.gt-themed body.dark-mode .text-rose-600, html.gt-themed body.dark-mode .text-pink-600 { color:#E5A0A7; }
 html.gt-themed body.dark-mode .text-blue-500, html.gt-themed body.dark-mode .text-blue-600, html.gt-themed body.dark-mode .text-blue-700, html.gt-themed body.dark-mode .text-blue-800,
-html.gt-themed body.dark-mode .text-sky-500, html.gt-themed body.dark-mode .text-sky-600, html.gt-themed body.dark-mode .text-sky-700 { color:#9DBCE0; }
+html.gt-themed body.dark-mode .text-sky-500, html.gt-themed body.dark-mode .text-sky-600, html.gt-themed body.dark-mode .text-sky-700,
+html.gt-themed body.dark-mode .text-blue-900, html.gt-themed body.dark-mode .text-sky-800 { color:#9DBCE0; }
 html.gt-themed body.dark-mode .text-indigo-500, html.gt-themed body.dark-mode .text-indigo-600, html.gt-themed body.dark-mode .text-indigo-700,
 html.gt-themed body.dark-mode .text-violet-600, html.gt-themed body.dark-mode .text-purple-500, html.gt-themed body.dark-mode .text-purple-600,
-html.gt-themed body.dark-mode .text-purple-700, html.gt-themed body.dark-mode .text-fuchsia-600 { color:#BCACDD; }
+html.gt-themed body.dark-mode .text-purple-700, html.gt-themed body.dark-mode .text-fuchsia-600,
+html.gt-themed body.dark-mode .text-purple-800, html.gt-themed body.dark-mode .text-purple-900, html.gt-themed body.dark-mode .text-indigo-800, html.gt-themed body.dark-mode .text-violet-800 { color:#BCACDD; }
 html.gt-themed body.dark-mode .text-teal-500, html.gt-themed body.dark-mode .text-teal-600, html.gt-themed body.dark-mode .text-teal-700, html.gt-themed body.dark-mode .text-teal-800,
-html.gt-themed body.dark-mode .text-cyan-600, html.gt-themed body.dark-mode .text-cyan-700 { color:#87C8C2; }
+html.gt-themed body.dark-mode .text-cyan-600, html.gt-themed body.dark-mode .text-cyan-700,
+html.gt-themed body.dark-mode .text-teal-900, html.gt-themed body.dark-mode .text-cyan-800 { color:#87C8C2; }
 html.gt-themed body.dark-mode .text-green-500, html.gt-themed body.dark-mode .text-green-600, html.gt-themed body.dark-mode .text-green-700,
-html.gt-themed body.dark-mode .text-emerald-600, html.gt-themed body.dark-mode .text-emerald-700, html.gt-themed body.dark-mode .text-lime-600 { color:#9ECFB6; }
+html.gt-themed body.dark-mode .text-emerald-600, html.gt-themed body.dark-mode .text-emerald-700, html.gt-themed body.dark-mode .text-lime-600,
+html.gt-themed body.dark-mode .text-green-800, html.gt-themed body.dark-mode .text-green-900, html.gt-themed body.dark-mode .text-emerald-800 { color:#9ECFB6; }
 html.gt-themed body.dark-mode .text-amber-500, html.gt-themed body.dark-mode .text-amber-600, html.gt-themed body.dark-mode .text-amber-700,
-html.gt-themed body.dark-mode .text-yellow-600, html.gt-themed body.dark-mode .text-orange-500, html.gt-themed body.dark-mode .text-orange-600 { color:#E9C277; }
+html.gt-themed body.dark-mode .text-yellow-600, html.gt-themed body.dark-mode .text-orange-500, html.gt-themed body.dark-mode .text-orange-600,
+html.gt-themed body.dark-mode .text-amber-800, html.gt-themed body.dark-mode .text-amber-900, html.gt-themed body.dark-mode .text-yellow-800, html.gt-themed body.dark-mode .text-yellow-900, html.gt-themed body.dark-mode .text-orange-700 { color:#E9C277; }
 
 /* Pale tinted chips keep their own dark ink; on a dark page they need the
    inverse, or a "badge" becomes light-on-light. */
@@ -475,16 +490,21 @@ html.gt-themed body.dark-mode .bg-red-50, html.gt-themed body.dark-mode .bg-ambe
 html.gt-themed body.dark .text-red-500, html.gt-themed body.dark .text-red-600, html.gt-themed body.dark .text-red-700,
 html.gt-themed body.dark .text-rose-500, html.gt-themed body.dark .text-rose-600, html.gt-themed body.dark .text-pink-600 { color:#E5A0A7; }
 html.gt-themed body.dark .text-blue-500, html.gt-themed body.dark .text-blue-600, html.gt-themed body.dark .text-blue-700, html.gt-themed body.dark .text-blue-800,
-html.gt-themed body.dark .text-sky-500, html.gt-themed body.dark .text-sky-600, html.gt-themed body.dark .text-sky-700 { color:#9DBCE0; }
+html.gt-themed body.dark .text-sky-500, html.gt-themed body.dark .text-sky-600, html.gt-themed body.dark .text-sky-700,
+html.gt-themed body.dark .text-blue-900, html.gt-themed body.dark .text-sky-800 { color:#9DBCE0; }
 html.gt-themed body.dark .text-indigo-500, html.gt-themed body.dark .text-indigo-600, html.gt-themed body.dark .text-indigo-700,
 html.gt-themed body.dark .text-violet-600, html.gt-themed body.dark .text-purple-500, html.gt-themed body.dark .text-purple-600,
-html.gt-themed body.dark .text-purple-700, html.gt-themed body.dark .text-fuchsia-600 { color:#BCACDD; }
+html.gt-themed body.dark .text-purple-700, html.gt-themed body.dark .text-fuchsia-600,
+html.gt-themed body.dark .text-purple-800, html.gt-themed body.dark .text-purple-900, html.gt-themed body.dark .text-indigo-800, html.gt-themed body.dark .text-violet-800 { color:#BCACDD; }
 html.gt-themed body.dark .text-teal-500, html.gt-themed body.dark .text-teal-600, html.gt-themed body.dark .text-teal-700, html.gt-themed body.dark .text-teal-800,
-html.gt-themed body.dark .text-cyan-600, html.gt-themed body.dark .text-cyan-700 { color:#87C8C2; }
+html.gt-themed body.dark .text-cyan-600, html.gt-themed body.dark .text-cyan-700,
+html.gt-themed body.dark .text-teal-900, html.gt-themed body.dark .text-cyan-800 { color:#87C8C2; }
 html.gt-themed body.dark .text-green-500, html.gt-themed body.dark .text-green-600, html.gt-themed body.dark .text-green-700,
-html.gt-themed body.dark .text-emerald-600, html.gt-themed body.dark .text-emerald-700, html.gt-themed body.dark .text-lime-600 { color:#9ECFB6; }
+html.gt-themed body.dark .text-emerald-600, html.gt-themed body.dark .text-emerald-700, html.gt-themed body.dark .text-lime-600,
+html.gt-themed body.dark .text-green-800, html.gt-themed body.dark .text-green-900, html.gt-themed body.dark .text-emerald-800 { color:#9ECFB6; }
 html.gt-themed body.dark .text-amber-500, html.gt-themed body.dark .text-amber-600, html.gt-themed body.dark .text-amber-700,
-html.gt-themed body.dark .text-yellow-600, html.gt-themed body.dark .text-orange-500, html.gt-themed body.dark .text-orange-600 { color:#E9C277; }
+html.gt-themed body.dark .text-yellow-600, html.gt-themed body.dark .text-orange-500, html.gt-themed body.dark .text-orange-600,
+html.gt-themed body.dark .text-amber-800, html.gt-themed body.dark .text-amber-900, html.gt-themed body.dark .text-yellow-800, html.gt-themed body.dark .text-yellow-900, html.gt-themed body.dark .text-orange-700 { color:#E9C277; }
 
 /* Pale tinted chips keep their own dark ink; on a dark page they need the
    inverse, or a "badge" becomes light-on-light. */
@@ -505,16 +525,21 @@ html.gt-themed body.dark .bg-red-50, html.gt-themed body.dark .bg-amber-50, html
 html.gt-themed:not([data-theme="light"]) .text-red-500, html.gt-themed:not([data-theme="light"]) .text-red-600, html.gt-themed:not([data-theme="light"]) .text-red-700,
 html.gt-themed:not([data-theme="light"]) .text-rose-500, html.gt-themed:not([data-theme="light"]) .text-rose-600, html.gt-themed:not([data-theme="light"]) .text-pink-600 { color:#E5A0A7; }
 html.gt-themed:not([data-theme="light"]) .text-blue-500, html.gt-themed:not([data-theme="light"]) .text-blue-600, html.gt-themed:not([data-theme="light"]) .text-blue-700, html.gt-themed:not([data-theme="light"]) .text-blue-800,
-html.gt-themed:not([data-theme="light"]) .text-sky-500, html.gt-themed:not([data-theme="light"]) .text-sky-600, html.gt-themed:not([data-theme="light"]) .text-sky-700 { color:#9DBCE0; }
+html.gt-themed:not([data-theme="light"]) .text-sky-500, html.gt-themed:not([data-theme="light"]) .text-sky-600, html.gt-themed:not([data-theme="light"]) .text-sky-700,
+html.gt-themed:not([data-theme="light"]) .text-blue-900, html.gt-themed:not([data-theme="light"]) .text-sky-800 { color:#9DBCE0; }
 html.gt-themed:not([data-theme="light"]) .text-indigo-500, html.gt-themed:not([data-theme="light"]) .text-indigo-600, html.gt-themed:not([data-theme="light"]) .text-indigo-700,
 html.gt-themed:not([data-theme="light"]) .text-violet-600, html.gt-themed:not([data-theme="light"]) .text-purple-500, html.gt-themed:not([data-theme="light"]) .text-purple-600,
-html.gt-themed:not([data-theme="light"]) .text-purple-700, html.gt-themed:not([data-theme="light"]) .text-fuchsia-600 { color:#BCACDD; }
+html.gt-themed:not([data-theme="light"]) .text-purple-700, html.gt-themed:not([data-theme="light"]) .text-fuchsia-600,
+html.gt-themed:not([data-theme="light"]) .text-purple-800, html.gt-themed:not([data-theme="light"]) .text-purple-900, html.gt-themed:not([data-theme="light"]) .text-indigo-800, html.gt-themed:not([data-theme="light"]) .text-violet-800 { color:#BCACDD; }
 html.gt-themed:not([data-theme="light"]) .text-teal-500, html.gt-themed:not([data-theme="light"]) .text-teal-600, html.gt-themed:not([data-theme="light"]) .text-teal-700, html.gt-themed:not([data-theme="light"]) .text-teal-800,
-html.gt-themed:not([data-theme="light"]) .text-cyan-600, html.gt-themed:not([data-theme="light"]) .text-cyan-700 { color:#87C8C2; }
+html.gt-themed:not([data-theme="light"]) .text-cyan-600, html.gt-themed:not([data-theme="light"]) .text-cyan-700,
+html.gt-themed:not([data-theme="light"]) .text-teal-900, html.gt-themed:not([data-theme="light"]) .text-cyan-800 { color:#87C8C2; }
 html.gt-themed:not([data-theme="light"]) .text-green-500, html.gt-themed:not([data-theme="light"]) .text-green-600, html.gt-themed:not([data-theme="light"]) .text-green-700,
-html.gt-themed:not([data-theme="light"]) .text-emerald-600, html.gt-themed:not([data-theme="light"]) .text-emerald-700, html.gt-themed:not([data-theme="light"]) .text-lime-600 { color:#9ECFB6; }
+html.gt-themed:not([data-theme="light"]) .text-emerald-600, html.gt-themed:not([data-theme="light"]) .text-emerald-700, html.gt-themed:not([data-theme="light"]) .text-lime-600,
+html.gt-themed:not([data-theme="light"]) .text-green-800, html.gt-themed:not([data-theme="light"]) .text-green-900, html.gt-themed:not([data-theme="light"]) .text-emerald-800 { color:#9ECFB6; }
 html.gt-themed:not([data-theme="light"]) .text-amber-500, html.gt-themed:not([data-theme="light"]) .text-amber-600, html.gt-themed:not([data-theme="light"]) .text-amber-700,
-html.gt-themed:not([data-theme="light"]) .text-yellow-600, html.gt-themed:not([data-theme="light"]) .text-orange-500, html.gt-themed:not([data-theme="light"]) .text-orange-600 { color:#E9C277; }
+html.gt-themed:not([data-theme="light"]) .text-yellow-600, html.gt-themed:not([data-theme="light"]) .text-orange-500, html.gt-themed:not([data-theme="light"]) .text-orange-600,
+html.gt-themed:not([data-theme="light"]) .text-amber-800, html.gt-themed:not([data-theme="light"]) .text-amber-900, html.gt-themed:not([data-theme="light"]) .text-yellow-800, html.gt-themed:not([data-theme="light"]) .text-yellow-900, html.gt-themed:not([data-theme="light"]) .text-orange-700 { color:#E9C277; }
 
 /* Pale tinted chips keep their own dark ink; on a dark page they need the
    inverse, or a "badge" becomes light-on-light. */
@@ -532,8 +557,13 @@ html.gt-themed:not([data-theme="light"]) .bg-red-50, html.gt-themed:not([data-th
 
 /* The per-page colour names serve as both fill and ink, so their value stays a
    600 for the fills' sake (see gt-palette.js). Their ink side is corrected
-   here, where fill and text can finally be told apart. */
-html.gt-themed[data-theme="dark"] .text-brand, html.gt-themed[data-theme="dark"] .text-pro, html.gt-themed[data-theme="dark"] .text-fbblue { color:#9DBCE0; }
+   here, where fill and text can finally be told apart.
+
+   text-fbblue/80 is a separate class from text-fbblue, so naming the base
+   class alone left the faded variant on its light-page value — 2.62:1 on the
+   dark card. The attribute selector catches every opacity modifier of it. */
+html.gt-themed[data-theme="dark"] .text-brand, html.gt-themed[data-theme="dark"] .text-pro, html.gt-themed[data-theme="dark"] .text-fbblue,
+html.gt-themed[data-theme="dark"] [class*="text-fbblue/"] { color:#9DBCE0; }
 html.gt-themed[data-theme="dark"] .text-section, html.gt-themed[data-theme="dark"] .text-fbpurple { color:#BCACDD; }
 html.gt-themed[data-theme="dark"] .text-cho, html.gt-themed[data-theme="dark"] .text-fbgreen, html.gt-themed[data-theme="dark"] .text-fbgreen2, html.gt-themed[data-theme="dark"] .text-tablehd { color:#9ECFB6; }
 html.gt-themed[data-theme="dark"] .text-fat, html.gt-themed[data-theme="dark"] .text-fbyellow, html.gt-themed[data-theme="dark"] .text-fborange { color:#E9C277; }
@@ -542,7 +572,8 @@ html.gt-themed[data-theme="dark"] .text-fbred, html.gt-themed[data-theme="dark"]
 /* The per-page colour names serve as both fill and ink, so their value stays a
    600 for the fills' sake (see gt-palette.js). Their ink side is corrected
    here, where fill and text can finally be told apart. */
-html.gt-themed body.dark-mode .text-brand, html.gt-themed body.dark-mode .text-pro, html.gt-themed body.dark-mode .text-fbblue { color:#9DBCE0; }
+html.gt-themed body.dark-mode .text-brand, html.gt-themed body.dark-mode .text-pro, html.gt-themed body.dark-mode .text-fbblue,
+html.gt-themed body.dark-mode [class*="text-fbblue/"] { color:#9DBCE0; }
 html.gt-themed body.dark-mode .text-section, html.gt-themed body.dark-mode .text-fbpurple { color:#BCACDD; }
 html.gt-themed body.dark-mode .text-cho, html.gt-themed body.dark-mode .text-fbgreen, html.gt-themed body.dark-mode .text-fbgreen2, html.gt-themed body.dark-mode .text-tablehd { color:#9ECFB6; }
 html.gt-themed body.dark-mode .text-fat, html.gt-themed body.dark-mode .text-fbyellow, html.gt-themed body.dark-mode .text-fborange { color:#E9C277; }
@@ -551,7 +582,8 @@ html.gt-themed body.dark-mode .text-fbred, html.gt-themed body.dark-mode .text-f
 /* The per-page colour names serve as both fill and ink, so their value stays a
    600 for the fills' sake (see gt-palette.js). Their ink side is corrected
    here, where fill and text can finally be told apart. */
-html.gt-themed body.dark .text-brand, html.gt-themed body.dark .text-pro, html.gt-themed body.dark .text-fbblue { color:#9DBCE0; }
+html.gt-themed body.dark .text-brand, html.gt-themed body.dark .text-pro, html.gt-themed body.dark .text-fbblue,
+html.gt-themed body.dark [class*="text-fbblue/"] { color:#9DBCE0; }
 html.gt-themed body.dark .text-section, html.gt-themed body.dark .text-fbpurple { color:#BCACDD; }
 html.gt-themed body.dark .text-cho, html.gt-themed body.dark .text-fbgreen, html.gt-themed body.dark .text-fbgreen2, html.gt-themed body.dark .text-tablehd { color:#9ECFB6; }
 html.gt-themed body.dark .text-fat, html.gt-themed body.dark .text-fbyellow, html.gt-themed body.dark .text-fborange { color:#E9C277; }
@@ -561,7 +593,8 @@ html.gt-themed body.dark .text-fbred, html.gt-themed body.dark .text-fbred2 { co
 /* The per-page colour names serve as both fill and ink, so their value stays a
    600 for the fills' sake (see gt-palette.js). Their ink side is corrected
    here, where fill and text can finally be told apart. */
-html.gt-themed:not([data-theme="light"]) .text-brand, html.gt-themed:not([data-theme="light"]) .text-pro, html.gt-themed:not([data-theme="light"]) .text-fbblue { color:#9DBCE0; }
+html.gt-themed:not([data-theme="light"]) .text-brand, html.gt-themed:not([data-theme="light"]) .text-pro, html.gt-themed:not([data-theme="light"]) .text-fbblue,
+html.gt-themed:not([data-theme="light"]) [class*="text-fbblue/"] { color:#9DBCE0; }
 html.gt-themed:not([data-theme="light"]) .text-section, html.gt-themed:not([data-theme="light"]) .text-fbpurple { color:#BCACDD; }
 html.gt-themed:not([data-theme="light"]) .text-cho, html.gt-themed:not([data-theme="light"]) .text-fbgreen, html.gt-themed:not([data-theme="light"]) .text-fbgreen2, html.gt-themed:not([data-theme="light"]) .text-tablehd { color:#9ECFB6; }
 html.gt-themed:not([data-theme="light"]) .text-fat, html.gt-themed:not([data-theme="light"]) .text-fbyellow, html.gt-themed:not([data-theme="light"]) .text-fborange { color:#E9C277; }
@@ -571,36 +604,138 @@ html.gt-themed:not([data-theme="light"]) .text-fbred, html.gt-themed:not([data-t
 
 /* A few fills stay light in dark mode because they are meant to: a pale band
    or chip that reads as a highlight. Body ink then lands on them the wrong way
-   round, so these carry dark ink explicitly rather than inheriting. */
-html.gt-themed[data-theme="dark"] .bg-lime, html.gt-themed[data-theme="dark"] .bg-tablehd, html.gt-themed[data-theme="dark"] .bg-fbyellow,
+   round, so these carry dark ink explicitly rather than inheriting.
+
+   .bg-tablehd used to be on this list and should not have been. It sits on one
+   <tr>, and the skin repaints `thead th` to the dark header surface, so the
+   fill does not stay light — the dark ink landed on a dark header at 1.02:1,
+   and the `*` rule dragged every cell in the row down with it.
+
+   .bg-fbtext is the opposite case and does belong here. gt-palette.js points
+   it at --gt-ink, which is the body ink — dark on a light page, light on a
+   dark one. Used as a fill for the BMI pointer chip that inverts, and the
+   chip's own `text-white` label then sat at 1.15:1. */
+html.gt-themed[data-theme="dark"] .bg-lime, html.gt-themed[data-theme="dark"] .bg-fbyellow, html.gt-themed[data-theme="dark"] .bg-fbtext,
 html.gt-themed[data-theme="dark"] .bg-sage-200, html.gt-themed[data-theme="dark"] .bg-sage-300,
 html.gt-themed[data-theme="dark"] .ok, html.gt-themed[data-theme="dark"] .warn, html.gt-themed[data-theme="dark"] .bad { color:#22322A; }
-html.gt-themed[data-theme="dark"] .bg-lime *, html.gt-themed[data-theme="dark"] .bg-tablehd * { color:inherit; }
+html.gt-themed[data-theme="dark"] .bg-lime * { color:inherit; }
 
 /* A few fills stay light in dark mode because they are meant to: a pale band
    or chip that reads as a highlight. Body ink then lands on them the wrong way
    round, so these carry dark ink explicitly rather than inheriting. */
-html.gt-themed body.dark-mode .bg-lime, html.gt-themed body.dark-mode .bg-tablehd, html.gt-themed body.dark-mode .bg-fbyellow,
+html.gt-themed body.dark-mode .bg-lime, html.gt-themed body.dark-mode .bg-fbyellow, html.gt-themed body.dark-mode .bg-fbtext,
 html.gt-themed body.dark-mode .bg-sage-200, html.gt-themed body.dark-mode .bg-sage-300,
 html.gt-themed body.dark-mode .ok, html.gt-themed body.dark-mode .warn, html.gt-themed body.dark-mode .bad { color:#22322A; }
-html.gt-themed body.dark-mode .bg-lime *, html.gt-themed body.dark-mode .bg-tablehd * { color:inherit; }
+html.gt-themed body.dark-mode .bg-lime * { color:inherit; }
 
 /* A few fills stay light in dark mode because they are meant to: a pale band
    or chip that reads as a highlight. Body ink then lands on them the wrong way
    round, so these carry dark ink explicitly rather than inheriting. */
-html.gt-themed body.dark .bg-lime, html.gt-themed body.dark .bg-tablehd, html.gt-themed body.dark .bg-fbyellow,
+html.gt-themed body.dark .bg-lime, html.gt-themed body.dark .bg-fbyellow, html.gt-themed body.dark .bg-fbtext,
 html.gt-themed body.dark .bg-sage-200, html.gt-themed body.dark .bg-sage-300,
 html.gt-themed body.dark .ok, html.gt-themed body.dark .warn, html.gt-themed body.dark .bad { color:#22322A; }
-html.gt-themed body.dark .bg-lime *, html.gt-themed body.dark .bg-tablehd * { color:inherit; }
+html.gt-themed body.dark .bg-lime * { color:inherit; }
 @media (prefers-color-scheme: dark) {
 
 /* A few fills stay light in dark mode because they are meant to: a pale band
    or chip that reads as a highlight. Body ink then lands on them the wrong way
    round, so these carry dark ink explicitly rather than inheriting. */
-html.gt-themed:not([data-theme="light"]) .bg-lime, html.gt-themed:not([data-theme="light"]) .bg-tablehd, html.gt-themed:not([data-theme="light"]) .bg-fbyellow,
+html.gt-themed:not([data-theme="light"]) .bg-lime, html.gt-themed:not([data-theme="light"]) .bg-fbyellow, html.gt-themed:not([data-theme="light"]) .bg-fbtext,
 html.gt-themed:not([data-theme="light"]) .bg-sage-200, html.gt-themed:not([data-theme="light"]) .bg-sage-300,
 html.gt-themed:not([data-theme="light"]) .ok, html.gt-themed:not([data-theme="light"]) .warn, html.gt-themed:not([data-theme="light"]) .bad { color:#22322A; }
-html.gt-themed:not([data-theme="light"]) .bg-lime *, html.gt-themed:not([data-theme="light"]) .bg-tablehd * { color:inherit; }
+html.gt-themed:not([data-theme="light"]) .bg-lime * { color:inherit; }
+}
+
+
+/* ---------------------------------------------------------------------------
+   DARK — pale gradient panels.
+
+   The bg-* rules above cover a flat pale surface. They do not cover a pale
+   *gradient*, which Tailwind paints through --tw-gradient-from/to rather than
+   background-color — so `bg-gradient-to-br from-blue-50 to-blue-100` stayed
+   light on a dark page while the ink on it flipped to light. That is the BMI
+   result card, the PDF font-size panel and the meal plan configuration blocks:
+   white text on a white card.
+
+   Only the pale stops are repointed — the 50 and 100 steps, and from-white. The 400-900 stops are saturated
+   banners carrying white headings, and they read correctly in both themes;
+   turning those dark would be the mistake in the other direction.
+
+   The four selectors mirror the four the rest of this sheet already carries:
+   an explicit choice, two legacy body classes, and the OS preference.
+   --------------------------------------------------------------------------- */
+html.gt-themed[data-theme="dark"] .from-amber-50, html.gt-themed[data-theme="dark"] .from-blue-50, html.gt-themed[data-theme="dark"] .from-green-50, html.gt-themed[data-theme="dark"] .from-indigo-50,
+html.gt-themed[data-theme="dark"] .from-orange-50, html.gt-themed[data-theme="dark"] .from-purple-50, html.gt-themed[data-theme="dark"] .from-teal-50, html.gt-themed[data-theme="dark"] .from-yellow-50,
+html.gt-themed[data-theme="dark"] .from-white {
+  --tw-gradient-from: var(--gt-sunken) var(--tw-gradient-from-position);
+}
+html.gt-themed[data-theme="dark"] .to-blue-50, html.gt-themed[data-theme="dark"] .to-cyan-50, html.gt-themed[data-theme="dark"] .to-emerald-50, html.gt-themed[data-theme="dark"] .to-green-50,
+html.gt-themed[data-theme="dark"] .to-orange-50, html.gt-themed[data-theme="dark"] .to-pink-50, html.gt-themed[data-theme="dark"] .to-purple-50, html.gt-themed[data-theme="dark"] .to-red-50,
+html.gt-themed[data-theme="dark"] .to-teal-50, html.gt-themed[data-theme="dark"] .to-yellow-50, html.gt-themed[data-theme="dark"] .to-blue-100, html.gt-themed[data-theme="dark"] .to-teal-100 {
+  --tw-gradient-to: var(--gt-soft) var(--tw-gradient-to-position);
+}
+
+html.gt-themed body.dark-mode .from-amber-50, html.gt-themed body.dark-mode .from-blue-50, html.gt-themed body.dark-mode .from-green-50, html.gt-themed body.dark-mode .from-indigo-50,
+html.gt-themed body.dark-mode .from-orange-50, html.gt-themed body.dark-mode .from-purple-50, html.gt-themed body.dark-mode .from-teal-50, html.gt-themed body.dark-mode .from-yellow-50,
+html.gt-themed body.dark-mode .from-white {
+  --tw-gradient-from: var(--gt-sunken) var(--tw-gradient-from-position);
+}
+html.gt-themed body.dark-mode .to-blue-50, html.gt-themed body.dark-mode .to-cyan-50, html.gt-themed body.dark-mode .to-emerald-50, html.gt-themed body.dark-mode .to-green-50,
+html.gt-themed body.dark-mode .to-orange-50, html.gt-themed body.dark-mode .to-pink-50, html.gt-themed body.dark-mode .to-purple-50, html.gt-themed body.dark-mode .to-red-50,
+html.gt-themed body.dark-mode .to-teal-50, html.gt-themed body.dark-mode .to-yellow-50, html.gt-themed body.dark-mode .to-blue-100, html.gt-themed body.dark-mode .to-teal-100 {
+  --tw-gradient-to: var(--gt-soft) var(--tw-gradient-to-position);
+}
+
+html.gt-themed body.dark .from-amber-50, html.gt-themed body.dark .from-blue-50, html.gt-themed body.dark .from-green-50, html.gt-themed body.dark .from-indigo-50,
+html.gt-themed body.dark .from-orange-50, html.gt-themed body.dark .from-purple-50, html.gt-themed body.dark .from-teal-50, html.gt-themed body.dark .from-yellow-50,
+html.gt-themed body.dark .from-white {
+  --tw-gradient-from: var(--gt-sunken) var(--tw-gradient-from-position);
+}
+html.gt-themed body.dark .to-blue-50, html.gt-themed body.dark .to-cyan-50, html.gt-themed body.dark .to-emerald-50, html.gt-themed body.dark .to-green-50,
+html.gt-themed body.dark .to-orange-50, html.gt-themed body.dark .to-pink-50, html.gt-themed body.dark .to-purple-50, html.gt-themed body.dark .to-red-50,
+html.gt-themed body.dark .to-teal-50, html.gt-themed body.dark .to-yellow-50, html.gt-themed body.dark .to-blue-100, html.gt-themed body.dark .to-teal-100 {
+  --tw-gradient-to: var(--gt-soft) var(--tw-gradient-to-position);
+}
+
+@media (prefers-color-scheme: dark) {
+
+html.gt-themed:not([data-theme="light"]) .from-amber-50, html.gt-themed:not([data-theme="light"]) .from-blue-50, html.gt-themed:not([data-theme="light"]) .from-green-50,
+html.gt-themed:not([data-theme="light"]) .from-indigo-50, html.gt-themed:not([data-theme="light"]) .from-orange-50, html.gt-themed:not([data-theme="light"]) .from-purple-50,
+html.gt-themed:not([data-theme="light"]) .from-teal-50, html.gt-themed:not([data-theme="light"]) .from-yellow-50,
+html.gt-themed:not([data-theme="light"]) .from-white {
+  --tw-gradient-from: var(--gt-sunken) var(--tw-gradient-from-position);
+}
+html.gt-themed:not([data-theme="light"]) .to-blue-50, html.gt-themed:not([data-theme="light"]) .to-cyan-50, html.gt-themed:not([data-theme="light"]) .to-emerald-50,
+html.gt-themed:not([data-theme="light"]) .to-green-50, html.gt-themed:not([data-theme="light"]) .to-orange-50, html.gt-themed:not([data-theme="light"]) .to-pink-50,
+html.gt-themed:not([data-theme="light"]) .to-purple-50, html.gt-themed:not([data-theme="light"]) .to-red-50, html.gt-themed:not([data-theme="light"]) .to-teal-50,
+html.gt-themed:not([data-theme="light"]) .to-yellow-50, html.gt-themed:not([data-theme="light"]) .to-blue-100, html.gt-themed:not([data-theme="light"]) .to-teal-100 {
+  --tw-gradient-to: var(--gt-soft) var(--tw-gradient-to-position);
+}
+
+}
+
+/* ---------------------------------------------------------------------------
+   DARK — the PDF language cards.
+
+   These are painted by their page's own JavaScript, which writes `white` for
+   the unselected cards and `#f0fdf4` for the selected one straight onto
+   style="", so neither the bg-* rules nor recolor-apps.js can reach them —
+   the codemod deliberately leaves JavaScript alone. On a dark page that left
+   a white card with light ink on it at 1.10:1.
+
+   !important is here to beat an inline style, which is the only thing that
+   can. The selected card keeps a tint of its own rather than being flattened
+   with the rest, so the choice is still visible.
+   --------------------------------------------------------------------------- */
+html.gt-themed[data-theme="dark"] [data-lang-card] { background-color: var(--gt-card) !important; }
+html.gt-themed[data-theme="dark"] [data-lang-card][style*="f0fdf4"] { background-color: var(--gt-sunken) !important; }
+html.gt-themed body.dark-mode [data-lang-card] { background-color: var(--gt-card) !important; }
+html.gt-themed body.dark-mode [data-lang-card][style*="f0fdf4"] { background-color: var(--gt-sunken) !important; }
+html.gt-themed body.dark [data-lang-card] { background-color: var(--gt-card) !important; }
+html.gt-themed body.dark [data-lang-card][style*="f0fdf4"] { background-color: var(--gt-sunken) !important; }
+@media (prefers-color-scheme: dark) {
+html.gt-themed:not([data-theme="light"]) [data-lang-card] { background-color: var(--gt-card) !important; }
+html.gt-themed:not([data-theme="light"]) [data-lang-card][style*="f0fdf4"] { background-color: var(--gt-sunken) !important; }
 }
 
 /* ---------------------------------------------------------------------------
