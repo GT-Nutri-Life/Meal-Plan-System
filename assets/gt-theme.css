@@ -739,6 +739,101 @@ html.gt-themed:not([data-theme="light"]) [data-lang-card][style*="f0fdf4"] { bac
 }
 
 /* ---------------------------------------------------------------------------
+   DARK — hover and focus states.
+
+   `hover:bg-blue-50` is its own class, .hover\:bg-blue-50:hover, so every
+   override written against .bg-blue-50 misses it. At rest these panels are
+   transparent over a dark card and read fine; point at one and it turns pale
+   under light ink — the "Things to Consider" checkboxes measured 1.04:1 on
+   hover, and nothing that samples a page at rest can see it.
+
+   The specificity here (0,4,1) clears Tailwind's (0,2,0) without !important.
+   Only the pale steps are repointed; the saturated hovers — hover:bg-blue-700
+   and friends — are buttons with white labels and already read in both themes.
+   --------------------------------------------------------------------------- */
+html.gt-themed[data-theme="dark"] [class~="hover:bg-blue-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-teal-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-gray-50"]:hover,
+html.gt-themed[data-theme="dark"] [class~="hover:bg-gray-100"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-purple-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-red-50"]:hover,
+html.gt-themed[data-theme="dark"] [class~="hover:bg-green-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-amber-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-yellow-50"]:hover,
+html.gt-themed[data-theme="dark"] [class~="hover:bg-indigo-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-emerald-50"]:hover,
+html.gt-themed[data-theme="dark"] [class~="hover:bg-orange-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-slate-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-slate-100"]:hover,
+html.gt-themed[data-theme="dark"] [class~="hover:bg-white"]:hover, html.gt-themed[data-theme="dark"] [class~="focus:bg-blue-50"]:focus, html.gt-themed[data-theme="dark"] [class~="focus:bg-gray-50"]:focus,
+html.gt-themed[data-theme="dark"] [class~="group-hover:bg-blue-50"]:hover, html.gt-themed[data-theme="dark"] [class~="group-hover:bg-gray-50"]:hover {
+  background-color: var(--gt-sunken);
+}
+html.gt-themed[data-theme="dark"] [class~="hover:bg-gray-200"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-gray-300"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-gray-400"]:hover,
+html.gt-themed[data-theme="dark"] [class~="hover:bg-slate-200"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-slate-300"]:hover {
+  background-color: var(--gt-border);
+}
+html.gt-themed[data-theme="dark"] [class~="hover:text-gray-700"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:text-gray-800"]:hover,
+html.gt-themed[data-theme="dark"] [class~="hover:text-gray-900"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:text-slate-700"]:hover,
+html.gt-themed[data-theme="dark"] [class~="hover:text-slate-800"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:text-slate-900"]:hover {
+  color: var(--gt-ink);
+}
+
+html.gt-themed body.dark-mode [class~="hover:bg-blue-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-teal-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-gray-50"]:hover,
+html.gt-themed body.dark-mode [class~="hover:bg-gray-100"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-purple-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-red-50"]:hover,
+html.gt-themed body.dark-mode [class~="hover:bg-green-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-amber-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-yellow-50"]:hover,
+html.gt-themed body.dark-mode [class~="hover:bg-indigo-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-emerald-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-orange-50"]:hover,
+html.gt-themed body.dark-mode [class~="hover:bg-slate-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-slate-100"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-white"]:hover,
+html.gt-themed body.dark-mode [class~="focus:bg-blue-50"]:focus, html.gt-themed body.dark-mode [class~="focus:bg-gray-50"]:focus, html.gt-themed body.dark-mode [class~="group-hover:bg-blue-50"]:hover,
+html.gt-themed body.dark-mode [class~="group-hover:bg-gray-50"]:hover {
+  background-color: var(--gt-sunken);
+}
+html.gt-themed body.dark-mode [class~="hover:bg-gray-200"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-gray-300"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-gray-400"]:hover,
+html.gt-themed body.dark-mode [class~="hover:bg-slate-200"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-slate-300"]:hover {
+  background-color: var(--gt-border);
+}
+html.gt-themed body.dark-mode [class~="hover:text-gray-700"]:hover, html.gt-themed body.dark-mode [class~="hover:text-gray-800"]:hover, html.gt-themed body.dark-mode [class~="hover:text-gray-900"]:hover,
+html.gt-themed body.dark-mode [class~="hover:text-slate-700"]:hover, html.gt-themed body.dark-mode [class~="hover:text-slate-800"]:hover, html.gt-themed body.dark-mode [class~="hover:text-slate-900"]:hover {
+  color: var(--gt-ink);
+}
+
+html.gt-themed body.dark [class~="hover:bg-blue-50"]:hover, html.gt-themed body.dark [class~="hover:bg-teal-50"]:hover, html.gt-themed body.dark [class~="hover:bg-gray-50"]:hover,
+html.gt-themed body.dark [class~="hover:bg-gray-100"]:hover, html.gt-themed body.dark [class~="hover:bg-purple-50"]:hover, html.gt-themed body.dark [class~="hover:bg-red-50"]:hover,
+html.gt-themed body.dark [class~="hover:bg-green-50"]:hover, html.gt-themed body.dark [class~="hover:bg-amber-50"]:hover, html.gt-themed body.dark [class~="hover:bg-yellow-50"]:hover,
+html.gt-themed body.dark [class~="hover:bg-indigo-50"]:hover, html.gt-themed body.dark [class~="hover:bg-emerald-50"]:hover, html.gt-themed body.dark [class~="hover:bg-orange-50"]:hover,
+html.gt-themed body.dark [class~="hover:bg-slate-50"]:hover, html.gt-themed body.dark [class~="hover:bg-slate-100"]:hover, html.gt-themed body.dark [class~="hover:bg-white"]:hover,
+html.gt-themed body.dark [class~="focus:bg-blue-50"]:focus, html.gt-themed body.dark [class~="focus:bg-gray-50"]:focus, html.gt-themed body.dark [class~="group-hover:bg-blue-50"]:hover,
+html.gt-themed body.dark [class~="group-hover:bg-gray-50"]:hover {
+  background-color: var(--gt-sunken);
+}
+html.gt-themed body.dark [class~="hover:bg-gray-200"]:hover, html.gt-themed body.dark [class~="hover:bg-gray-300"]:hover, html.gt-themed body.dark [class~="hover:bg-gray-400"]:hover,
+html.gt-themed body.dark [class~="hover:bg-slate-200"]:hover, html.gt-themed body.dark [class~="hover:bg-slate-300"]:hover {
+  background-color: var(--gt-border);
+}
+html.gt-themed body.dark [class~="hover:text-gray-700"]:hover, html.gt-themed body.dark [class~="hover:text-gray-800"]:hover, html.gt-themed body.dark [class~="hover:text-gray-900"]:hover,
+html.gt-themed body.dark [class~="hover:text-slate-700"]:hover, html.gt-themed body.dark [class~="hover:text-slate-800"]:hover, html.gt-themed body.dark [class~="hover:text-slate-900"]:hover {
+  color: var(--gt-ink);
+}
+
+@media (prefers-color-scheme: dark) {
+
+html.gt-themed:not([data-theme="light"]) [class~="hover:bg-blue-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-teal-50"]:hover,
+html.gt-themed:not([data-theme="light"]) [class~="hover:bg-gray-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-gray-100"]:hover,
+html.gt-themed:not([data-theme="light"]) [class~="hover:bg-purple-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-red-50"]:hover,
+html.gt-themed:not([data-theme="light"]) [class~="hover:bg-green-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-amber-50"]:hover,
+html.gt-themed:not([data-theme="light"]) [class~="hover:bg-yellow-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-indigo-50"]:hover,
+html.gt-themed:not([data-theme="light"]) [class~="hover:bg-emerald-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-orange-50"]:hover,
+html.gt-themed:not([data-theme="light"]) [class~="hover:bg-slate-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-slate-100"]:hover,
+html.gt-themed:not([data-theme="light"]) [class~="hover:bg-white"]:hover, html.gt-themed:not([data-theme="light"]) [class~="focus:bg-blue-50"]:focus,
+html.gt-themed:not([data-theme="light"]) [class~="focus:bg-gray-50"]:focus, html.gt-themed:not([data-theme="light"]) [class~="group-hover:bg-blue-50"]:hover,
+html.gt-themed:not([data-theme="light"]) [class~="group-hover:bg-gray-50"]:hover {
+  background-color: var(--gt-sunken);
+}
+html.gt-themed:not([data-theme="light"]) [class~="hover:bg-gray-200"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-gray-300"]:hover,
+html.gt-themed:not([data-theme="light"]) [class~="hover:bg-gray-400"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-slate-200"]:hover,
+html.gt-themed:not([data-theme="light"]) [class~="hover:bg-slate-300"]:hover {
+  background-color: var(--gt-border);
+}
+html.gt-themed:not([data-theme="light"]) [class~="hover:text-gray-700"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:text-gray-800"]:hover,
+html.gt-themed:not([data-theme="light"]) [class~="hover:text-gray-900"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:text-slate-700"]:hover,
+html.gt-themed:not([data-theme="light"]) [class~="hover:text-slate-800"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:text-slate-900"]:hover {
+  color: var(--gt-ink);
+}
+
+}
+
+/* ---------------------------------------------------------------------------
    MOBILE
 
    This is the one place the sheet changes layout, and it does so on purpose.
