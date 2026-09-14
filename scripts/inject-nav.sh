@@ -66,7 +66,12 @@ for file in $(find "$ROOT/apps" -name '*.html' | sort); do
     s{[ \t]*<script[^>]*src="[^"]*assets/gt-(theme-boot|palette|tailwind)\.js"[^>]*>\s*</script>\n?}{}gs;
     s{[ \t]*<link[^>]*href="[^"]*assets/(tailwind|gt-theme)\.css"[^>]*>\n?}{}gs;
   ')
-  if printf '%s' "$stripped" | grep -qi '</head>'; then
+  # Herestring, not a pipe. `grep -q` exits at the first match and closes the
+  # pipe under it, so `printf … | grep -q` leaves printf with SIGPIPE — which
+  # under `set -o pipefail` makes the whole pipeline fail and this test read as
+  # "no </head>". Whether printf finishes before grep exits depends on the page
+  # fitting in the pipe buffer, so CI failed on three pages that pass here.
+  if grep -qi '</head>' <<< "$stripped"; then
     after=$(HEAD_BLOCK="$HEAD_BLOCK" perl -0777 -pe 's{(.*)</head>}{$1 . $ENV{HEAD_BLOCK} . "\n</head>"}se' <<< "$stripped")
   else
     after=$(HEAD_BLOCK="$HEAD_BLOCK" perl -0777 -pe 's{<body}{$ENV{HEAD_BLOCK} . "\n<body"}se' <<< "$stripped")

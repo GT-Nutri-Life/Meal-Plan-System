@@ -96,6 +96,29 @@ module.exports = async function run({ newIsolated, B, reporter }) {
   ok(blocking.length === 0, `no page blocks first paint on a CDN (${blocking.length} found)`);
   for (const b of blocking.slice(0, 6)) ok(false, '  ' + b);
 
+  /* ---- the shared layer sits inside the head, in order ----
+     Anything after </head> is parsed into the body, which for gt-theme-boot.js
+     means it no longer runs while the head is still blocking — the page paints
+     in the wrong theme and then flips. The injector puts the block in the
+     right place; this is here because a race in it once put the block after
+     </head> on seven pages and every other check still passed. */
+
+  let misplaced = [];
+  for (const [name, url] of PAGES) {
+    if (url === '/index.html') continue;              // the portal is not injected
+    const html = fs.readFileSync(path.join(ROOT, url.replace(/^\//, '')), 'utf8');
+    const head = html.toLowerCase().indexOf('</head>');
+    const at = (needle) => html.indexOf(needle);
+    const boot = at('assets/gt-theme-boot.js');
+    const tw = at('assets/tailwind.css"');
+    const skin = at('assets/gt-theme.css');
+    if (boot < 0 || tw < 0 || skin < 0) { misplaced.push(name + ' is missing part of the shared layer'); continue; }
+    if (!(boot < head && tw < head && skin < head)) misplaced.push(name + ' has it after </head>');
+    else if (!(boot < tw && tw < skin)) misplaced.push(name + ' has it out of order');
+  }
+  ok(misplaced.length === 0, `the shared layer is inside every head, boot → tailwind → skin (${misplaced.length} off)`);
+  for (const m of misplaced.slice(0, 6)) ok(false, '  ' + m);
+
   /* ---- every placeholder is backed by a loader ---- */
 
   let orphans = 0;
