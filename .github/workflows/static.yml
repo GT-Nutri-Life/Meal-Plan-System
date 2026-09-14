@@ -23,7 +23,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # 22, not 20: the CSS toolchain that builds assets/tailwind.css
+          # (cssnano 8) needs Node >= 22.11, and the runners have started
+          # warning that 20 is on its way out.
+          node-version: '22'
 
       - name: Every bundled page carries the switcher
         run: scripts/inject-nav.sh --check
