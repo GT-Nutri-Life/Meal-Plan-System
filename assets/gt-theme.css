@@ -1,10 +1,11 @@
 /*!
  * GT Meal Plan System — the pastel skin
  * ------------------------------------------------------------------
- * gt-tailwind.js reaches every Tailwind utility class in the bundle. This
- * sheet covers what it cannot: the hex literals sitting in each page's own
- * <style> block, the two pages that never loaded Tailwind at all, and the
- * native form controls that no page styled consistently in the first place.
+ * The prebuilt assets/tailwind.css reaches every Tailwind utility class in the
+ * bundle. This sheet covers what it cannot: the hex literals sitting in each
+ * page's own <style> block, the two pages that never loaded Tailwind at all,
+ * and the native form controls that no page styled consistently in the first
+ * place.
  *
  * It is loaded last, so it wins on cascade order alone at equal specificity.
  * Where a page's own rule is more specific, the selectors below match that
@@ -241,8 +242,8 @@ html.gt-themed tbody tr:nth-child(even) { background-color: rgba(241,247,243,.5)
 /* ---------------------------------------------------------------------------
    DARK — the Tailwind utilities the pages hardcode.
 
-   gt-tailwind.js gives every colour utility a pastel value, but a *fixed* one:
-   the Play CDN only emits a dark variant for classes written as `dark:`, and
+   assets/tailwind.css gives every colour utility a pastel value, but a *fixed*
+   one: Tailwind only emits a dark variant for classes written as `dark:`, and
    these pages have none. So `text-gray-700` stays dark ink, and the moment the
    card underneath it turns dark it becomes unreadable.
 

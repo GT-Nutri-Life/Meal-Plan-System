@@ -11,10 +11,13 @@
     <meta name="theme-color" content="#667eea">
     
     <!-- External Libraries -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/ics@2.40.0/dist/bundle.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-W7P4Eew7aJYJzjMpQ3kF40BXYz7yeUMDY1zLpGMjqP3SEsqCKu/TcuP2zYNnQnE+qXtBDvqJNqqj5A1Mf0FiQ==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
+    <script>/* Tailwind is compiled ahead of time into assets/tailwind.css.
+   This stub keeps this page's own `tailwind.config` assignment harmless. */
+window.tailwind = window.tailwind || { config: {} };</script>
+    <script src="../../assets/gt-lazy.js" defer></script>
+    <script data-gt-lazy="https://unpkg.com/ics@2.40.0/dist/bundle.js" data-gt-lazy-provides="ics"></script>
+    <script data-gt-lazy="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" data-gt-lazy-provides="jspdf" data-gt-lazy-crossorigin="anonymous"></script>
+    <script data-gt-lazy="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" data-gt-lazy-provides="html2canvas" data-gt-lazy-crossorigin="anonymous"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
@@ -447,10 +450,9 @@
             }
         }
     </style>
-<script src="../../assets/gt-palette.js"></script>
-<script src="../../assets/gt-tailwind.js"></script>
-<link rel="stylesheet" href="../../assets/gt-theme.css">
 <script src="../../assets/gt-theme-boot.js"></script>
+<link rel="stylesheet" href="../../assets/tailwind.css">
+<link rel="stylesheet" href="../../assets/gt-theme.css">
 </head>
 <body class="bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen py-8 px-4">
     <!-- Dark Mode Toggle -->

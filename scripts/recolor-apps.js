@@ -4,12 +4,12 @@
  *
  *   scripts/recolor-apps.js [--check]
  *
- * gt-tailwind.js already turns every Tailwind colour utility in the bundle
- * pastel, and gt-theme.css covers the shared surfaces. Neither can reach a hex
- * written directly into a page's own <style> block — and that is where the
- * loudest colour in this bundle lives: the #667eea → #764ba2 banner gradient,
- * the #1877F2 title bars, the #EF4444 alerts. Left alone they are the only
- * saturated things on an otherwise pastel screen.
+ * The prebuilt assets/tailwind.css already turns every Tailwind colour utility
+ * in the bundle pastel, and gt-theme.css covers the shared surfaces. Neither
+ * can reach a hex written directly into a page's own <style> block — and that
+ * is where the loudest colour in this bundle lives: the #667eea → #764ba2
+ * banner gradient, the #1877F2 title bars, the #EF4444 alerts. Left alone they
+ * are the only saturated things on an otherwise pastel screen.
  *
  * Scope is deliberately narrow. Only <style> blocks and inline style="…"
  * attributes are rewritten. Hex literals inside the pages' JavaScript are left

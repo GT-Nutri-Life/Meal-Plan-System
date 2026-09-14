@@ -11,12 +11,14 @@
 #                            is still blocking, so a page never paints light and
 #                            then flips — which on a portal of eleven separate
 #                            documents would be a flash on every click.
-#   assets/gt-palette.js     end of <head>, in that order. Not next to the
-#   assets/gt-tailwind.js    Tailwind CDN tag, which would look tidier but is
-#                            wrong: two pages set a `tailwind.config` of their
-#                            own further down the head, and assigning ours
-#                            first would simply be overwritten. Last in the
-#                            head means ours merges over theirs instead.
+#   assets/tailwind.css      end of <head>, before the skin. This replaces
+#                            https://cdn.tailwindcss.com, which cost about
+#                            400 KB on each of nine pages and then compiled the
+#                            stylesheet in the browser before anything could be
+#                            painted. The prebuilt file is a tenth of that and
+#                            arrives ready to use. The CDN tag is swapped for a
+#                            three-line stub so the two pages that assign
+#                            `tailwind.config` do not throw.
 #   assets/gt-chrome.js      before </body> — needs document.body.
 #   assets/gt-switcher.js    before </body>, last, as it always was.
 #
@@ -46,33 +48,54 @@ for file in $(find "$ROOT/apps" -name '*.html' | sort); do
     continue
   fi
 
-  # --- 1. theme boot, palette, Tailwind bridge and pastel skin, in <head> -
+  # --- 1. theme boot, compiled Tailwind and the pastel skin, in <head> ---
   #
-  # Each tag is checked on its own. Guarding the whole block on one of them
-  # duplicated the other three the moment a fourth was added, which is exactly
-  # what happened when the theme boot script joined them.
-  HEAD_TAGS=""
-  add_head() {
-    grep -qF "$1" "$file" && return 0
-    why+=("${2}")
+  # The order matters and is enforced rather than assumed: the boot script has
+  # to run before anything paints, and the skin has to come after Tailwind or
+  # it loses every rule it means to override. Adding one tag at a time got that
+  # wrong the moment a new tag joined an existing set — the newcomer landed
+  # last whatever it was. So the known tags are stripped and re-inserted as a
+  # block, and the file is only rewritten if the result actually differs, which
+  # is what keeps this idempotent.
+  HEAD_BLOCK='<script src="../../assets/gt-theme-boot.js"></script>
+<link rel="stylesheet" href="../../assets/tailwind.css">
+<link rel="stylesheet" href="../../assets/gt-theme.css">'
+
+  before=$(cat "$file")
+  stripped=$(printf '%s' "$before" | perl -0777 -pe '
+    s{[ \t]*<script[^>]*src="[^"]*assets/gt-(theme-boot|palette|tailwind)\.js"[^>]*>\s*</script>\n?}{}gs;
+    s{[ \t]*<link[^>]*href="[^"]*assets/(tailwind|gt-theme)\.css"[^>]*>\n?}{}gs;
+  ')
+  if printf '%s' "$stripped" | grep -qi '</head>'; then
+    after=$(HEAD_BLOCK="$HEAD_BLOCK" perl -0777 -pe 's{(.*)</head>}{$1 . $ENV{HEAD_BLOCK} . "\n</head>"}se' <<< "$stripped")
+  else
+    after=$(HEAD_BLOCK="$HEAD_BLOCK" perl -0777 -pe 's{<body}{$ENV{HEAD_BLOCK} . "\n<body"}se' <<< "$stripped")
+  fi
+
+  if [[ "$after" != "$before" ]]; then
+    why+=("head")
     changed=1
-    HEAD_TAGS="${HEAD_TAGS}${3}
-"
-  }
+    [[ $CHECK -eq 0 ]] && printf '%s\n' "$after" > "$file"
+  fi
 
-  add_head 'gt-theme-boot.js' 'theme-boot' '<script src="../../assets/gt-theme-boot.js"></script>'
-  add_head 'gt-palette.js'    'palette'    '<script src="../../assets/gt-palette.js"></script>'
-  add_head 'gt-tailwind.js'   'tailwind'   '<script src="../../assets/gt-tailwind.js"></script>'
-  add_head 'gt-theme.css'     'skin'       '<link rel="stylesheet" href="../../assets/gt-theme.css">'
-
-  if [[ -n "$HEAD_TAGS" && $CHECK -eq 0 ]]; then
-    HEAD_TAGS="${HEAD_TAGS%$'\n'}"
-    if grep -qi '</head>' "$file"; then
-      HEAD_TAGS="$HEAD_TAGS" perl -0777 -i -pe 's{(.*)</head>}{$1 . $ENV{HEAD_TAGS} . "\n</head>"}se' "$file"
-    else
-      # No </head> to anchor to: put them before the first <body>, which is
-      # still inside the implicit head as far as the parser is concerned.
-      HEAD_TAGS="$HEAD_TAGS" perl -0777 -i -pe 's{<body}{$ENV{HEAD_TAGS} . "\n<body"}se' "$file"
+  # --- 2. retire the Tailwind Play CDN ----------------------------------
+  #
+  # The stylesheet is compiled ahead of time now (scripts/build-tailwind.js).
+  # The CDN script is replaced rather than deleted: two pages assign
+  # `tailwind.config` immediately afterwards, and without the global that is a
+  # ReferenceError on load.
+  if grep -qE '(<script[^>]*cdn\.tailwindcss\.com|rel="(dns-prefetch|preconnect)"[^>]*cdn\.tailwindcss\.com)' "$file"; then
+    why+=("drop-cdn")
+    changed=1
+    if [[ $CHECK -eq 0 ]]; then
+      TW_STUB='<script>/* Tailwind is compiled ahead of time into assets/tailwind.css.
+   This stub keeps this page'"'"'s own `tailwind.config` assignment harmless. */
+window.tailwind = window.tailwind || { config: {} };</script>'
+      TW_STUB="$TW_STUB" perl -0777 -i -pe \
+        's{<script[^>]*src="https://cdn\.tailwindcss\.com"[^>]*>\s*</script>}{$ENV{TW_STUB}}se' "$file"
+      # The warm-up hints pointed at a host we no longer call, which costs a
+      # DNS lookup and a TLS handshake for nothing.
+      perl -0777 -i -pe 's{[ \t]*<link[^>]*rel="(?:dns-prefetch|preconnect)"[^>]*cdn\.tailwindcss\.com[^>]*>\n?}{}gs' "$file"
     fi
   fi
 

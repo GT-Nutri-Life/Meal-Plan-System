@@ -6,8 +6,11 @@
 <title>Dietary Nutrition Assessment — Food Exchange Calculator</title>
 <meta name="description" content="Food Exchange List for Type 2 Diabetes Mellitus — Sri Lanka. Clinical dietary nutrition assessment and energy calculator by Gayathri Dissanayaka." />
 
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>/* Tailwind is compiled ahead of time into assets/tailwind.css.
+   This stub keeps this page's own `tailwind.config` assignment harmless. */
+window.tailwind = window.tailwind || { config: {} };</script>
+<script src="../../assets/gt-lazy.js" defer></script>
+<script data-gt-lazy="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" data-gt-lazy-provides="XLSX"></script>
 <script>
 tailwind.config = {
   theme: { extend: {
@@ -21,7 +24,7 @@ tailwind.config = {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 
 <style>
 /* ═══════════════════════════ SCREEN APP ═══════════════════════════ */
@@ -221,10 +224,9 @@ body { background: var(--gt-soft,#F1F7F3); }
            display:flex; justify-content:space-between; gap:5mm; }
 .pd-foot .cite { max-width:130mm; }
 </style>
-<script src="../../assets/gt-palette.js"></script>
-<script src="../../assets/gt-tailwind.js"></script>
-<link rel="stylesheet" href="../../assets/gt-theme.css">
 <script src="../../assets/gt-theme-boot.js"></script>
+<link rel="stylesheet" href="../../assets/tailwind.css">
+<link rel="stylesheet" href="../../assets/gt-theme.css">
 </head>
 
 <body class="font-sans text-slate-900 antialiased compact">

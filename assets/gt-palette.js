@@ -5,9 +5,9 @@
  * vocabularies: Tailwind's default scales, per-page Tailwind configs with
  * their own names (fbblue, brand, tablehd…), hand-rolled CSS custom
  * properties, and bare hex literals in <style> blocks. Restyling them one by
- * one would guarantee drift, so the palette is defined once here and the
- * three consumers — gt-tailwind.js, gt-theme.css and gt-chrome.js — all read
- * from it.
+ * one would guarantee drift, so the palette is defined once here and its three
+ * consumers — scripts/build-tailwind.js, gt-theme.css and gt-chrome.js — all
+ * read from it.
  *
  * Every value is pastel in the surfaces and soft-but-legible in the ink.
  * That distinction is the whole trick: pastel backgrounds with pastel text

@@ -32,11 +32,13 @@ index.html                  the portal — searchable, grouped catalogue
 assets/
   registry.js               single source of truth: tools, categories, data flow
   gt-palette.js             the pastel palette, defined once
-  gt-tailwind.js            merges that palette into each page's Tailwind config
+  tailwind.css              the bundle's Tailwind utilities, compiled ahead of time
   gt-theme.css              the pastel skin: surfaces, forms, tables, print
+  gt-theme-boot.js          resolves the shared theme before the first paint
   gt-chrome.js              the shared page header and footer, and the client bar
   gt-context.js             the shared clinical record and the per-app adapters
   gt-auth.js                the shared sign-in gate
+  gt-lazy.js                loads the export libraries after the page has painted
   gt-switcher.js            the switcher injected into every bundled page
   favicon.svg
 apps/<slug>/…               bundled subsystems, upstream copies with the shared
@@ -45,13 +47,18 @@ scripts/
   sync-apps.sh              refresh the bundled copies from upstream
   inject-nav.sh             attach the shared layer to bundled pages (idempotent)
   recolor-apps.js           repoint hardcoded colours to the palette (idempotent)
+  defer-libs.js             take CDN libraries and fonts off the critical path
+  build-tailwind.js         compile assets/tailwind.css from the palette
   check-supabase.js         live connectivity check against the Supabase project
   verify-registry.js        catch registry/disk/adapter drift — run by CI
 tests/
-  run.js                    entry point: node tests/run.js [portal|handoff]
+  run.js                    entry point: node tests/run.js [portal|handoff|…]
   harness.js                static servers, browser lookup, assertions
   portal.test.js            catalogue, switcher, and the no-regression contract
   handoff.test.js           sign-in and the cross-system record
+  crossref.test.js          what each subsystem hands the next one
+  theme.test.js             one theme across eleven separate documents
+  lazy.test.js              nothing a practitioner waits for is render-blocking
   stub-supabase.js          offline stand-in for the Supabase client
 ```
 
@@ -97,8 +104,8 @@ vocabulary by its own route:
 
 | Where the colour lives | How it is repointed |
 |---|---|
-| Tailwind utility classes (`text-gray-700`, `bg-blue-50`) | `gt-tailwind.js` merges the palette into `tailwind.config` at runtime |
-| A page's own `tailwind.config` names | the same merge, which preserves their keys and re-points their values |
+| Tailwind utility classes (`text-gray-700`, `bg-blue-50`) | `scripts/build-tailwind.js` compiles them from the palette into `assets/tailwind.css` |
+| A page's own `tailwind.config` names | the same build, which keeps their keys and re-points their values |
 | Hex and `rgba()` literals in a page's `<style>` block | `scripts/recolor-apps.js`, run once and checked by CI |
 | Surfaces and ink a page hardcodes | the same script, pointed at the theme variables so they follow light and dark |
 | Shared surfaces, forms, tables, print | `gt-theme.css`, loaded last so it wins on cascade order |
@@ -138,6 +145,38 @@ ink with it. Below that it is a highlight laid over something else
 (`linear-gradient(45deg, transparent, rgba(255,255,255,0.1))` over a coloured
 banner), and converting those too turned the banners solid white and left their
 pale headings at 1:1.
+
+## What the browser has to fetch before it can paint
+
+Each subsystem was written on its own, and each one loaded its dependencies the
+same way: render-blocking `<script>` and `<link>` tags in `<head>`, pointed at
+four different CDNs. Nothing in the pages was slow. The waiting was.
+
+| What used to block the first paint | What happens now |
+|---|---|
+| `cdn.tailwindcss.com` on nine pages — ~400 KB, and it compiles the stylesheet in the browser | `assets/tailwind.css`, 49 KB, compiled by `scripts/build-tailwind.js` from the same palette |
+| jsPDF, html2canvas, SheetJS, docx, Chart.js, SweetAlert2, FileSaver, ics — up to 1.5 MB on one page | placeholders that `assets/gt-lazy.js` loads after the first paint |
+| Google Fonts and Font Awesome stylesheets, on another origin | `media="print"`, promoted on load, with a `<noscript>` fallback |
+
+Two libraries stay on the critical path on purpose. The diet plan pages call
+`emailjs.init()` while they parse, and the Meal Plan Generator's sign-in gate
+needs `supabase-js` before it can decide whether to show the app at all — a
+page that cannot authenticate has not loaded.
+
+Deferring an export library creates a window in which the button exists and the
+library does not. `gt-lazy.js` closes it from both ends: loading starts at the
+`load` event or at the first pointer, key or focus event, whichever comes
+first, and a click that still beats it is swallowed, held, and replayed once
+the libraries are in. The gate only ever sees buttons, so typing, focus and
+navigation are never delayed by it, and it disarms itself as soon as loading
+finishes. `tests/lazy.test.js` holds a stubbed CDN back deliberately and checks
+that an early click runs exactly once, with its library present.
+
+Measured across all twelve pages on a modelled 4G connection (170 ms RTT,
+9 Mbit), first contentful paint went from 683 ms to 565 ms on average — 908 ms
+to 608 ms on the worst page — and the bytes fetched before the load event fell
+from 532 KB to 378 KB per page, 877 KB to 509 KB on the Meal Plan Generator.
+The deferred libraries finish arriving about half a second later.
 
 ## The client library
 
@@ -371,12 +410,15 @@ scripts/sync-apps.sh --dry-run     # what changed upstream?
 scripts/sync-apps.sh               # pull the changes down
 scripts/inject-nav.sh              # re-attach the shared layer to fresh files
 scripts/recolor-apps.js            # repoint the colours a fresh copy brings back
+scripts/defer-libs.js              # re-defer the CDN libraries it brings back
+scripts/build-tailwind.js          # rebuild the stylesheet for any new utilities
 scripts/verify-registry.js         # confirm registry and disk agree
 ```
 
-Both `inject-nav.sh` and `recolor-apps.js` are idempotent, and CI runs each with
-`--check`, so a page that came back from upstream without the shared layer or
-still carrying its original colours fails the build rather than shipping.
+All four are idempotent, and CI runs each with `--check`, so a page that came
+back from upstream without the shared layer, still carrying its original
+colours, or blocking its first paint on a CDN fails the build rather than
+shipping.
 
 `sync-apps.sh` compares upstream against the bundled copy *with the injected tag
 removed*, so the injection itself never registers as a change. You can also sync
@@ -389,7 +431,8 @@ a single subsystem: `scripts/sync-apps.sh bmi-assessment`.
    repository is new).
 3. Add the slug, repository and file list to the `MAP` block in
    `scripts/sync-apps.sh`.
-4. Run `scripts/inject-nav.sh && scripts/recolor-apps.js && scripts/verify-registry.js`.
+4. Run `scripts/inject-nav.sh && scripts/recolor-apps.js && scripts/defer-libs.js
+   && scripts/build-tailwind.js && scripts/verify-registry.js`.
 
 The portal and the switcher both pick it up with no further changes.
 
@@ -403,6 +446,7 @@ node tests/run.js portal    # just the catalogue and switcher
 node tests/run.js handoff   # just sign-in, the record and the client library
 node tests/run.js crossref  # just the cross-system prefill checks
 node tests/run.js theme     # just the shared-theme checks
+node tests/run.js lazy      # just the deferred-library checks
 npm run check:supabase      # live check against the Supabase project
 ```
 
