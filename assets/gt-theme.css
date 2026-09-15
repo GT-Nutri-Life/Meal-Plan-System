@@ -834,6 +834,37 @@ html.gt-themed:not([data-theme="light"]) [class~="hover:text-slate-800"]:hover, 
 }
 
 /* ---------------------------------------------------------------------------
+   DARK — pale surfaces written with an opacity modifier.
+
+   `bg-slate-50/70` is its own class, .bg-slate-50\/70, so an override written
+   against .bg-slate-50 misses it — the same shape as the gradient stops and
+   the hover variants above. Two of them carry real surfaces: the dietary
+   assessment's sticky header (bg-white/95) and its anthropometry panel
+   (bg-slate-50/70). Both stayed pale on a dark page and took light ink with
+   them, at 1.04:1 and 1.10:1.
+
+   Only the near-opaque ones move. bg-white/15 and bg-fbyellow/10 are
+   highlights laid over something coloured and are meant to be translucent;
+   turning those into dark surfaces is the mistake in the other direction —
+   the same 0.7 alpha line recolor-apps.js already draws for rgba() literals.
+   --------------------------------------------------------------------------- */
+html.gt-themed[data-theme="dark"] [class~="bg-white/95"] { background-color: var(--gt-card); border-color: var(--gt-border); }
+html.gt-themed[data-theme="dark"] [class~="bg-slate-50/70"] { background-color: var(--gt-soft); border-color: var(--gt-border); }
+
+html.gt-themed body.dark-mode [class~="bg-white/95"] { background-color: var(--gt-card); border-color: var(--gt-border); }
+html.gt-themed body.dark-mode [class~="bg-slate-50/70"] { background-color: var(--gt-soft); border-color: var(--gt-border); }
+
+html.gt-themed body.dark [class~="bg-white/95"] { background-color: var(--gt-card); border-color: var(--gt-border); }
+html.gt-themed body.dark [class~="bg-slate-50/70"] { background-color: var(--gt-soft); border-color: var(--gt-border); }
+
+@media (prefers-color-scheme: dark) {
+
+html.gt-themed:not([data-theme="light"]) [class~="bg-white/95"] { background-color: var(--gt-card); border-color: var(--gt-border); }
+html.gt-themed:not([data-theme="light"]) [class~="bg-slate-50/70"] { background-color: var(--gt-soft); border-color: var(--gt-border); }
+
+}
+
+/* ---------------------------------------------------------------------------
    MOBILE
 
    This is the one place the sheet changes layout, and it does so on purpose.

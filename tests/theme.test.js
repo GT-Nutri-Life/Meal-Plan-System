@@ -299,6 +299,27 @@ module.exports = async function run({ context, B, reporter }) {
       }
     }
 
+    /* The same shape again, from a third direction: bg-slate-50/70 is its own
+       class too. Near-opaque pale surfaces must carry a dark override; the
+       translucent highlights (bg-white/15 and friends) must not. */
+    const opaquePale = new Set();
+    for (const [, url] of BUNDLED) {
+      const html = fs.readFileSync(path.join(ROOT, url.replace(/^\//, '')), 'utf8');
+      for (const m of html.matchAll(/class="([^"]*)"/g)) {
+        for (const cls of m[1].split(/\s+/)) {
+          const hit = /^bg-(?:([a-z]+)-(\d+)|white)\/(\d+)$/.exec(cls);
+          if (!hit) continue;
+          const step = hit[2] ? Number(hit[2]) : 0;      // white counts as pale
+          if (Number(hit[3]) >= 70 && step <= 200) opaquePale.add(cls);
+        }
+      }
+    }
+    const paleGaps = [...opaquePale].filter(
+      (c) => !parsed.some((sel) => sel.includes(`[class~="${c}"]`)));
+    ok(paleGaps.length === 0,
+      `every near-opaque pale background variant has a dark override (${paleGaps.length} missing)` +
+      (paleGaps.length ? ' — ' + paleGaps.join(', ') : ''));
+
     ok(used.size > 0, `the bundle uses ${used.size} pale hover variants`);
     ok(parsed.length > 0, `the skin's hover overrides survive CSS parsing (${parsed.length} rules)`);
     ok(missing.length === 0,
