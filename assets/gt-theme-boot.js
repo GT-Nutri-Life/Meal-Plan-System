@@ -130,7 +130,7 @@
     var syncing = false;
 
     var onMutation = function () {
-      if (syncing) return;
+      if (syncing || root.__gtThemeSuspended) return;
       var attr = doc.documentElement.getAttribute('data-theme');
       var cls = doc.body && (doc.body.classList.contains('dark-mode') ||
                              doc.body.classList.contains('dark'));
@@ -178,6 +178,24 @@
     get: current,
     set: set,
     toggle: function () { set(current() === 'dark' ? 'light' : 'dark'); return current(); },
-    onChange: function (fn) { listeners.push(fn); }
+    onChange: function (fn) { listeners.push(fn); },
+
+    /*
+     * Paint a mode without recording it as the choice.
+     *
+     * Exports need this: a PDF is rasterised from the live DOM, so the page
+     * has to be light while html2canvas reads it. Painting light the ordinary
+     * way would have the observer below treat it as the practitioner choosing
+     * light and write it to localStorage — every export would silently flip
+     * their theme. suspend() holds that off; resume() restores the choice
+     * that was already stored, whatever the DOM was doing meanwhile.
+     */
+    suspend: function () { root.__gtThemeSuspended = (root.__gtThemeSuspended || 0) + 1; },
+    resume: function () {
+      root.__gtThemeSuspended = Math.max(0, (root.__gtThemeSuspended || 0) - 1);
+      if (!root.__gtThemeSuspended) paint(current());
+    },
+    /** Paint without persisting. Only meaningful while suspended. */
+    paintOnly: paint
   };
 })(typeof window !== 'undefined' ? window : globalThis);

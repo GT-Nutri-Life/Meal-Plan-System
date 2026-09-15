@@ -58,12 +58,13 @@ for file in $(find "$ROOT/apps" -name '*.html' | sort); do
   # block, and the file is only rewritten if the result actually differs, which
   # is what keeps this idempotent.
   HEAD_BLOCK='<script src="../../assets/gt-theme-boot.js"></script>
+<script src="../../assets/gt-export-light.js" defer></script>
 <link rel="stylesheet" href="../../assets/tailwind.css">
 <link rel="stylesheet" href="../../assets/gt-theme.css">'
 
   before=$(cat "$file")
   stripped=$(printf '%s' "$before" | perl -0777 -pe '
-    s{[ \t]*<script[^>]*src="[^"]*assets/gt-(theme-boot|palette|tailwind)\.js"[^>]*>\s*</script>\n?}{}gs;
+    s{[ \t]*<script[^>]*src="[^"]*assets/gt-(theme-boot|palette|tailwind|export-light)\.js"[^>]*>\s*</script>\n?}{}gs;
     s{[ \t]*<link[^>]*href="[^"]*assets/(tailwind|gt-theme)\.css"[^>]*>\n?}{}gs;
   ')
   # Herestring, not a pipe. `grep -q` exits at the first match and closes the
