@@ -15,6 +15,10 @@
  */
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
+const ROOT = path.join(__dirname, '..');
+
 const BUNDLED = [
   ['portal',      '/index.html'],
   ['bmi',         '/apps/bmi-assessment/index.html'],
@@ -232,6 +236,74 @@ module.exports = async function run({ context, B, reporter }) {
         (light.length ? ' — ' + light.slice(0, 3).join(', ') : ''));
     }
     await p.evaluate(() => localStorage.setItem('gt-theme', 'light'));
+  }
+
+  /*
+   * A pale hover state must not turn a dark panel light.
+   *
+   * `hover:bg-blue-50` is its own class — .hover\:bg-blue-50:hover — so every
+   * override written against .bg-blue-50 misses it. The "Things to Consider"
+   * checkboxes were transparent over a dark card at rest and measured 1.04:1
+   * the moment you pointed at one. Nothing that samples a page at rest sees
+   * that, and hovering with a synthetic mouse is unreliable — it lands on
+   * whatever is topmost — so this reads the rule out of the stylesheet
+   * instead: every pale hover variant the bundle uses must carry a dark
+   * override.
+   */
+  {
+    const used = new Set();
+    for (const [, url] of BUNDLED) {
+      const html = fs.readFileSync(path.join(ROOT, url.replace(/^\//, '')), 'utf8');
+      for (const m of html.matchAll(/class="([^"]*)"/g)) {
+        for (const cls of m[1].split(/\s+/)) {
+          const hit = /^(hover|focus|group-hover):bg-([a-z]+)-(\d+)$/.exec(cls);
+          if (hit && Number(hit[3]) <= 300) used.add(cls);
+          if (/^(hover|focus|group-hover):bg-white$/.test(cls)) used.add(cls);
+        }
+      }
+    }
+
+    /* Ask the browser, not the file. A selector list with a stray comma still
+       reads fine as text and still contains the class name, but the parser
+       drops the whole rule — which is exactly the mistake that produced this
+       block the first time. A rule that survives into document.styleSheets is
+       a rule that will actually apply. */
+    await p.goto(B + '/apps/meal-plan-generator/main.html', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
+    const parsed = await p.evaluate(() => {
+      const out = [];
+      for (const sheet of document.styleSheets) {
+        let rules;
+        try { rules = sheet.cssRules; } catch (e) { continue; }
+        const walk = (list) => {
+          for (const rule of list) {
+            if (rule.selectorText) out.push(rule.selectorText);
+            if (rule.cssRules) walk(rule.cssRules);
+          }
+        };
+        walk(rules || []);
+      }
+      return out.filter((sel) => sel.includes('[class~="'));
+    });
+
+    /* Per theme selector, not just "somewhere". The sheet carries four dark
+       selectors and one rule per variant; if only one of the four is dropped
+       the class still appears in the other three, which is how a broken rule
+       slipped past the first version of this check. */
+    const VARIANTS = ['[data-theme="dark"]', 'body.dark-mode', 'body.dark', ':not([data-theme="light"])'];
+    const missing = [];
+    for (const c of used) {
+      for (const v of VARIANTS) {
+        const covered = parsed.some((sel) => sel.includes(`[class~="${c}"]`) && sel.includes(v));
+        if (!covered) missing.push(`${c} under ${v}`);
+      }
+    }
+
+    ok(used.size > 0, `the bundle uses ${used.size} pale hover variants`);
+    ok(parsed.length > 0, `the skin's hover overrides survive CSS parsing (${parsed.length} rules)`);
+    ok(missing.length === 0,
+      `every pale hover variant is covered under all four dark selectors (${missing.length} gaps)` +
+      (missing.length ? ' — ' + missing.slice(0, 4).join('; ') : ''));
   }
 
   await p.close();
