@@ -92,7 +92,13 @@ module.exports = async function run({ newIsolated, B, reporter }) {
     ok(hits >= 3,
       `dna: "${who}" is named in the sheet's meta, particulars and signature (${hits})`);
     if (who === LOCUM) {
-      ok(!sheet.includes('SLMC'), 'dna: a locum does not inherit her registration number');
+      /* The sheet's own footer credits her as the author of the tool, so her
+         registration is legitimately on the page; what must not happen is the
+         locum's name carrying it. */
+      ok(!sheet.includes(LOCUM + ' | '),
+        'dna: a locum is not given her registration number');
+      ok(sheet.includes(HERS),
+        'dna: and the footer still credits the tool to her, in full');
     }
   }
 
@@ -150,6 +156,31 @@ module.exports = async function run({ newIsolated, B, reporter }) {
         ok(!got.includes('SLMC'),
           `${name}: a locum does not inherit her registration number`);
       }
+    }
+  }
+
+  /* ── the footers that credit her in the page's own markup ──
+     These are static text, not the helper's output, so what is checked is
+     that they have not drifted from it. */
+  {
+    const line = await page.evaluate(() =>
+      window.GTExportLight.credentials('Gayathri Dissanayaka'));
+
+    const FOOTERS = [
+      ['portal',    '/index.html'],
+      ['about',     '/apps/about-dietitian/index.html'],
+      ['dna',       '/apps/dietary-nutrition-assessment/index.html'],
+      ['mpg',       '/apps/meal-plan-generator/index.html'],
+      ['mpg-main',  '/apps/meal-plan-generator/main.html']
+    ];
+    for (const [name, url] of FOOTERS) {
+      const html = await page.evaluate(
+        (u) => fetch(u).then((res) => res.text()), B + url);
+      const want = line.replace(/&/g, '&amp;');
+      ok(html.includes(want),
+        `${name}: the page footer credits her with the same registration line`);
+      ok(!/Gayathri[^<|]*(Dietitian &amp; Nutritionist)(?!\s*\(SLMC)/.test(html),
+        `${name}: and no bare "Dietitian & Nutritionist" credit is left behind it`);
     }
   }
 

@@ -497,7 +497,7 @@ body { background: var(--gt-soft,#F1F7F3); }
   </section>
 
   <footer class="border-t border-slate-200 px-4 sm:px-7 py-4 text-[10.5px] leading-relaxed text-slate-500">
-    <p>Developed based on: <em>Food Exchange List for Sri Lankans with Type 2 Diabetes Mellitus</em> (Shanmuganathan &amp; Hettiarchchi, 2017) — by Gayathri Dissanayaka.</p>
+    <p>Developed based on: <em>Food Exchange List for Sri Lankans with Type 2 Diabetes Mellitus</em> (Shanmuganathan &amp; Hettiarchchi, 2017) — by Gayathri Dissanayaka | Dietitian &amp; Nutritionist (SLMC Reg No. 148 &amp; 375).</p>
   </footer>
 
 </div>
@@ -934,7 +934,7 @@ function buildPrintDoc() {
   </div>
 
   <div class="pd-foot">
-    <div class="cite">Developed based on: Food Exchange List for Sri Lankans with Type 2 Diabetes Mellitus (Shanmuganathan &amp; Hettiarchchi, 2017) — by Gayathri Dissanayaka.</div>
+    <div class="cite">Developed based on: Food Exchange List for Sri Lankans with Type 2 Diabetes Mellitus (Shanmuganathan &amp; Hettiarchchi, 2017) — by ${esc(byline("Gayathri Dissanayaka"))}.</div>
     <div>${esc($("pName").value.trim() || "Unnamed patient")} · Printed ${esc(new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}))}</div>
   </div>`;
 
@@ -970,7 +970,7 @@ function exportExcel() {
   const blank = () => AOA.push([]);
 
   push(["DIETARY NUTRITION ASSESSMENT"]);
-  push(["Food Exchange List for Type 2 Diabetes Mellitus - Sri Lanka by Gayathri Dissanayaka"]);
+  push(["Food Exchange List for Type 2 Diabetes Mellitus - Sri Lanka by " + byline("Gayathri Dissanayaka")]);
   blank();
   push(["PATIENT INFORMATION"]);
   push(["Patient Name:", $("pName").value, "", "", "Date:", $("pDate").value, "", "Height (cm):", n($("pHeight").value)]);
@@ -1023,7 +1023,7 @@ function exportExcel() {
   GUIDE.forEach(g => push(["• " + g]));
   const NOTES_ROW = GUIDE_H + GUIDE.length + 1;
   push(["Notes:", ($("notes").value || "").trim()]);
-  push(["Developed based on: Food Exchange List for Sri Lankans with Type 2 Diabetes Mellitus (Shanmuganathan & Hettiarchchi, 2017) by Gayathri Dissanayaka"]);
+  push(["Developed based on: Food Exchange List for Sri Lankans with Type 2 Diabetes Mellitus (Shanmuganathan & Hettiarchchi, 2017) by " + byline("Gayathri Dissanayaka")]);
 
   const ws = XLSX.utils.aoa_to_sheet(AOA);
   ws["!cols"] = [{wch:26},{wch:15},{wch:18},{wch:17},{wch:20},{wch:19},{wch:16},{wch:19},{wch:14},{wch:20}];
