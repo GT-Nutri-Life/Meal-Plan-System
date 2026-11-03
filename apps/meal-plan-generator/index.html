@@ -1597,10 +1597,24 @@ window.tailwind = window.tailwind || { config: {} };</script>
         return pages.length ? pages : [''];
     }
 
+    /* The registration numbers that have to travel with the practitioner's name
+       on anything that leaves this page live in gt-export-light.js, so every
+       tool in the portal states them the same way. A declaration rather than a
+       const, because the builders that call it are written above it. */
+    function gtByline(n) {
+        return window.GTExportLight ? window.GTExportLight.byline(n) : String(n ?? '').trim();
+    }
+
     // ── Header builder (returns '' when inclHeader is false) ───────────────────
     function lHeader(fd, t, clean, inclHeader) {
         if (!inclHeader) return '';
-        const name = clean(fd.nutritionist.name) || 'Meal Plan', creds = clean(fd.nutritionist.credentials), contact = [clean(fd.nutritionist.phone), clean(fd.nutritionist.email)].filter(Boolean).join(' | ');
+        const name = gtByline(clean(fd.nutritionist.name)) || 'Meal Plan';
+        const contact = [clean(fd.nutritionist.phone), clean(fd.nutritionist.email)].filter(Boolean).join(' | ');
+        let creds = clean(fd.nutritionist.credentials);
+        /* The byline already says what she is, and says it with her
+           registration attached; repeating the credentials field underneath
+           just prints the same words twice. */
+        if (creds && name.indexOf(creds) !== -1) creds = '';
         return '<div style="background:#4A76AB;width:794px;height:144px;display:flex;align-items:center;padding:0 57px;gap:20px;flex-shrink:0;box-sizing:border-box;"><div style="background: var(--gt-card,#FFFFFF);border-radius:50%;min-width:57px;width:57px;height:57px;display:flex;align-items:center;justify-content:center;font-weight:700;color: var(--gt-a-sky,#4A76AB);font-size:14px;flex-shrink:0;letter-spacing:0.5px;">MP</div><div style="min-width:0;"><div style="color:white;font-size:21px;font-weight:700;line-height:1.2;">' + name + '</div>' + (creds ? '<div style="color:rgba(255,255,255,0.88);font-size:15px;margin-top:5px;line-height:1.3;">' + creds + '</div>' : '') + (contact ? '<div style="color:rgba(255,255,255,0.72);font-size:12px;margin-top:5px;line-height:1.3;">' + contact + '</div>' : '') + '</div></div>';
     }
 
@@ -1703,7 +1717,7 @@ window.tailwind = window.tailwind || { config: {} };</script>
 
             Swal.update({ html: 'Laying out pages...' });
             await document.fonts.ready;
-            const copyright = clean(formData.nutritionist.name) || 'Meal Plan Generator';
+            const copyright = gtByline(clean(formData.nutritionist.name)) || 'Meal Plan Generator';
             const ruler = makeRuler(t.fontFamily);
             let pages = [''];
             try {

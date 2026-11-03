@@ -733,6 +733,14 @@ function assess(val, lo, hi, on) {
   return { txt:"Within range", cls:"mk-ok" };
 }
 
+/* The registration numbers that have to travel with the practitioner's name
+   on anything that leaves this page live in gt-export-light.js, so every tool
+   in the portal states them the same way. */
+function byline(n, r) {
+  const XL = window.GTExportLight;
+  return XL ? XL.byline(n, r) : [n, r].filter(Boolean).join(" \u00B7 ");
+}
+
 function buildPrintDoc() {
   const { rows, T, on, pCho, pPro, pFat } = computed();
   const showAll = $("optAllRows").checked;
@@ -814,7 +822,7 @@ function buildPrintDoc() {
       <dl>
         <dt>Patient ID</dt><dd>${esc($("pId").value.trim() || "—")}</dd>
         <dt>Assessed</dt><dd>${esc(longDate($("pDate").value) || "—")}</dd>
-        <dt>Dietitian</dt><dd>${esc($("pDietitian").value.trim() || "—")}</dd>
+        <dt>Dietitian</dt><dd>${esc(byline($("pDietitian").value.trim()) || "—")}</dd>
       </dl>
     </div>
   </header>
@@ -826,7 +834,7 @@ function buildPrintDoc() {
     ${pdField("Gender", $("pSex").value)}
     ${pdField("Ward / department", $("pWard").value)}
     ${pdField("Height / Weight", (h>0?f1(h)+" cm":"—") + "  ·  " + (w>0?f1(w)+" kg":"—"))}
-    ${pdField("Reviewing dietitian", $("pDietitian").value)}
+    ${pdField("Reviewing dietitian", byline($("pDietitian").value))}
   </div>
 
   <div class="pd-h">Anthropometry</div>
@@ -920,7 +928,7 @@ function buildPrintDoc() {
   <ul class="pd-guide">${guideHtml}</ul>
 
   <div class="pd-sign nb">
-    <div><div class="r">Dietitian — name &amp; signature</div><div class="m">${esc($("pDietitian").value.trim() || "")}</div></div>
+    <div><div class="r">Dietitian — name &amp; signature</div><div class="m">${esc(byline($("pDietitian").value.trim()))}</div></div>
     <div><div class="r">Patient / carer signature</div><div class="m"></div></div>
     <div><div class="r">Date</div><div class="m">${esc(longDate($("pDate").value) || "")}</div></div>
   </div>
@@ -966,7 +974,7 @@ function exportExcel() {
   blank();
   push(["PATIENT INFORMATION"]);
   push(["Patient Name:", $("pName").value, "", "", "Date:", $("pDate").value, "", "Height (cm):", n($("pHeight").value)]);
-  push(["Patient ID:", $("pId").value, "", "", "Dietitian:", $("pDietitian").value, "", "Weight (kg):", n($("pWeight").value)]);
+  push(["Patient ID:", $("pId").value, "", "", "Dietitian:", byline($("pDietitian").value), "", "Weight (kg):", n($("pWeight").value)]);
   push(["Age:", n($("pAge").value), "Gender:", $("pSex").value, "Ward/Dept:", $("pWard").value, "", "BMI:",
         { t:"n", f:'IF(AND(I6<>"",I5<>""),ROUND(I6/((I5/100)^2),1),"")', z:"0.0" }, "kg/m²"]);
   blank();
@@ -1040,7 +1048,7 @@ function exportExcel() {
   wb.Props = {
     Title:"Dietary Nutrition Assessment",
     Subject:"Food Exchange Calculator - Type 2 Diabetes Mellitus, Sri Lanka",
-    Author:$("pDietitian").value || "Gayathri Dissanayaka"
+    Author:byline($("pDietitian").value || "Gayathri Dissanayaka")
   };
 
   const who = ($("pName").value || "Patient").trim().replace(/[^\w\- ]+/g,"").replace(/\s+/g,"_");
