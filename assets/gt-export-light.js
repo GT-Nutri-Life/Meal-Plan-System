@@ -136,6 +136,56 @@
     };
   }
 
+  /* --------------------------------------------------------- the byline */
+
+  /*
+   * A handout that carries the practitioner's name has to carry her
+   * registration with it: a diet sheet signed by a name alone is not a
+   * clinical document. The apps cannot simply have the credentials typed
+   * into their markup, because each of them holds the name in a field the
+   * practitioner can edit and the clinical record can autofill — a locum's
+   * name would come out over someone else's registration number. So match
+   * the practitioner, and leave every other name exactly as entered.
+   *
+   * These fields are free text, autofilled from a record that may have been
+   * saved anywhere, so compare loosely: the middle name the profile site uses
+   * and the -ke spelling the diet plan generator carried both have to match.
+   */
+  var PRACTITIONER = /\bgayathri\b[a-z ]*\bdissanayak[ae]\b/;
+  var CREDENTIALS = 'Dietitian & Nutritionist (SLMC Reg No. 148 & 375)';
+
+  /**
+   * How a generated document names the practitioner.
+   *
+   * Returns plain text — callers escape it. `role` is the free-text role a
+   * document would otherwise have printed beside the name; for the
+   * practitioner the registration line supersedes it, since it already says
+   * what she is and says it with her registration numbers attached.
+   */
+  function byline(name, role) {
+    var n = String(name == null ? '' : name).trim();
+    if (!n || n.indexOf('SLMC') !== -1) return n;    // blank, or already carries it
+    var c = credentials(n, role);
+    if (!c) return n;
+    return n + (isPractitioner(n) ? ' | ' : ' \u00B7 ') + c;
+  }
+
+  /**
+   * What a document prints beside the name, for the documents that give the
+   * role a line of its own rather than running it on after the name.
+   */
+  function credentials(name, role) {
+    if (isPractitioner(name)) return CREDENTIALS;
+    return String(role == null ? '' : role).trim();
+  }
+
+  function isPractitioner(name) {
+    return PRACTITIONER.test(
+      String(name == null ? '' : name).toLowerCase().replace(/[^a-z]+/g, ' ').trim()
+    );
+  }
+
   root.GTExportLight = { withLight: withLight, lock: lock, unlock: unlock,
+    byline: byline, credentials: credentials,
     get depth() { return depth; } };
 })(typeof window !== 'undefined' ? window : globalThis);

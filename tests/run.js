@@ -9,6 +9,7 @@
  *   node tests/run.js theme        just the shared-theme suite
  *   node tests/run.js lazy         just the deferred-library suite
  *   node tests/run.js export       just the light-export suite
+ *   node tests/run.js byline       just the practitioner-byline suite
  *
  * Exits non-zero if any check fails, so CI can gate a deploy on it.
  */
@@ -60,8 +61,9 @@ const STUB = fs.readFileSync(path.join(__dirname, 'stub-supabase.js'), 'utf8');
     if (which === 'all' || which === 'theme')    suites.push(require('./theme.test'));
     if (which === 'all' || which === 'lazy')     suites.push(require('./lazy.test'));
     if (which === 'all' || which === 'export')   suites.push(require('./export.test'));
+    if (which === 'all' || which === 'byline')   suites.push(require('./byline.test'));
     if (!suites.length) {
-      console.error(`Unknown suite "${which}". Use: portal | handoff | crossref | theme | lazy | export | all`);
+      console.error(`Unknown suite "${which}". Use: portal | handoff | crossref | theme | lazy | export | byline | all`);
       process.exit(2);
     }
 

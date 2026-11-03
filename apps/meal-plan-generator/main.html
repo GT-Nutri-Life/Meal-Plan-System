@@ -86,7 +86,7 @@ window.tailwind = window.tailwind || { config: {} };</script>
                     <div class="text-4xl md:text-6xl">🥗</div>
                     <div>
                         <h1 class="text-2xl md:text-4xl font-bold">Meal Plan Generator</h1>
-                        <p class="text-blue-100 text-sm md:text-lg">Gayathri Dissanayaka - Dietitian &amp; Nutritionist</p>
+                        <p class="text-blue-100 text-sm md:text-lg">Gayathri Dissanayaka | Dietitian &amp; Nutritionist (SLMC Reg No. 148 &amp; 375)</p>
                         <p class="text-blue-200 text-sm mt-1">Professional Edition with Advanced Features</p>
                     </div>
                 </div>
@@ -714,7 +714,7 @@ window.tailwind = window.tailwind || { config: {} };</script>
 
     <footer class="bg-gradient-to-r from-gray-800 to-gray-900 text-white mt-16 py-8">
         <div class="container mx-auto px-4 text-center">
-            <p class="text-lg font-semibold">&copy; 2026 Gayathri Dissanayaka - Dietitian &amp; Nutritionist</p>
+            <p class="text-lg font-semibold">&copy; 2026 Gayathri Dissanayaka | Dietitian &amp; Nutritionist (SLMC Reg No. 148 &amp; 375)</p>
             <p class="text-gray-400 mt-2">Professional Meal Plan Generator - All Features Edition v1.0</p>
             <p class="text-sm text-gray-500 mt-3">Powered by Falcon 98 🦅 | Made with ❤️ by <a href="https://ashenwijesingha.github.io/">Ashen Wijesingha</a> for Better Nutrition</p>
         </div>
@@ -1554,8 +1554,10 @@ window.tailwind = window.tailwind || { config: {} };</script>
 
             // ── Blue banner builder ──────────────────────────────────────────────
             const inclHeader = document.getElementById('includeDietitianHeader')?.checked !== false;
-            const nName      = clean(n.name) || 'Meal Plan';
-            const nCreds     = clean(n.credentials);
+            const nName      = gtByline(clean(n.name)) || 'Meal Plan';
+            /* Same as the PDF header: the byline already carries the role. */
+            const nCreds     = (() => { const c = clean(n.credentials);
+                                        return c && nName.indexOf(c) !== -1 ? '' : c; })();
             const nContact   = [clean(n.phone), clean(n.email)].filter(Boolean).join('  |  ');
             const nAddr      = clean(n.address).replace(/\n/g, '  |  ');
 
@@ -1871,7 +1873,7 @@ window.tailwind = window.tailwind || { config: {} };</script>
 
             // Footer
             children.push(new Paragraph({
-                children: [txt('Generated on: ' + new Date().toLocaleDateString() + '   |   © ' + (clean(n.name) || 'Meal Plan Generator'), { size: 16, color: '9CA3AF', italics: true })],
+                children: [txt('Generated on: ' + new Date().toLocaleDateString() + '   |   © ' + (gtByline(clean(n.name)) || 'Meal Plan Generator'), { size: 16, color: '9CA3AF', italics: true })],
                 alignment: AlignmentType.CENTER,
                 spacing: sp(400, 0),
                 border: { top: { style: BorderStyle.SINGLE, size: 4, color: 'E5E7EB', space: 2 } }
@@ -2042,10 +2044,24 @@ window.tailwind = window.tailwind || { config: {} };</script>
         return pages.length ? pages : [''];
     }
 
+    /* The registration numbers that have to travel with the practitioner's name
+       on anything that leaves this page live in gt-export-light.js, so every
+       tool in the portal states them the same way. A declaration rather than a
+       const, because the builders that call it are written above it. */
+    function gtByline(n) {
+        return window.GTExportLight ? window.GTExportLight.byline(n) : String(n ?? '').trim();
+    }
+
     // ── Header builder (returns '' when inclHeader is false) ───────────────────
     function lHeader(fd, t, clean, inclHeader) {
         if (!inclHeader) return '';
-        const name = clean(fd.nutritionist.name) || 'Meal Plan', creds = clean(fd.nutritionist.credentials), contact = [clean(fd.nutritionist.phone), clean(fd.nutritionist.email)].filter(Boolean).join(' | ');
+        const name = gtByline(clean(fd.nutritionist.name)) || 'Meal Plan';
+        const contact = [clean(fd.nutritionist.phone), clean(fd.nutritionist.email)].filter(Boolean).join(' | ');
+        let creds = clean(fd.nutritionist.credentials);
+        /* The byline already says what she is, and says it with her
+           registration attached; repeating the credentials field underneath
+           just prints the same words twice. */
+        if (creds && name.indexOf(creds) !== -1) creds = '';
         return '<div style="background:#4A76AB;width:794px;height:144px;display:flex;align-items:center;padding:0 57px;gap:20px;flex-shrink:0;box-sizing:border-box;"><div style="background: var(--gt-card,#FFFFFF);border-radius:50%;min-width:57px;width:57px;height:57px;display:flex;align-items:center;justify-content:center;font-weight:700;color: var(--gt-a-sky,#4A76AB);font-size:14px;flex-shrink:0;letter-spacing:0.5px;">MP</div><div style="min-width:0;"><div style="color:white;font-size:21px;font-weight:700;line-height:1.2;">' + name + '</div>' + (creds ? '<div style="color:rgba(255,255,255,0.88);font-size:15px;margin-top:5px;line-height:1.3;">' + creds + '</div>' : '') + (contact ? '<div style="color:rgba(255,255,255,0.72);font-size:12px;margin-top:5px;line-height:1.3;">' + contact + '</div>' : '') + '</div></div>';
     }
 
@@ -2148,7 +2164,7 @@ window.tailwind = window.tailwind || { config: {} };</script>
 
             Swal.update({ html: 'Laying out pages...' });
             await document.fonts.ready;
-            const copyright = clean(formData.nutritionist.name) || 'Meal Plan Generator';
+            const copyright = gtByline(clean(formData.nutritionist.name)) || 'Meal Plan Generator';
             const ruler = makeRuler(t.fontFamily);
             let pages = [''];
             try {

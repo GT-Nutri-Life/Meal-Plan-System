@@ -509,4 +509,4 @@ python3 -m http.server 8000
 
 ---
 
-Clinical nutrition tools by Gayathri Thakshila Dissanayaka — Dietitian & Nutritionist.
+Clinical nutrition tools by Gayathri Thakshila Dissanayaka | Dietitian & Nutritionist (SLMC Reg No. 148 & 375).

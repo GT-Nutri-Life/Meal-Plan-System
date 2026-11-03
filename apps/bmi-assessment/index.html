@@ -1825,7 +1825,7 @@ window.tailwind = window.tailwind || { config: {} };</script>
         <div class="rpt-title">BMI and energy assessment</div>
         ${pname ? `<div class="rpt-patient">${esc(pname)}</div>` : ''}
         <div class="rpt-sub">${esc(SETS[state.set].name)} classification${ref ? ' · Ref: ' + esc(ref) : ''}</div>
-        ${CREDITS.practitioner ? `<div class="rpt-sub" style="margin-top:3px"><b>${esc(CREDITS.practitioner)}</b>${CREDITS.practitionerRole ? ' · ' + esc(CREDITS.practitionerRole) : ''}</div>` : ''}
+        ${CREDITS.practitioner ? `<div class="rpt-sub" style="margin-top:3px"><b>${esc(byline(CREDITS.practitioner, CREDITS.practitionerRole))}</b></div>` : ''}
       </div>
       <div class="rpt-meta">${stamp}<br>Screening tool — not a diagnosis</div>
     </div>`;
@@ -1946,8 +1946,9 @@ window.tailwind = window.tailwind || { config: {} };</script>
     }
 
     if (on('optSign')) {
+      const sigCreds = creds(CREDITS.practitioner, CREDITS.practitionerRole);
       const assessor = CREDITS.practitioner
-        ? `<b>${esc(CREDITS.practitioner)}</b>${CREDITS.practitionerRole ? '<br>' + esc(CREDITS.practitionerRole) : ''}`
+        ? `<b>${esc(CREDITS.practitioner)}</b>${sigCreds ? '<br>' + esc(sigCreds) : ''}`
         : 'Assessed by (name and role)';
       h += `<div class="rpt-sign"><div>${assessor}</div><div>Signature</div><div>Date</div></div>`;
     }
@@ -1958,7 +1959,7 @@ window.tailwind = window.tailwind || { config: {} };</script>
       : '';
     if (CREDITS.practitioner || dev) {
       h += `<div style="margin-top:5px;padding-top:5px;border-top:1px solid #ccc;display:flex;justify-content:space-between;gap:14px">
-        <span>${CREDITS.practitioner ? esc(CREDITS.practitioner) + (CREDITS.practitionerRole ? ' · ' + esc(CREDITS.practitionerRole) : '') : ''}</span>
+        <span>${CREDITS.practitioner ? esc(byline(CREDITS.practitioner, CREDITS.practitionerRole)) : ''}</span>
         <span>${dev}</span></div>`;
     }
     h += `</div>`;
@@ -2027,12 +2028,25 @@ window.tailwind = window.tailwind || { config: {} };</script>
     }, 80);
   });
 
+  /* The registration numbers that have to travel with the practitioner's name
+     on anything that leaves this page live in gt-export-light.js, so every
+     tool in the portal states them the same way. */
+  function byline(n, r) {
+    const XL = window.GTExportLight;
+    return XL ? XL.byline(n, r) : [n, r].filter(Boolean).join(' \u00B7 ');
+  }
+  function creds(n, r) {
+    const XL = window.GTExportLight;
+    return XL ? XL.credentials(n, r) : (r || '');
+  }
+
   /* ═══ credits ═══ */
   function applyCredits() {
+    const role = creds(CREDITS.practitioner, CREDITS.practitionerRole);
     $('wmName').textContent = CREDITS.practitioner || '';
-    $('wmRole').textContent = CREDITS.practitionerRole || '';
+    $('wmRole').textContent = role;
     $('creditName').textContent = CREDITS.practitioner || '—';
-    $('creditRole').textContent = CREDITS.practitionerRole || '';
+    $('creditRole').textContent = role;
     const d = $('creditDev');
     if (CREDITS.developer) {
       const link = CREDITS.portfolioUrl
@@ -2048,6 +2062,11 @@ window.tailwind = window.tailwind || { config: {} };</script>
 
   /* ═══ boot ═══ */
   applyCredits();
+  /* gt-export-light.js, which knows the practitioner's registration, is
+     deferred — it is not on window while this script is parsed, so the first
+     pass above falls back to the plain role. Deferred scripts have all run by
+     DOMContentLoaded, so a second pass there picks the registration up. */
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyCredits);
   drawTicks(); drawSegments(); applyUnitUI(); setCut('asian');
   requestAnimationFrame(() => clampLabel(50));
 })();

@@ -57,12 +57,25 @@ function chromiumOptions() {
   const explicit = process.env.PW_CHROMIUM;
   if (explicit && fs.existsSync(explicit)) return { executablePath: explicit };
 
+  /*
+   * A preinstalled browser is used in preference to Playwright's own, which
+   * may not be downloaded at all. Where it lives varies: the build directory
+   * has been called chrome-linux and chrome-linux64, and some images leave a
+   * plain `chromium` symlink pointing at whichever it is. Naming the binary
+   * outright also keeps a headless launch off chrome-headless-shell, which is
+   * versioned separately and is often the piece that is missing.
+   */
   const bundled = '/opt/pw-browsers';
   if (fs.existsSync(bundled)) {
+    const link = path.join(bundled, 'chromium');
+    if (fs.existsSync(link) && fs.statSync(link).isFile()) {
+      return { executablePath: link };
+    }
     for (const dir of fs.readdirSync(bundled)) {
-      const candidate = path.join(bundled, dir, 'chrome-linux', 'chrome');
-      if (dir.startsWith('chromium-') && fs.existsSync(candidate)) {
-        return { executablePath: candidate };
+      if (!dir.startsWith('chromium-')) continue;
+      for (const build of ['chrome-linux', 'chrome-linux64']) {
+        const candidate = path.join(bundled, dir, build, 'chrome');
+        if (fs.existsSync(candidate)) return { executablePath: candidate };
       }
     }
   }

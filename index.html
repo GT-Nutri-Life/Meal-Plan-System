@@ -206,14 +206,20 @@ h1 em{font-style:normal;color:var(--ac)}
 #recwrap{padding:4px 0 0}
 .recbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:14px 18px;
   background:var(--bg-card);border:1px solid var(--ac-bdr);border-radius:var(--rm);box-shadow:var(--sh-s)}
-.recmain{min-width:0}
+/* Each part states the width it needs rather than taking what is left, so on
+   a phone the bar breaks into stacked full-width rows instead of crushing the
+   chips into a column too narrow to hold them. */
+.recmain{min-width:0;flex:1 1 200px}
 .reclab{font-family:var(--fm);font-size:10px;font-weight:500;letter-spacing:.16em;
   text-transform:uppercase;color:var(--ac)}
 .recsum{font-size:15px;font-weight:600;letter-spacing:-.01em;margin-top:2px}
-.recchips{display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0}
-.chip{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;background:var(--bg-soft);
-  border:1px solid var(--bdr);border-radius:var(--rf);font-size:11.5px;color:var(--text2);white-space:nowrap}
-.chip b{font-family:var(--fm);font-size:11px;font-weight:500;color:var(--ac)}
+.recchips{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 280px;min-width:0}
+/* The label may wrap if a chip ever has to sit in a very narrow line; the
+   value never does, so a reading is not split across two lines. */
+.chip{display:inline-flex;flex-wrap:wrap;align-items:baseline;gap:6px;padding:4px 10px;
+  max-width:100%;background:var(--bg-soft);border:1px solid var(--bdr);border-radius:var(--rf);
+  font-size:11.5px;color:var(--text2)}
+.chip b{font-family:var(--fm);font-size:11px;font-weight:500;color:var(--ac);white-space:nowrap}
 .recclear{padding:7px 14px;border:1px solid var(--bdr);border-radius:var(--rf);
   font-size:12.5px;font-weight:600;color:var(--text3);transition:color .18s,border-color .18s}
 .recclear:hover{color:var(--ac);border-color:var(--ac)}
@@ -400,7 +406,7 @@ footer{padding:40px 0 56px;border-top:1px solid var(--bdr);background:var(--bg-s
       </div>
     </div>
     <div class="fbot">
-      <span>Clinical nutrition tools by Gayathri Thakshila Dissanayaka — Dietitian &amp; Nutritionist.</span>
+      <span>Clinical nutrition tools by Gayathri Thakshila Dissanayaka | Dietitian &amp; Nutritionist (SLMC Reg No. 148 &amp; 375).</span>
       <span>Press <strong>Ctrl K</strong> anywhere to search.</span>
     </div>
   </div>
