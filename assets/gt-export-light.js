@@ -147,9 +147,9 @@
    * name would come out over someone else's registration number. So match
    * the practitioner, and leave every other name exactly as entered.
    *
-   * The name is spelled a few ways across the tools this portal bundles
-   * ("Dissanayake" in the diet plan generator, the middle name on the
-   * profile site) and the fields are free text, so compare loosely.
+   * These fields are free text, autofilled from a record that may have been
+   * saved anywhere, so compare loosely: the middle name the profile site uses
+   * and the -ke spelling the diet plan generator carried both have to match.
    */
   var PRACTITIONER = /\bgayathri\b[a-z ]*\bdissanayak[ae]\b/;
   var CREDENTIALS = 'Dietitian & Nutritionist (SLMC Reg No. 148 & 375)';

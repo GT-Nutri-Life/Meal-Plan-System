@@ -1820,13 +1820,6 @@ window.tailwind = window.tailwind || { config: {} };</script>
     const ref = $('poRef').value.trim();
     const pname = $('poName').value.trim();
 
-    /* The registration numbers that have to travel with the practitioner's
-       name on anything that leaves this page live in gt-export-light.js, so
-       every tool in the portal states them the same way. */
-    const XL = window.GTExportLight;
-    const byline = (n, r) => XL ? XL.byline(n, r) : [n, r].filter(Boolean).join(' \u00B7 ');
-    const creds  = (n, r) => XL ? XL.credentials(n, r) : (r || '');
-
     let h = `<div class="rpt-head">
       <div>
         <div class="rpt-title">BMI and energy assessment</div>
@@ -2035,12 +2028,25 @@ window.tailwind = window.tailwind || { config: {} };</script>
     }, 80);
   });
 
+  /* The registration numbers that have to travel with the practitioner's name
+     on anything that leaves this page live in gt-export-light.js, so every
+     tool in the portal states them the same way. */
+  function byline(n, r) {
+    const XL = window.GTExportLight;
+    return XL ? XL.byline(n, r) : [n, r].filter(Boolean).join(' \u00B7 ');
+  }
+  function creds(n, r) {
+    const XL = window.GTExportLight;
+    return XL ? XL.credentials(n, r) : (r || '');
+  }
+
   /* ═══ credits ═══ */
   function applyCredits() {
+    const role = creds(CREDITS.practitioner, CREDITS.practitionerRole);
     $('wmName').textContent = CREDITS.practitioner || '';
-    $('wmRole').textContent = CREDITS.practitionerRole || '';
+    $('wmRole').textContent = role;
     $('creditName').textContent = CREDITS.practitioner || '—';
-    $('creditRole').textContent = CREDITS.practitionerRole || '';
+    $('creditRole').textContent = role;
     const d = $('creditDev');
     if (CREDITS.developer) {
       const link = CREDITS.portfolioUrl
@@ -2056,6 +2062,11 @@ window.tailwind = window.tailwind || { config: {} };</script>
 
   /* ═══ boot ═══ */
   applyCredits();
+  /* gt-export-light.js, which knows the practitioner's registration, is
+     deferred — it is not on window while this script is parsed, so the first
+     pass above falls back to the plain role. Deferred scripts have all run by
+     DOMContentLoaded, so a second pass there picks the registration up. */
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyCredits);
   drawTicks(); drawSegments(); applyUnitUI(); setCut('asian');
   requestAnimationFrame(() => clampLabel(50));
 })();

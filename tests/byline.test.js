@@ -23,6 +23,7 @@
 
 const LINE = 'Dietitian & Nutritionist (SLMC Reg No. 148 & 375)';
 const HER = 'Gayathri Dissanayaka';
+const HER_NAME = HER;
 const HERS = HER + ' | ' + LINE;
 const LOCUM = 'Dr. N. Rajapaksa';
 
@@ -57,7 +58,7 @@ module.exports = async function run({ newIsolated, B, reporter }) {
     ok(h.withRole === HERS,
       'the registration supersedes a free-text role rather than stacking on it');
     ok(h.spelling.endsWith(LINE) && h.middle.endsWith(LINE),
-      'the name spellings the bundled tools use are all recognised');
+      'a middle name or a -ke spelling in a saved record is still recognised');
     ok(h.other === LOCUM, `another name is left exactly as entered (${h.other})`);
     ok(h.otherRole === LOCUM + ' · Consultant', 'and keeps its own role');
     ok(h.blank === '', 'an empty field stays empty');
@@ -76,6 +77,45 @@ module.exports = async function run({ newIsolated, B, reporter }) {
     `bmi: the report names her with the registration in masthead and footer (${bmi.split(HERS).length - 1})`);
   ok(bmi.includes(HER) && bmi.includes(LINE) && !bmi.includes('Clinical Dietitian and Nutritionist'),
     'bmi: and the old free-text role no longer appears in the report');
+
+  /* The watermark and the on-page credit are written by applyCredits(), which
+     runs while the page is parsed — before the deferred export layer is on
+     window. They are re-applied once it is, and that is what this pins. */
+  const marks = await page.evaluate(() => ({
+    wmName: document.getElementById('wmName').textContent,
+    wmRole: document.getElementById('wmRole').textContent,
+    creditRole: document.getElementById('creditRole').textContent
+  }));
+  ok(marks.wmName === HER_NAME, `bmi: the print watermark still names her (${marks.wmName})`);
+  ok(marks.wmRole === LINE,
+    `bmi: and carries the registration, not the old role (${marks.wmRole})`);
+  ok(marks.creditRole === LINE,
+    `bmi: the on-page credit block says the same (${marks.creditRole})`);
+
+  /* It has to stay on one line across an A4 sheet: it is rotated and nowrap,
+     so a longer line would print off the edge of the page rather than wrap.
+     Everything that sizes it lives in @media print, so this needs a page the
+     size of the sheet with print media emulated — under the screen rules the
+     element is unrotated and unsized and the measurement means nothing. */
+  {
+    const A4 = { width: 794, height: 1123 };          // A4 portrait at 96dpi
+    const sheet = await newIsolated({ signedIn: true });
+    const sp = await sheet.newPage();
+    await sp.setViewportSize(A4);
+    const cdp = await sheet.newCDPSession(sp);
+    await sp.goto(B + '/apps/bmi-assessment/index.html', { waitUntil: 'load' });
+    await cdp.send('Emulation.setEmulatedMedia', { media: 'print' });
+    await sp.waitForTimeout(300);
+    const wm = await sp.evaluate(() => {
+      const w = document.querySelector('.rpt-watermark');
+      const b = w.getBoundingClientRect();
+      return { left: b.left, right: b.right, shown: getComputedStyle(w).display };
+    });
+    await sheet.close();
+    ok(wm.shown === 'block', `bmi: the watermark prints at all (${wm.shown})`);
+    ok(wm.left > 0 && wm.right < A4.width,
+      `bmi: and fits across the sheet (${Math.round(wm.left)}-${Math.round(wm.right)} of ${A4.width})`);
+  }
 
   /* ── DNA: the print sheet, which is what its PDF rasterises ── */
   await page.goto(B + '/apps/dietary-nutrition-assessment/index.html', { waitUntil: 'load' });
@@ -171,7 +211,9 @@ module.exports = async function run({ newIsolated, B, reporter }) {
       ['about',     '/apps/about-dietitian/index.html'],
       ['dna',       '/apps/dietary-nutrition-assessment/index.html'],
       ['mpg',       '/apps/meal-plan-generator/index.html'],
-      ['mpg-main',  '/apps/meal-plan-generator/main.html']
+      ['mpg-main',  '/apps/meal-plan-generator/main.html'],
+      ['dpg',       '/apps/diet-plan-generator/index.html'],
+      ['dpg-7day',  '/apps/diet-plan-generator/7-day-menu.html']
     ];
     for (const [name, url] of FOOTERS) {
       const html = await page.evaluate(
@@ -182,6 +224,22 @@ module.exports = async function run({ newIsolated, B, reporter }) {
       ok(!/Gayathri[^<|]*(Dietitian &amp; Nutritionist)(?!\s*\(SLMC)/.test(html),
         `${name}: and no bare "Dietitian & Nutritionist" credit is left behind it`);
     }
+  }
+
+  /* One spelling ships. The helper still matches the other, because a record
+     saved before this could carry it, but no page writes it any more. */
+  {
+    const PAGES = ['/index.html', '/apps/about-dietitian/index.html',
+      '/apps/bmi-assessment/index.html', '/apps/dietary-nutrition-assessment/index.html',
+      '/apps/diet-plan-generator/index.html', '/apps/diet-plan-generator/7-day-menu.html',
+      '/apps/meal-plan-generator/index.html', '/apps/meal-plan-generator/main.html',
+      '/apps/meal-plan-generator/babies.html'];
+    const wrong = [];
+    for (const u of PAGES) {
+      const html = await page.evaluate((x) => fetch(x).then((res) => res.text()), B + u);
+      if (html.includes('Dissanayake')) wrong.push(u);
+    }
+    ok(wrong.length === 0, `every page spells her surname the one way (${wrong.join(', ') || 'all agree'})`);
   }
 
   await ctx.close();
