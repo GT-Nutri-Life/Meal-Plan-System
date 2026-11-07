@@ -29,7 +29,9 @@
     'dietary-nutrition-assessment': 'AshenWijesingha/Dietary-Nutrition-Assessment',
     'meal-plan-generator':          'AshenWijesingha/Meal-Plan-Generator',
     'diet-plan-generator':          'AshenWijesingha/Diet-Plan-Generator',
-    'diet-plan-calendar-generator': 'AshenWijesingha/Diet-Plan-Calendar-Generator'
+    'diet-plan-calendar-generator': 'AshenWijesingha/Diet-Plan-Calendar-Generator',
+    // Written for this portal rather than bundled from a tool of its own.
+    'feeding-schedule-builder':     'GT-Nutri-Life/Meal-Plan-System'
   };
 
   /* Icons are inline SVG path data (24x24 grid, stroke-based) so they render
@@ -44,7 +46,8 @@
     menu:     '<path d="M5 5h14v14H5z"/><path d="M9 9h6M9 13h6M9 17h3"/>',
     baby:     '<circle cx="12" cy="9" r="5"/><path d="M9 8.5h.01M15 8.5h.01M10 12c1.2 1 2.8 1 4 0"/><path d="M5 21c1.5-3 4-4.5 7-4.5S17.5 18 19 21"/>',
     pulse:    '<path d="M3 12h4l2.5-7 4 14L16 12h5"/>',
-    person:   '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/>'
+    person:   '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/>',
+    feed:     '<path d="M9 3h6M10 3v3.5L5.6 15a4 4 0 0 0 3.6 6h5.6a4 4 0 0 0 3.6-6L14 6.5V3"/><path d="M7.5 14h9"/>'
   };
 
   /*
@@ -178,6 +181,19 @@
       tags: ['icu', 'critical care', 'intensive care', 'enteral', 'hospital', 'inpatient', 'acute']
     },
     {
+      id: 'feeding-schedule-builder',
+      name: 'Feeding Schedule Builder',
+      system: 'Feeding Schedule Builder',
+      source: 'feeding-schedule-builder',
+      category: 'specialist',
+      path: 'apps/feeding-schedule-builder/index.html',
+      icon: 'feed',
+      summary: 'Ward feeding schedules for blended and semisolid kitchen feeds.',
+      detail: 'Builds the timed feed chart a ward kitchen works from \u2014 preparation, items, quantity and conditional alternatives per feed \u2014 with flush volumes, a nutrient summary and the fluid total, and exports it as Word or PDF on the practice signature.',
+      tags: ['feeding', 'schedule', 'enteral', 'blended', 'semisolid', 'kitchen', 'ward',
+             'inpatient', 'bht', 'docx', 'word', 'pdf', 'ngt', 'tube feed']
+    },
+    {
       id: 'about-dietitian',
       name: 'About the Dietitian',
       // The practice's public face: clients and search engines must reach it
@@ -251,6 +267,14 @@
     'dpcg-7-day-menu': {
       consumes: ['patient.name', 'plan.startDate'],
       produces: ['patient.name', 'plan.startDate']
+    },
+    /* An inpatient tool, so it trades the ward identifiers the ward tools use
+       rather than the anthropometry the outpatient planners pass around. */
+    'feeding-schedule-builder': {
+      consumes: ['patient.name', 'patient.age', 'patient.sex', 'patient.id', 'patient.ward',
+                 'dietitian.name', 'dietitian.credentials'],
+      produces: ['patient.name', 'patient.age', 'patient.sex', 'patient.id', 'patient.ward',
+                 'dietitian.name', 'dietitian.credentials']
     }
     /* Baby Growth & Feeding is intentionally absent: its subject is an infant
        with its own identity and measurements, so carrying an adult record into
@@ -303,7 +327,14 @@
       carries: ['patient.name', 'plan.startDate'] },
     { from: 'diet-plan-calendar-generator', to: 'dpcg-7-day-menu',
       label: 'Client and start date for the option-based menu',
-      carries: ['patient.name', 'plan.startDate'] }
+      carries: ['patient.name', 'plan.startDate'] },
+    { from: 'dietary-nutrition-assessment', to: 'feeding-schedule-builder',
+      label: 'Ward patient identity for the feed chart',
+      carries: ['patient.name', 'patient.age', 'patient.sex', 'patient.id', 'patient.ward',
+                'dietitian.name'] },
+    { from: 'icu', to: 'feeding-schedule-builder',
+      label: 'Critical-care patient moving onto kitchen feeds',
+      carries: ['patient.id', 'patient.age', 'patient.sex'] }
   ];
 
   root.GTRegistry = {

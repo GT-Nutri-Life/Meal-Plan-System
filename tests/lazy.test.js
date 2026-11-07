@@ -35,7 +35,8 @@ const PAGES = [
   ['dpg-7day',    '/apps/diet-plan-generator/7-day-menu.html'],
   ['dpcg',        '/apps/diet-plan-calendar-generator/index.html'],
   ['dpcg-7day',   '/apps/diet-plan-calendar-generator/7day-diet-menu.html'],
-  ['about',       '/apps/about-dietitian/index.html']
+  ['about',       '/apps/about-dietitian/index.html'],
+  ['feeding',     '/apps/feeding-schedule-builder/index.html']
 ];
 
 /* Stand in for the CDN: define the global the page expects, and record that
@@ -43,7 +44,9 @@ const PAGES = [
 function stubFor(url) {
   const g =
     /jspdf\.plugin\.autotable/.test(url) ? null :
+    /vfs_fonts/.test(url)    ? null :
     /jspdf/.test(url)        ? 'jspdf' :
+    /pdfmake\.min/.test(url) ? 'pdfMake' :
     /html2canvas/.test(url)  ? 'html2canvas' :
     /xlsx/.test(url)         ? 'XLSX' :
     /docx@/.test(url)        ? 'docx' :
@@ -57,6 +60,10 @@ function stubFor(url) {
   if (/jspdf\.plugin\.autotable/.test(url)) {
     /* The plugin extends jsPDF, so it must never run before jsPDF does. */
     js += 'window.__gtAutotableSawJsPDF = typeof window.jspdf !== "undefined";';
+  } else if (/vfs_fonts/.test(url)) {
+    /* Same shape: the font table assigns into the global pdfmake defines. */
+    js += 'window.__gtVfsSawPdfMake = typeof window.pdfMake !== "undefined";';
+    js += 'if (window.pdfMake) window.pdfMake.vfs = window.pdfMake.vfs || {};';
   } else if (g) {
     js += 'window.' + g + '=window.' + g + '||function(){};';
   }
@@ -167,6 +174,13 @@ module.exports = async function run({ newIsolated, B, reporter }) {
   await page.waitForFunction(() => window.GTLazy && window.GTLazy.isReady(), null, { timeout: 10000 }).catch(() => {});
   ok(await page.evaluate(() => window.__gtAutotableSawJsPDF === true),
     'the jsPDF autotable plugin loads after jsPDF, not beside it');
+
+  /* pdfmake's font table has the same shape: it assigns into the global the
+     library defines, so arriving first would throw rather than degrade. */
+  await page.goto(B + '/apps/feeding-schedule-builder/index.html', { waitUntil: 'load' });
+  await page.waitForFunction(() => window.GTLazy && window.GTLazy.isReady(), null, { timeout: 10000 }).catch(() => {});
+  ok(await page.evaluate(() => window.__gtVfsSawPdfMake === true),
+    "pdfmake's font table loads after pdfmake, not beside it");
 
   /* ---- the gate: a click that beats the libraries is replayed, not lost ---- */
 

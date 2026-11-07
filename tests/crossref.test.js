@@ -156,5 +156,77 @@ module.exports = async function run({ context, B, reporter }) {
     await p.close();
   }
 
+  /* ---- Feeding Schedule Builder ------------------------------------- *
+   * An Alpine page, so the prefill has a second thing to prove: that the
+   * value reached Alpine's own state and not just the DOM node. Writing to
+   * .value alone would leave the input looking right and the document it
+   * builds still carrying the old patient, which is the worst of both. So
+   * the check reads the rendered preview, not the inputs.
+   * ------------------------------------------------------------------- */
+  {
+    const p = await context.newPage();
+    await p.goto(B + '/apps/feeding-schedule-builder/index.html', { waitUntil: 'load' });
+    await p.waitForFunction(() => !!window.Alpine, null, { timeout: 10000 }).catch(() => {});
+    await p.waitForTimeout(600);
+
+    const got = await p.evaluate((rec) => {
+      localStorage.setItem('gt-clinical-record', JSON.stringify(rec));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'gt-clinical-record' }));
+      const wrote = window.GTContext.apply('feeding-schedule-builder');
+      const v = (id) => { const el = document.getElementById(id); return el ? el.value : null; };
+      return {
+        wrote,
+        name: v('pt-name'), ward: v('pt-ward'), bht: v('pt-bht'),
+        age: v('pt-age'), ageUnit: v('pt-ageu'), title: v('pt-title'),
+        dietitian: v('fsb-author-name')
+      };
+    }, RECORD);
+
+    ok(got.wrote > 0, `feeding schedule: the adapter wrote ${got.wrote} field(s)`);
+    ok(got.name === 'Sunil Bandara', `the patient name carried (${got.name})`);
+    ok(got.ward === 'Medical Ward 3', `the ward carried (${got.ward})`);
+    ok(got.bht === 'PT-2026-118', `the hospital number carried into BHT (${got.bht})`);
+    ok(got.age === '47' && got.ageUnit === 'y', `the age carried, counted in years (${got.age}${got.ageUnit})`);
+    ok(got.title === 'Mr.', `sex carried as the honorific (${got.title})`);
+    ok(got.dietitian === 'Gayathri Dissanayaka', `the dietitian carried (${got.dietitian})`);
+
+    /* Alpine has to have seen it: the document is built from its state. */
+    await p.waitForTimeout(400);
+    const inDoc = await p.evaluate(() => {
+      const el = document.querySelector('.gt-paper');
+      return el ? el.textContent.replace(/\s+/g, ' ') : '';
+    });
+    ok(inDoc.includes('Sunil Bandara'),
+      'and the document being built names the new patient, not the old one');
+    ok(inDoc.includes('Medical Ward 3'), 'with the ward it was given');
+
+    /* ...and back out again, so the next tool in the ward picks it up. */
+    const read = await p.evaluate(() => window.GTContext.adapters['feeding-schedule-builder'].read());
+    ok(read.patient && read.patient.name === 'Sunil Bandara', 'the page reads its patient back out');
+    ok(read.patient && read.patient.ward === 'Medical Ward 3', 'and the ward');
+    ok(read.patient && read.patient.id === 'PT-2026-118', 'and the hospital number');
+    ok(read.patient && read.patient.sex === 'male', `and sex, back from the honorific (${read.patient && read.patient.sex})`);
+    await p.close();
+  }
+
+  /* An infant's age is counted in months, and the record has only a number:
+     carrying "4" out of a months field would read as a four-year-old. */
+  {
+    const p = await context.newPage();
+    await p.goto(B + '/apps/feeding-schedule-builder/index.html', { waitUntil: 'load' });
+    await p.waitForFunction(() => !!window.Alpine, null, { timeout: 10000 }).catch(() => {});
+    await p.waitForTimeout(600);
+    const read = await p.evaluate(() => {
+      const set = (id, v) => { const el = document.getElementById(id); el.value = v;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true })); };
+      set('pt-age', '4'); set('pt-ageu', 'm');
+      return window.GTContext.adapters['feeding-schedule-builder'].read();
+    });
+    ok(!read.patient || read.patient.age === undefined,
+      `an age in months is not carried out as years (${read.patient && read.patient.age})`);
+    await p.close();
+  }
+
   return r;
 };

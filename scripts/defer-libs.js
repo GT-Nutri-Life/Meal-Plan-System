@@ -52,7 +52,11 @@ const LAZY = [
   { match: 'Chart.js/', provides: 'Chart' },
   { match: 'sweetalert2', provides: 'Swal' },
   { match: 'FileSaver', provides: 'saveAs' },
-  { match: 'ics@', provides: 'ics' }
+  { match: 'ics@', provides: 'ics' },
+  /* pdfmake ships its font table as a second file that assigns into the
+     global the first one defines, so it has to land after it. */
+  { match: 'pdfmake.min', provides: 'pdfMake' },
+  { match: 'vfs_fonts', needs: 'pdfMake' }
 ];
 
 const LAZY_SRC = 'assets/gt-lazy.js';

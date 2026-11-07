@@ -214,6 +214,10 @@ module.exports = async function run({ newIsolated, B, reporter }) {
       ['mpg-main',  '/apps/meal-plan-generator/main.html'],
       ['dpg',       '/apps/diet-plan-generator/index.html'],
       ['dpg-7day',  '/apps/diet-plan-generator/7-day-menu.html']
+      /* The feeding schedule is not in this list on purpose: it has no credit
+         written into its markup at all. It renders one from the helper at
+         run time, which is the thing this sweep exists to approximate, so it
+         is checked directly above instead. */
     ];
     for (const [name, url] of FOOTERS) {
       const html = await page.evaluate(
@@ -226,6 +230,36 @@ module.exports = async function run({ newIsolated, B, reporter }) {
     }
   }
 
+  /* ── the feeding schedule signs its document with the same line ── */
+  {
+    await page.goto(B + '/apps/feeding-schedule-builder/index.html', { waitUntil: 'load' });
+    await page.waitForFunction(() => !!window.Alpine, null, { timeout: 10000 }).catch(() => {});
+    await page.waitForTimeout(700);
+
+    const seen = await page.evaluate(() => ({
+      masthead: (document.querySelector('header p') || {}).textContent || '',
+      doc: (document.querySelector('.gt-paper') || {}).textContent || '',
+      cred: (document.getElementById('fsb-author-cred') || {}).value || ''
+    }));
+    ok(seen.cred === 'Dietitian & Nutritionist (SLMC Reg No. 148 & 375)',
+      `feeding: the credentials field is the shared line (${seen.cred})`);
+    ok(seen.masthead.includes(HERS), 'feeding: the masthead names her in full');
+    ok(seen.doc.includes('By ' + HERS),
+      'feeding: and the schedule is signed with the same line');
+
+    /* A locum signing the chart keeps their own name and no registration. */
+    const locum = await page.evaluate((who) => {
+      const set = (id, v) => { const el = document.getElementById(id); el.value = v;
+        el.dispatchEvent(new Event('input', { bubbles: true })); };
+      set('fsb-author-name', who);
+      set('fsb-author-cred', 'Consultant Physician');
+      return new Promise((res) => setTimeout(() =>
+        res((document.querySelector('.gt-paper') || {}).textContent || ''), 400));
+    }, LOCUM);
+    ok(locum.includes('By ' + LOCUM) && !locum.includes('SLMC'),
+      'feeding: a locum signs with their own credentials and no registration');
+  }
+
   /* One spelling ships. The helper still matches the other, because a record
      saved before this could carry it, but no page writes it any more. */
   {
@@ -233,7 +267,8 @@ module.exports = async function run({ newIsolated, B, reporter }) {
       '/apps/bmi-assessment/index.html', '/apps/dietary-nutrition-assessment/index.html',
       '/apps/diet-plan-generator/index.html', '/apps/diet-plan-generator/7-day-menu.html',
       '/apps/meal-plan-generator/index.html', '/apps/meal-plan-generator/main.html',
-      '/apps/meal-plan-generator/babies.html'];
+      '/apps/meal-plan-generator/babies.html',
+      '/apps/feeding-schedule-builder/index.html'];
     const wrong = [];
     for (const u of PAGES) {
       const html = await page.evaluate((x) => fetch(x).then((res) => res.text()), B + u);

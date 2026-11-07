@@ -23,6 +23,7 @@ without going back to a menu.
 | 7-Day Menu — multiple options | Menus & Scheduling | `AshenWijesingha/Diet-Plan-Calendar-Generator` |
 | Baby Growth & Feeding Plan | Specialist Care | `AshenWijesingha/Meal-Plan-Generator` |
 | ICU NutriPlan | Specialist Care | `AshenWijesingha/Meal-Plan-Generator` |
+| Feeding Schedule Builder | Specialist Care | written for this portal |
 | About the Dietitian | Practice | `GT-Nutri-Life/About-Dietitian` |
 
 ## Layout

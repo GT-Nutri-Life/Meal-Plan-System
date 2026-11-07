@@ -238,6 +238,26 @@
 
   /* ---------- sex / unit normalisation ---------------------------------- */
 
+  /*
+   * The feeding schedule records sex only as an honorific, and only for an
+   * adult: "Baby" and "Master" say nothing a record should store as sex, and
+   * Dr. says nothing at all.
+   */
+  function sexFromTitle(v) {
+    if (blank(v)) return null;
+    var t = String(v).trim().toLowerCase().replace(/\.$/, '');
+    if (t === 'mr') return 'male';
+    if (t === 'mrs' || t === 'ms' || t === 'miss') return 'female';
+    return null;
+  }
+
+  function titleFromSex(v) {
+    var s = sexLower(v);
+    if (s === 'male') return 'Mr.';
+    if (s === 'female') return 'Ms.';
+    return null;
+  }
+
   function sexLower(v) {
     if (blank(v)) return null;
     var s = String(v).trim().toLowerCase();
@@ -643,6 +663,51 @@
         if (wr($('height'),    get(rec, 'measure.heightCm'))) n++;
         if (wr($('weight'),    get(rec, 'measure.weightKg'))) n++;
         if (wr($('diagnosis'), get(rec, 'clinical.diagnosis'))) n++;
+        return n;
+      }
+    },
+
+    /* ---- Feeding Schedule Builder ------------------------------------- *
+     * An Alpine page: every field is bound with x-model, so writing a value
+     * and dispatching input (which wr() does) is exactly what typing does —
+     * Alpine's own listener picks it up and the draft persists itself.
+     *
+     * It carries the ward identifiers rather than anthropometry. The patient
+     * title is the only place it records sex, so that is read out of, and
+     * written back into, the honorific.
+     * ------------------------------------------------------------------- */
+    'feeding-schedule-builder': {
+      read: function () {
+        var out = {}, v;
+        if ((v = rd($('pt-name')))) set(out, 'patient.name', v);
+        if ((v = rd($('pt-ward')))) set(out, 'patient.ward', v);
+        /* Two hospital numbers, and the record has one field. The BHT is the
+           admission this schedule belongs to, so it wins; the lifelong UHID
+           is the fallback when the BHT has not been entered yet. */
+        if ((v = rd($('pt-bht')) || rd($('pt-uhid')))) set(out, 'patient.id', v);
+        /* Age is only a number in the record, so months and days — this is
+           the one tool that feeds infants — would read as years. Carry it
+           only when the page is counting in years too. */
+        v = rd($('pt-age'));
+        if (v && rd($('pt-ageu')) === 'y' && num(v) !== null) set(out, 'patient.age', num(v));
+        var sex = sexFromTitle(rd($('pt-title')));
+        if (sex) set(out, 'patient.sex', sex);
+        var a = $('fsb-author-name'), c = $('fsb-author-cred');
+        if (a && (v = rd(a))) set(out, 'dietitian.name', v);
+        if (c && (v = rd(c))) set(out, 'dietitian.credentials', v);
+        return out;
+      },
+      write: function (rec) {
+        var n = 0;
+        if (wr($('pt-name'), get(rec, 'patient.name'))) n++;
+        if (wr($('pt-ward'), get(rec, 'patient.ward'))) n++;
+        if (wr($('pt-bht'),  get(rec, 'patient.id')))   n++;
+        var age = get(rec, 'patient.age');
+        if (!blank(age) && wr($('pt-age'), age)) { wr($('pt-ageu'), 'y'); n++; }
+        var title = titleFromSex(get(rec, 'patient.sex'));
+        if (title && wr($('pt-title'), title)) n++;
+        if (wr($('fsb-author-name'), get(rec, 'dietitian.name'))) n++;
+        if (wr($('fsb-author-cred'), get(rec, 'dietitian.credentials'))) n++;
         return n;
       }
     },
