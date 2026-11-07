@@ -20,10 +20,32 @@ const PAGES = [
   ['diet-plan-generator',          'apps/diet-plan-generator/index.html'],
   ['dpg-7day',                     'apps/diet-plan-generator/7-day-menu.html'],
   ['dpcg',                         'apps/diet-plan-calendar-generator/index.html'],
-  ['dpcg-7day',                    'apps/diet-plan-calendar-generator/7day-diet-menu.html']
+  ['dpcg-7day',                    'apps/diet-plan-calendar-generator/7day-diet-menu.html'],
+  ['feeding-schedule',             'apps/feeding-schedule-builder/index.html']
 ];
 
 const firstLine = (e) => String(e).split('\n')[0].trim();
+
+/* These were written out as literals — "all 11 tools", "all 6 source
+   repositories" — so bundling a twelfth subsystem failed fifteen checks that
+   were not actually wrong about anything. Read the expected shape from the
+   registry the portal itself renders from, and the suite keeps testing that
+   the page agrees with the registry rather than with a number typed in 2026. */
+const REG = (() => {
+  const path = require('path');
+  const prev = global.window;
+  global.window = {};
+  delete require.cache[require.resolve(path.join(__dirname, '..', 'assets', 'registry.js'))];
+  require(path.join(__dirname, '..', 'assets', 'registry.js'));
+  const reg = global.window.GTRegistry;
+  global.window = prev;
+  return reg;
+})();
+
+const N_TOOLS = REG.tools.length;
+const N_SOURCES = Object.keys(REG.sources).length;
+const N_EDGES = REG.flow.length;
+const N_STAGES = REG.categories.length;
 
 module.exports = async function run({ context, B, C, reporter }) {
   const r = reporter('PORTAL AND SWITCHER');
@@ -37,12 +59,12 @@ module.exports = async function run({ context, B, C, reporter }) {
     await page.goto(B + '/index.html', { waitUntil: 'networkidle' });
 
     ok(errs.length === 0, `portal loads without JavaScript errors${errs.length ? ' -> ' + errs[0] : ''}`);
-    ok((await page.locator('#main .card').count()) === 11, 'all 11 tools are catalogued');
-    ok((await page.locator('#main .grp').count()) === 5, 'grouped into 5 workflow stages');
+    ok((await page.locator('#main .card').count()) === N_TOOLS, `all ${N_TOOLS} tools are catalogued`);
+    ok((await page.locator('#main .grp').count()) === N_STAGES, `grouped into ${N_STAGES} workflow stages`);
     ok((await page.locator('.flag').count()) === 1, 'the flagship is marked once');
-    ok((await page.locator('#srcs li').count()) === 6, 'all 6 source repositories are credited');
-    ok((await page.locator('#rail li').count()) === 5, 'the clinical journey rail renders');
-    ok((await page.locator('.edge').count()) === 10, 'all 10 cross-system connections are documented');
+    ok((await page.locator('#srcs li').count()) === N_SOURCES, `all ${N_SOURCES} source repositories are credited`);
+    ok((await page.locator('#rail li').count()) === N_STAGES, 'the clinical journey rail renders');
+    ok((await page.locator('.edge').count()) === N_EDGES, `all ${N_EDGES} cross-system connections are documented`);
 
     await page.fill('#q', 'diabetes'); await page.waitForTimeout(120);
     ok((await page.locator('#main .card').count()) === 1, 'search "diabetes" narrows to the exchange calculator');
@@ -53,7 +75,7 @@ module.exports = async function run({ context, B, C, reporter }) {
     await page.fill('#q', 'zzzz'); await page.waitForTimeout(120);
     ok((await page.locator('.none').count()) === 1, 'an unmatched search explains itself');
     await page.fill('#q', ''); await page.waitForTimeout(120);
-    ok((await page.locator('#main .card').count()) === 11, 'clearing the search restores everything');
+    ok((await page.locator('#main .card').count()) === N_TOOLS, 'clearing the search restores everything');
 
     await page.click('h1');
     await page.keyboard.press('Control+k');
@@ -116,7 +138,7 @@ module.exports = async function run({ context, B, C, reporter }) {
     await page.waitForTimeout(300);
     ok(await panel.isVisible(), `${name}: clicking the launcher opens it`);
     ok((await fab.getAttribute('aria-expanded')) === 'true', `${name}: aria-expanded tracks the panel`);
-    ok((await sw.locator('.itm:not(.nxt)').count()) === 11, `${name}: every subsystem is reachable`);
+    ok((await sw.locator('.itm:not(.nxt)').count()) === N_TOOLS, `${name}: every subsystem is reachable`);
     ok((await sw.locator('.itm.here').count()) === 1, `${name}: the current tool is marked once`);
 
     await sw.locator('input').fill('icu');

@@ -271,8 +271,21 @@ html.gt-themed[data-theme="dark"] .bg-slate-50, html.gt-themed[data-theme="dark"
 html.gt-themed[data-theme="dark"] .bg-blue-50, html.gt-themed[data-theme="dark"] .bg-teal-50, html.gt-themed[data-theme="dark"] .bg-green-50,
 html.gt-themed[data-theme="dark"] .bg-purple-50, html.gt-themed[data-theme="dark"] .bg-indigo-50, html.gt-themed[data-theme="dark"] .bg-red-50,
 html.gt-themed[data-theme="dark"] .bg-amber-50, html.gt-themed[data-theme="dark"] .bg-yellow-50 { background-color: var(--gt-sunken); }
-html.gt-themed[data-theme="dark"] .bg-gray-200, html.gt-themed[data-theme="dark"] .bg-gray-300 { background-color: var(--gt-border); }
+html.gt-themed[data-theme="dark"] .bg-gray-200, html.gt-themed[data-theme="dark"] .bg-gray-300, html.gt-themed[data-theme="dark"] .bg-slate-200, html.gt-themed[data-theme="dark"] .bg-slate-300, html.gt-themed[data-theme="dark"] .bg-zinc-200, html.gt-themed[data-theme="dark"] .bg-zinc-300, html.gt-themed[data-theme="dark"] .bg-neutral-200, html.gt-themed[data-theme="dark"] .bg-neutral-300, html.gt-themed[data-theme="dark"] .bg-stone-200, html.gt-themed[data-theme="dark"] .bg-stone-300 { background-color: var(--gt-border); }
 
+/* White at an opacity — a sticky bar over a blurred page, a dimmed overlay.
+   `bg-white/90` is its own class, not a modifier the `.bg-white` rule above
+   reaches, so these stayed white while the ink over them turned light: on the
+   feeding schedule's masthead that was its title at 1.04:1, which is to say
+   invisible. Matched with [class~=] because the slash is not a plain class
+   character. The alpha of each is kept, so what was translucent stays so. */
+html.gt-themed[data-theme="dark"] [class~="bg-white/95"] { background-color: color-mix(in srgb, var(--gt-card) 95%, transparent); }
+html.gt-themed[data-theme="dark"] [class~="bg-white/90"] { background-color: color-mix(in srgb, var(--gt-card) 90%, transparent); }
+html.gt-themed[data-theme="dark"] [class~="bg-white/80"] { background-color: color-mix(in srgb, var(--gt-card) 80%, transparent); }
+html.gt-themed[data-theme="dark"] [class~="bg-white/70"] { background-color: color-mix(in srgb, var(--gt-card) 70%, transparent); }
+html.gt-themed[data-theme="dark"] [class~="bg-white/60"] { background-color: color-mix(in srgb, var(--gt-card) 60%, transparent); }
+html.gt-themed[data-theme="dark"] [class~="bg-slate-50/70"] { background-color: color-mix(in srgb, var(--gt-soft) 70%, transparent); }
+html.gt-themed[data-theme="dark"] [class~="bg-amber-50/60"] { background-color: color-mix(in srgb, var(--gt-sunken) 60%, transparent); }
 html.gt-themed[data-theme="dark"] .border-gray-200, html.gt-themed[data-theme="dark"] .border-gray-300,
 html.gt-themed[data-theme="dark"] .border-slate-200, html.gt-themed[data-theme="dark"] .border-slate-300 { border-color: var(--gt-border); }
 
@@ -310,7 +323,7 @@ html.gt-themed body.dark-mode .bg-slate-50, html.gt-themed body.dark-mode .bg-sl
 html.gt-themed body.dark-mode .bg-blue-50, html.gt-themed body.dark-mode .bg-teal-50, html.gt-themed body.dark-mode .bg-green-50,
 html.gt-themed body.dark-mode .bg-purple-50, html.gt-themed body.dark-mode .bg-indigo-50, html.gt-themed body.dark-mode .bg-red-50,
 html.gt-themed body.dark-mode .bg-amber-50, html.gt-themed body.dark-mode .bg-yellow-50 { background-color: var(--gt-sunken); }
-html.gt-themed body.dark-mode .bg-gray-200, html.gt-themed body.dark-mode .bg-gray-300 { background-color: var(--gt-border); }
+html.gt-themed body.dark-mode .bg-gray-200, html.gt-themed body.dark-mode .bg-gray-300, html.gt-themed body.dark-mode .bg-slate-200, html.gt-themed body.dark-mode .bg-slate-300, html.gt-themed body.dark-mode .bg-zinc-200, html.gt-themed body.dark-mode .bg-zinc-300, html.gt-themed body.dark-mode .bg-neutral-200, html.gt-themed body.dark-mode .bg-neutral-300, html.gt-themed body.dark-mode .bg-stone-200, html.gt-themed body.dark-mode .bg-stone-300 { background-color: var(--gt-border); }
 html.gt-themed body.dark-mode .border-gray-200, html.gt-themed body.dark-mode .border-gray-300,
 html.gt-themed body.dark-mode .border-slate-200, html.gt-themed body.dark-mode .border-slate-300 { border-color: var(--gt-border); }
 /* Form controls and tables follow the tokens already, but the striping and the
@@ -347,7 +360,7 @@ html.gt-themed body.dark .bg-slate-50, html.gt-themed body.dark .bg-slate-100 { 
 html.gt-themed body.dark .bg-blue-50, html.gt-themed body.dark .bg-teal-50, html.gt-themed body.dark .bg-green-50,
 html.gt-themed body.dark .bg-purple-50, html.gt-themed body.dark .bg-indigo-50, html.gt-themed body.dark .bg-red-50,
 html.gt-themed body.dark .bg-amber-50, html.gt-themed body.dark .bg-yellow-50 { background-color: var(--gt-sunken); }
-html.gt-themed body.dark .bg-gray-200, html.gt-themed body.dark .bg-gray-300 { background-color: var(--gt-border); }
+html.gt-themed body.dark .bg-gray-200, html.gt-themed body.dark .bg-gray-300, html.gt-themed body.dark .bg-slate-200, html.gt-themed body.dark .bg-slate-300, html.gt-themed body.dark .bg-zinc-200, html.gt-themed body.dark .bg-zinc-300, html.gt-themed body.dark .bg-neutral-200, html.gt-themed body.dark .bg-neutral-300, html.gt-themed body.dark .bg-stone-200, html.gt-themed body.dark .bg-stone-300 { background-color: var(--gt-border); }
 
 html.gt-themed body.dark .border-gray-200, html.gt-themed body.dark .border-gray-300,
 html.gt-themed body.dark .border-slate-200, html.gt-themed body.dark .border-slate-300 { border-color: var(--gt-border); }
@@ -388,7 +401,7 @@ html.gt-themed:not([data-theme="light"]) .bg-slate-50, html.gt-themed:not([data-
 html.gt-themed:not([data-theme="light"]) .bg-blue-50, html.gt-themed:not([data-theme="light"]) .bg-teal-50, html.gt-themed:not([data-theme="light"]) .bg-green-50,
 html.gt-themed:not([data-theme="light"]) .bg-purple-50, html.gt-themed:not([data-theme="light"]) .bg-indigo-50, html.gt-themed:not([data-theme="light"]) .bg-red-50,
 html.gt-themed:not([data-theme="light"]) .bg-amber-50, html.gt-themed:not([data-theme="light"]) .bg-yellow-50 { background-color: var(--gt-sunken); }
-html.gt-themed:not([data-theme="light"]) .bg-gray-200, html.gt-themed:not([data-theme="light"]) .bg-gray-300 { background-color: var(--gt-border); }
+html.gt-themed:not([data-theme="light"]) .bg-gray-200, html.gt-themed:not([data-theme="light"]) .bg-gray-300, html.gt-themed:not([data-theme="light"]) .bg-slate-200, html.gt-themed:not([data-theme="light"]) .bg-slate-300, html.gt-themed:not([data-theme="light"]) .bg-zinc-200, html.gt-themed:not([data-theme="light"]) .bg-zinc-300, html.gt-themed:not([data-theme="light"]) .bg-neutral-200, html.gt-themed:not([data-theme="light"]) .bg-neutral-300, html.gt-themed:not([data-theme="light"]) .bg-stone-200, html.gt-themed:not([data-theme="light"]) .bg-stone-300 { background-color: var(--gt-border); }
 
 html.gt-themed:not([data-theme="light"]) .border-gray-200, html.gt-themed:not([data-theme="light"]) .border-gray-300,
 html.gt-themed:not([data-theme="light"]) .border-slate-200, html.gt-themed:not([data-theme="light"]) .border-slate-300 { border-color: var(--gt-border); }
@@ -752,7 +765,7 @@ html.gt-themed:not([data-theme="light"]) [data-lang-card][style*="f0fdf4"] { bac
    and friends — are buttons with white labels and already read in both themes.
    --------------------------------------------------------------------------- */
 html.gt-themed[data-theme="dark"] [class~="hover:bg-blue-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-teal-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-gray-50"]:hover,
-html.gt-themed[data-theme="dark"] [class~="hover:bg-gray-100"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-purple-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-red-50"]:hover,
+html.gt-themed[data-theme="dark"] [class~="hover:bg-gray-100"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-purple-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-red-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-rose-50"]:hover,
 html.gt-themed[data-theme="dark"] [class~="hover:bg-green-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-amber-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-yellow-50"]:hover,
 html.gt-themed[data-theme="dark"] [class~="hover:bg-indigo-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-emerald-50"]:hover,
 html.gt-themed[data-theme="dark"] [class~="hover:bg-orange-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-slate-50"]:hover, html.gt-themed[data-theme="dark"] [class~="hover:bg-slate-100"]:hover,
@@ -771,7 +784,7 @@ html.gt-themed[data-theme="dark"] [class~="hover:text-slate-800"]:hover, html.gt
 }
 
 html.gt-themed body.dark-mode [class~="hover:bg-blue-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-teal-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-gray-50"]:hover,
-html.gt-themed body.dark-mode [class~="hover:bg-gray-100"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-purple-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-red-50"]:hover,
+html.gt-themed body.dark-mode [class~="hover:bg-gray-100"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-purple-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-red-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-rose-50"]:hover,
 html.gt-themed body.dark-mode [class~="hover:bg-green-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-amber-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-yellow-50"]:hover,
 html.gt-themed body.dark-mode [class~="hover:bg-indigo-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-emerald-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-orange-50"]:hover,
 html.gt-themed body.dark-mode [class~="hover:bg-slate-50"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-slate-100"]:hover, html.gt-themed body.dark-mode [class~="hover:bg-white"]:hover,
@@ -789,7 +802,7 @@ html.gt-themed body.dark-mode [class~="hover:text-slate-700"]:hover, html.gt-the
 }
 
 html.gt-themed body.dark [class~="hover:bg-blue-50"]:hover, html.gt-themed body.dark [class~="hover:bg-teal-50"]:hover, html.gt-themed body.dark [class~="hover:bg-gray-50"]:hover,
-html.gt-themed body.dark [class~="hover:bg-gray-100"]:hover, html.gt-themed body.dark [class~="hover:bg-purple-50"]:hover, html.gt-themed body.dark [class~="hover:bg-red-50"]:hover,
+html.gt-themed body.dark [class~="hover:bg-gray-100"]:hover, html.gt-themed body.dark [class~="hover:bg-purple-50"]:hover, html.gt-themed body.dark [class~="hover:bg-red-50"]:hover, html.gt-themed body.dark [class~="hover:bg-rose-50"]:hover,
 html.gt-themed body.dark [class~="hover:bg-green-50"]:hover, html.gt-themed body.dark [class~="hover:bg-amber-50"]:hover, html.gt-themed body.dark [class~="hover:bg-yellow-50"]:hover,
 html.gt-themed body.dark [class~="hover:bg-indigo-50"]:hover, html.gt-themed body.dark [class~="hover:bg-emerald-50"]:hover, html.gt-themed body.dark [class~="hover:bg-orange-50"]:hover,
 html.gt-themed body.dark [class~="hover:bg-slate-50"]:hover, html.gt-themed body.dark [class~="hover:bg-slate-100"]:hover, html.gt-themed body.dark [class~="hover:bg-white"]:hover,
@@ -810,7 +823,7 @@ html.gt-themed body.dark [class~="hover:text-slate-700"]:hover, html.gt-themed b
 
 html.gt-themed:not([data-theme="light"]) [class~="hover:bg-blue-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-teal-50"]:hover,
 html.gt-themed:not([data-theme="light"]) [class~="hover:bg-gray-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-gray-100"]:hover,
-html.gt-themed:not([data-theme="light"]) [class~="hover:bg-purple-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-red-50"]:hover,
+html.gt-themed:not([data-theme="light"]) [class~="hover:bg-purple-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-red-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-rose-50"]:hover,
 html.gt-themed:not([data-theme="light"]) [class~="hover:bg-green-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-amber-50"]:hover,
 html.gt-themed:not([data-theme="light"]) [class~="hover:bg-yellow-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-indigo-50"]:hover,
 html.gt-themed:not([data-theme="light"]) [class~="hover:bg-emerald-50"]:hover, html.gt-themed:not([data-theme="light"]) [class~="hover:bg-orange-50"]:hover,
@@ -900,6 +913,22 @@ html.gt-themed:not([data-theme="light"]) [class~="bg-slate-50/70"] { background-
     grid-template-columns: 1fr !important;
   }
 
+  /*
+   * ...unless the page has already sized its own columns for a phone.
+   *
+   * The selector above is deliberately broad because most of the bundle lays
+   * out in two fixed columns and says nothing about narrow screens. A page
+   * that writes `col-span-4 sm:col-span-2` has said something: it wants two
+   * fields per row here. Collapsing its container to one track did not give
+   * it one column, either — the spans then pointed at columns that no longer
+   * existed, so the browser invented eleven implicit tracks and the Feeding
+   * Schedule Builder's Title select came out 36px wide, an arrow and nothing
+   * else. Pages that mean their own spans mark the container and keep them.
+   */
+  html.gt-themed .gt-own-grid[class*="grid-cols-"] {
+    grid-template-columns: repeat(12, minmax(0, 1fr)) !important;
+  }
+
   /* A clinical table is the one thing that must not be squeezed — the columns
      mean something. Let it scroll inside its own box instead. */
   html.gt-themed table {
@@ -962,4 +991,54 @@ html.gt-themed:not([data-theme="light"]) [class~="bg-slate-50/70"] { background-
     animation-duration: .001ms !important;
     transition-duration: .001ms !important;
   }
+}
+
+
+/* ---------------------------------------------------------------------------
+   .gt-paper — a region that is a picture of a printed page.
+
+   Exports are already held in light while a library reads them (see
+   assets/gt-export-light.js), but a document shown *on screen* beside the form
+   that edits it is a different thing: nobody is exporting, so there is nothing
+   to hold, and the skin quite correctly darkens every surface it can see. The
+   result is a preview that does not look like what will come out of the
+   printer, which is the one job a preview has.
+
+   So a page marks that region and the skin leaves it on paper's own colours in
+   both themes. This lives at the end of the file on purpose: the skin states
+   each dark rule four times, once per way the bundle expresses dark, and the
+   later of those outrank anything written earlier — the first attempt at this
+   sat above them and only ever recoloured the table head.
+   --------------------------------------------------------------------------- */
+/* Paper's colours, whatever the theme — so a page never has to write #FFFFFF
+   into its own stylesheet to get them, and scripts/recolor-apps.js has no
+   white literal there to rewrite into a theme token. */
+html.gt-themed .gt-paper { background-color: #FFFFFF; color: #111; }
+html.gt-themed .gt-paper th { background-color: #E9EEF2; }
+
+html.gt-themed[data-theme="dark"] .gt-paper, html.gt-themed[data-theme="dark"] .gt-paper *,
+html.gt-themed body.dark-mode .gt-paper,    html.gt-themed body.dark-mode .gt-paper *,
+html.gt-themed body.dark .gt-paper,         html.gt-themed body.dark .gt-paper * {
+  color: #111;
+  border-color: #333;
+  background-color: transparent;
+  box-shadow: none;
+}
+html.gt-themed[data-theme="dark"] .gt-paper,
+html.gt-themed body.dark-mode .gt-paper,
+html.gt-themed body.dark .gt-paper { background-color: #FFFFFF; }
+html.gt-themed[data-theme="dark"] .gt-paper th,
+html.gt-themed body.dark-mode .gt-paper th,
+html.gt-themed body.dark .gt-paper th { background-color: #E9EEF2; }
+
+@media (prefers-color-scheme: dark) {
+  html.gt-themed:not([data-theme="light"]) .gt-paper,
+  html.gt-themed:not([data-theme="light"]) .gt-paper * {
+    color: #111;
+    border-color: #333;
+    background-color: transparent;
+    box-shadow: none;
+  }
+  html.gt-themed:not([data-theme="light"]) .gt-paper { background-color: #FFFFFF; }
+  html.gt-themed:not([data-theme="light"]) .gt-paper th { background-color: #E9EEF2; }
 }

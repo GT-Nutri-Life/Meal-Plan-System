@@ -30,7 +30,8 @@ const BUNDLED = [
   ['dpg-7day',    '/apps/diet-plan-generator/7-day-menu.html'],
   ['dpcg',        '/apps/diet-plan-calendar-generator/index.html'],
   ['dpcg-7day',   '/apps/diet-plan-calendar-generator/7day-diet-menu.html'],
-  ['about',       '/apps/about-dietitian/index.html']
+  ['about',       '/apps/about-dietitian/index.html'],
+  ['feeding',     '/apps/feeding-schedule-builder/index.html']
 ];
 
 /** Relative luminance of a computed colour, 0 (black) to 1 (white). */

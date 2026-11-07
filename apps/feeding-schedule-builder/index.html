@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feeding Schedule Builder</title>
+<meta name="author" content="Gayathri Dissanayaka">
+<meta name="description" content="Create, edit and export patient feeding schedules (semisolid / blended kitchen feeds) as Word or PDF.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"><noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Carlito:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet"></noscript>
+<script>/* Tailwind is compiled ahead of time into assets/tailwind.css.
+   This stub keeps this page's own `tailwind.config` assignment harmless. */
+window.tailwind = window.tailwind || { config: {} };</script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], doc: ['Calibri', 'Carlito', 'Arial', 'sans-serif'] },
+        colors: { brand: { 50:'#effcf8',100:'#d8f6ec',200:'#b3ecda',300:'#7fdcc3',400:'#47c3a6',500:'#22a88c',600:'#168772',700:'#146c5d',800:'#14564b',900:'#12473f' } }
+      }
+    }
+  }
+</script>
+<script src="../../assets/gt-lazy.js" defer></script>
+<script data-gt-lazy="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js" data-gt-lazy-provides="docx"></script>
+<script data-gt-lazy="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/pdfmake.min.js" data-gt-lazy-provides="pdfMake"></script>
+<script data-gt-lazy="https://cdn.jsdelivr.net/npm/pdfmake@0.2.10/build/vfs_fonts.js" data-gt-lazy-needs="pdfMake"></script>
+<script defer src="../../assets/vendor/alpine-3.14.1.min.js"></script>
+<style>
+  [x-cloak]{display:none!important}
+  /* Colours come from the shared tokens where this page has a choice, so the
+     editing screen follows the portal's theme; the fallback after each comma
+     is what the page used before it was bundled. */
+  .field{width:100%;border:1px solid var(--gt-border,#d6dde3);border-radius:.6rem;padding:.55rem .75rem;font-size:.9rem;color:var(--gt-ink,inherit);background: var(--gt-card,#FFFFFF);transition:border-color .15s, box-shadow .15s}
+  .field:focus{outline:none;border-color:#22a88c;box-shadow:0 0 0 3px rgba(34,168,140,.18)}
+  .lbl{display:block;font-size:.72rem;font-weight:600;letter-spacing:.02em;text-transform:uppercase;color:var(--gt-ink-2,#5b6b78);margin-bottom:.3rem}
+
+  /* The preview is a picture of the printed page. Its ink and ground are not
+     set here: the article carries .gt-paper, and the shared skin holds that
+     on paper's own colours in both themes. Declaring #FFFFFF here as well
+     would only give scripts/recolor-apps.js a white literal to turn into a
+     theme token, which is exactly what this must not follow. */
+  .paper{font-size:var(--doc-fs,14.67px);line-height:1.4}
+  .paper table{border-collapse:collapse;width:100%}
+  .paper th,.paper td{border:1px solid #333;padding:6px 8px;vertical-align:top;overflow-wrap:anywhere}
+  .paper th{background:#e9eef2;font-weight:700;text-align:center}
+  .paper *{border-color:#333}
+  @media (max-width:480px){.paper{font-size:calc(var(--doc-fs,14.67px) * .86)}.paper th,.paper td{padding:5px 5px}}
+  .scroll-thin::-webkit-scrollbar{width:8px;height:8px}.scroll-thin::-webkit-scrollbar-thumb{background:#cfd8de;border-radius:8px}
+  .pb-safe{padding-bottom:calc(env(safe-area-inset-bottom) + .5rem)}
+
+  /* A grid item's min-width is auto, so it cannot shrink below the widest
+     thing inside it — and an <input> reports a min-content width of about
+     twenty characters whatever its CSS width says. On a phone that let one
+     long placeholder ("110315904", "years (y)") take the whole row: the six
+     tracks beside it resolved to 0px and Title came out 36px wide, a select
+     with room for its arrow and nothing else. Letting the cells and the
+     controls shrink is what makes the declared column spans mean anything. */
+  .grid-cols-12 > *{min-width:0}
+  .field{min-width:0}
+</style>
+<script src="../../assets/gt-theme-boot.js"></script>
+<script src="../../assets/gt-export-light.js" defer></script>
+<link rel="stylesheet" href="../../assets/tailwind.css">
+<link rel="stylesheet" href="../../assets/gt-theme.css">
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased" x-data="app()" x-init="init()">
+
+<!-- ========== Top bar ========== -->
+<header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-200">
+  <div class="max-w-7xl mx-auto px-3 sm:px-5 h-16 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-xl bg-brand-600 text-white grid place-items-center shrink-0" aria-hidden="true">
+      <svg viewBox="0 0 24 24" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v3.5L5.6 15a4 4 0 0 0 3.6 6h5.6a4 4 0 0 0 3.6-6L14 6.5V3"/><path d="M7.5 14h9"/></svg>
+    </div>
+    <div class="min-w-0">
+      <h1 class="font-bold text-slate-900 leading-tight truncate text-[15px] sm:text-lg">Feeding Schedule Builder</h1>
+      <p class="text-[11px] sm:text-xs text-slate-500 truncate" x-text="authorByline(doc.author)"></p>
+    </div>
+    <div class="ml-auto flex items-center gap-2">
+      <button @click="libraryOpen=true" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5V4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5Z"/></svg>
+        Saved <span class="text-xs text-slate-700 bg-slate-200 rounded-full px-1.5" x-text="library.length"></span>
+      </button>
+      <button @click="saveToLibrary()" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Save
+      </button>
+      <div class="hidden md:flex items-center gap-2">
+        <button @click="exportDocx()" :disabled="busy" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Word
+        </button>
+        <button @click="exportPdf()" :disabled="busy" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>PDF
+        </button>
+      </div>
+      <button @click="menuOpen=!menuOpen" class="sm:hidden p-2 rounded-lg hover:bg-slate-100" aria-label="Menu">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <!-- mobile menu -->
+  <div x-cloak x-show="menuOpen" @click.outside="menuOpen=false" x-transition class="sm:hidden border-t border-slate-200 bg-white px-3 py-2 grid grid-cols-2 gap-2">
+    <button @click="saveToLibrary();menuOpen=false" class="menu-btn px-3 py-2.5 rounded-lg bg-slate-100 text-sm font-medium">Save schedule</button>
+    <button @click="libraryOpen=true;menuOpen=false" class="px-3 py-2.5 rounded-lg bg-slate-100 text-sm font-medium">Saved (<span x-text="library.length"></span>)</button>
+    <button @click="askConfirm('Start a new blank schedule? Unsaved changes will be lost.', ()=>newBlank());menuOpen=false" class="px-3 py-2.5 rounded-lg bg-slate-100 text-sm font-medium">New blank</button>
+    <button @click="askConfirm('Load the sample schedule? Unsaved changes will be lost.', ()=>loadSample());menuOpen=false" class="px-3 py-2.5 rounded-lg bg-slate-100 text-sm font-medium">Load sample</button>
+    <button @click="exportJson();menuOpen=false" class="px-3 py-2.5 rounded-lg bg-slate-100 text-sm font-medium">Backup (.json)</button>
+    <button @click="$refs.importFile.click();menuOpen=false" class="px-3 py-2.5 rounded-lg bg-slate-100 text-sm font-medium">Import .json</button>
+  </div>
+  <!-- mobile tabs -->
+  <div class="lg:hidden border-t border-slate-200 bg-white">
+    <div class="max-w-7xl mx-auto grid grid-cols-2">
+      <button @click="tab='edit'" :class="tab==='edit' ? 'text-brand-700 border-brand-600' : 'text-slate-500 border-transparent'" class="py-2.5 text-sm font-semibold border-b-2">Edit</button>
+      <button @click="tab='preview'; window.GTDocFonts.load()" :class="tab==='preview' ? 'text-brand-700 border-brand-600' : 'text-slate-500 border-transparent'" class="py-2.5 text-sm font-semibold border-b-2">Preview</button>
+    </div>
+  </div>
+</header>
+
+<input type="file" accept=".json,application/json" class="hidden" x-ref="importFile" @change="importJson($event)">
+
+<main class="max-w-7xl mx-auto px-3 sm:px-5 py-4 sm:py-6 pb-28 md:pb-10 grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-5">
+
+  <!-- ================= EDITOR ================= -->
+  <section :class="tab==='edit' ? '' : 'hidden lg:block'" class="space-y-4 min-w-0">
+
+    <!-- quick actions (desktop) -->
+    <div class="hidden sm:flex flex-wrap gap-2">
+      <button @click="askConfirm('Start a new blank schedule? Unsaved changes will be lost.', ()=>newBlank())" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm hover:border-slate-300">New blank</button>
+      <button @click="askConfirm('Load the sample schedule? Unsaved changes will be lost.', ()=>loadSample())" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm hover:border-slate-300">Load sample</button>
+      <button @click="exportJson()" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm hover:border-slate-300">Backup (.json)</button>
+      <button @click="$refs.importFile.click()" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm hover:border-slate-300">Import .json</button>
+      <span class="ml-auto text-xs text-slate-500 self-center" x-text="draftStatus"></span>
+    </div>
+
+    <!-- Patient -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+      <h2 class="font-semibold text-slate-900 mb-3 flex items-center gap-2"><span class="w-6 h-6 rounded-md bg-brand-100 text-brand-700 grid place-items-center text-xs font-bold">1</span>Patient details</h2>
+      <div class="gt-own-grid grid grid-cols-12 gap-3">
+        <div class="col-span-4 sm:col-span-2">
+          <label class="lbl" for="pt-title">Title</label>
+          <select id="pt-title" class="field" x-model="doc.patient.title">
+            <template x-for="t in ['Mr.','Mrs.','Ms.','Miss','Master','Baby','Rev.','Dr.','']"><option :value="t" x-text="t || '—'"></option></template>
+          </select>
+        </div>
+        <div class="col-span-8 sm:col-span-6">
+          <label class="lbl" for="pt-name">Name of the patient</label>
+          <input id="pt-name" class="field" x-model="doc.patient.name" placeholder="e.g. N. Samarathunge">
+        </div>
+        <div class="col-span-6 sm:col-span-2">
+          <label class="lbl" for="pt-age">Age</label>
+          <input id="pt-age" class="field" x-model="doc.patient.age" inputmode="numeric" placeholder="87">
+        </div>
+        <div class="col-span-6 sm:col-span-2">
+          <label class="lbl" for="pt-ageu">Unit</label>
+          <select id="pt-ageu" class="field" x-model="doc.patient.ageUnit"><option value="y">years (y)</option><option value="m">months (m)</option><option value="d">days (d)</option></select>
+        </div>
+        <div class="col-span-6 sm:col-span-4">
+          <label class="lbl" for="pt-bht">BHT</label>
+          <input id="pt-bht" class="field" x-model="doc.patient.bht" placeholder="AHL0385106">
+        </div>
+        <div class="col-span-6 sm:col-span-4">
+          <label class="lbl" for="pt-uhid">UHID</label>
+          <input id="pt-uhid" class="field" x-model="doc.patient.uhid" placeholder="110315904">
+        </div>
+        <div class="col-span-12 sm:col-span-4">
+          <label class="lbl" for="pt-date">Revised date</label>
+          <input id="pt-date" type="date" class="field" x-model="doc.patient.date">
+        </div>
+        <div class="col-span-6">
+          <label class="lbl" for="pt-room">Room no.</label>
+          <input id="pt-room" class="field" x-model="doc.patient.room" placeholder="203">
+        </div>
+        <div class="col-span-6">
+          <label class="lbl" for="pt-ward">Ward / unit</label>
+          <input id="pt-ward" class="field" x-model="doc.patient.ward" placeholder="2A">
+        </div>
+      </div>
+    </div>
+
+    <!-- Schedule heading -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+      <h2 class="font-semibold text-slate-900 mb-3 flex items-center gap-2"><span class="w-6 h-6 rounded-md bg-brand-100 text-brand-700 grid place-items-center text-xs font-bold">2</span>Schedule heading</h2>
+      <div class="gt-own-grid grid grid-cols-12 gap-3">
+        <div class="col-span-12 sm:col-span-6">
+          <label class="lbl" for="sc-type">Feed type</label>
+          <input id="sc-type" class="field" x-model="doc.schedule.feedType" list="feedTypes">
+          <datalist id="feedTypes"><option value="SEMISOLID/Blended"><option value="Liquid"><option value="Clear liquid"><option value="Soft diet"><option value="Puréed"></datalist>
+        </div>
+        <div class="col-span-12 sm:col-span-6">
+          <label class="lbl" for="sc-src">Source</label>
+          <input id="sc-src" class="field" x-model="doc.schedule.source" list="feedSources">
+          <datalist id="feedSources"><option value="kitchen feeds"><option value="commercial feeds"><option value="kitchen + commercial feeds"></datalist>
+        </div>
+        <div class="col-span-4 sm:col-span-3">
+          <label class="lbl" for="sc-no">Schedule no.</label>
+          <input id="sc-no" class="field" x-model="doc.schedule.number" placeholder="I">
+        </div>
+        <div class="col-span-8 sm:col-span-9">
+          <label class="lbl" for="sc-cond">Condition / diet</label>
+          <input id="sc-cond" class="field" x-model="doc.schedule.condition" list="conds" placeholder="Diabetic">
+          <datalist id="conds"><option value="Diabetic"><option value="Renal"><option value="Cardiac"><option value="Low salt"><option value="High protein"><option value="Diabetic, Renal"></datalist>
+        </div>
+        <div class="col-span-12">
+          <label class="lbl" for="sc-note">Note row (top of table)</label>
+          <textarea id="sc-note" rows="2" class="field" x-model="doc.topNote" placeholder="Leave empty to hide"></textarea>
+        </div>
+        <div class="col-span-12 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <label class="inline-flex items-center gap-2 text-sm"><input type="checkbox" class="w-4 h-4 accent-brand-600" x-model="doc.saltOn"> Append to each feed:</label>
+          <input class="field !w-auto flex-1 min-w-[200px]" x-model="doc.saltText" :disabled="!doc.saltOn">
+        </div>
+      </div>
+    </div>
+
+    <!-- Feeds -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <h2 class="font-semibold text-slate-900 flex items-center gap-2"><span class="w-6 h-6 rounded-md bg-brand-100 text-brand-700 grid place-items-center text-xs font-bold">3</span>Feeds <span class="text-sm font-normal text-slate-500" x-text="'(' + doc.rows.length + ')'"></span></h2>
+        <button @click="timeToolOpen=!timeToolOpen" class="ml-auto text-sm px-3 py-1.5 rounded-lg border border-slate-200 hover:border-slate-300">Auto-set times</button>
+      </div>
+
+      <div x-cloak x-show="timeToolOpen" x-transition class="mb-3 rounded-xl bg-slate-50 border border-slate-200 p-3 flex flex-wrap items-end gap-3">
+        <div><label class="lbl">Start</label><input type="time" class="field !w-32" x-model="timeTool.start"></div>
+        <div><label class="lbl">Every (hrs)</label><input type="number" min="0.5" step="0.5" class="field !w-24" x-model.number="timeTool.every"></div>
+        <button @click="applyTimes()" class="px-3 py-2 rounded-lg bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700">Apply to all feeds</button>
+      </div>
+
+      <p class="text-xs text-slate-500 mb-3">Tip: wrap text in <code class="bg-slate-100 text-slate-700 px-1 rounded">**double stars**</code> for <b>bold</b> or <code class="bg-slate-100 text-slate-700 px-1 rounded">*single stars*</code> for <i>italic</i>, <code class="bg-slate-100 text-slate-700 px-1 rounded">***triple***</code> for <b><i>bold italic</i></b>, <code class="bg-slate-100 text-slate-700 px-1 rounded">__text__</code> for <u>underline</u>.</p>
+
+      <div class="space-y-2.5">
+        <template x-for="(row, idx) in doc.rows" :key="row.id">
+          <div class="rounded-xl border" :class="openId===row.id ? 'border-brand-300 ring-2 ring-brand-100' : 'border-slate-200'">
+            <div class="flex items-center gap-2 p-2.5 sm:p-3 cursor-pointer select-none" @click="openId = openId===row.id ? null : row.id">
+              <span class="shrink-0 min-w-[64px] text-center text-sm font-bold text-brand-700 bg-brand-50 rounded-lg px-2 py-1" x-text="row.time || '—'"></span>
+              <span class="text-sm text-slate-600 truncate min-w-0 flex-1" x-text="rowSummary(row)"></span>
+              <div class="flex items-center shrink-0" @click.stop>
+                <button @click="moveRow(idx,-1)" :disabled="idx===0" class="p-1.5 rounded hover:bg-slate-100 disabled:opacity-30" aria-label="Move up"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg></button>
+                <button @click="moveRow(idx,1)" :disabled="idx===doc.rows.length-1" class="p-1.5 rounded hover:bg-slate-100 disabled:opacity-30" aria-label="Move down"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+                <button @click="duplicateRow(idx)" class="p-1.5 rounded hover:bg-slate-100" aria-label="Duplicate"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg></button>
+                <button @click="removeRow(idx)" class="p-1.5 rounded hover:bg-rose-50 text-rose-600" aria-label="Delete"><svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg></button>
+              </div>
+            </div>
+            <div x-show="openId===row.id" class="gt-own-grid px-3 pb-3 grid grid-cols-12 gap-3 border-t border-slate-100 pt-3">
+              <div class="col-span-6 sm:col-span-3"><label class="lbl">Time</label><input class="field" x-model="row.time" placeholder="6 am"></div>
+              <div class="col-span-6 sm:col-span-3"><label class="lbl">Quantity</label><input class="field" x-model="row.qty" placeholder="01 cup"></div>
+              <div class="col-span-12 sm:col-span-6"><label class="lbl">Preparation (bold italic)</label><input class="field" x-model="row.prep" list="preps"></div>
+              <div class="col-span-12"><label class="lbl">Ingredients</label><textarea rows="2" class="field" x-model="row.items" placeholder="(5 tbsp red raw rice + 1/3 cup vegetables) + **01 egg**"></textarea></div>
+              <div class="col-span-12 sm:col-span-8"><label class="lbl">Condition (optional)</label><input class="field" x-model="row.cond" placeholder="(If potassium level is low or within range)"></div>
+              <div class="col-span-12 sm:col-span-4 flex flex-col justify-end gap-2 pb-1">
+                <label class="inline-flex items-center gap-2 text-sm" :class="!doc.saltOn && 'opacity-40'"><input type="checkbox" class="w-4 h-4 accent-brand-600" x-model="row.salt" :disabled="!doc.saltOn"> Add salt line</label>
+                <label class="inline-flex items-center gap-2 text-sm"><input type="checkbox" class="w-4 h-4 accent-brand-600" x-model="row.alt"> Add “OR” option</label>
+              </div>
+              <template x-if="row.alt">
+                <div class="gt-own-grid col-span-12 grid grid-cols-12 gap-3 rounded-xl bg-amber-50/60 border border-amber-200 p-3">
+                  <div class="col-span-12 text-xs font-bold text-amber-800 tracking-wide">OR — alternative feed</div>
+                  <div class="col-span-12 sm:col-span-6"><label class="lbl">Preparation</label><input class="field" x-model="row.altPrep" list="preps"></div>
+                  <div class="col-span-12 sm:col-span-6"><label class="lbl">Ingredients</label><input class="field" x-model="row.altItems" placeholder="Rice conjee (blended and strained)"></div>
+                  <div class="col-span-12"><label class="lbl">Condition</label><input class="field" x-model="row.altCond" placeholder="(If potassium level is high only)"></div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+      </div>
+      <datalist id="preps">
+        <option value="Blended - (cooked, blended and creamy texture)">
+        <option value="Blended - fruits (creamy texture)">
+        <option value="Blended - (cooked, blended and strained)">
+        <option value="Liquid feed">
+      </datalist>
+      <button @click="addRow()" class="mt-3 w-full py-2.5 rounded-xl border-2 border-dashed border-slate-300 text-sm font-semibold text-slate-600 hover:border-brand-400 hover:text-brand-700">+ Add feed</button>
+    </div>
+
+    <!-- Totals -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+      <h2 class="font-semibold text-slate-900 mb-3 flex items-center gap-2"><span class="w-6 h-6 rounded-md bg-brand-100 text-brand-700 grid place-items-center text-xs font-bold">4</span>Volumes &amp; nutrition</h2>
+      <div class="gt-own-grid grid grid-cols-12 gap-3">
+        <div class="col-span-6 sm:col-span-3"><label class="lbl">Feed vol. (ml)</label><input type="number" min="0" class="field" x-model.number="doc.feedMl"></div>
+        <div class="col-span-6 sm:col-span-3"><label class="lbl">Flush vol. (ml)</label><input type="number" min="0" class="field" x-model.number="doc.flushMl"></div>
+        <div class="col-span-12"><label class="lbl">Flush instruction</label><input class="field" x-model="doc.flushText"><p class="text-[11px] text-slate-500 mt-1"><code>{flush}</code> is replaced by the flush volume.</p></div>
+        <div class="col-span-12 rounded-xl bg-brand-50 border border-brand-100 p-3">
+          <div class="flex flex-wrap items-center gap-2 justify-between">
+            <div class="text-sm"><span class="font-semibold text-brand-800">Fluid intake:</span> <span x-text="fluidLine()"></span></div>
+            <label class="inline-flex items-center gap-2 text-xs font-medium text-slate-600"><input type="checkbox" class="w-4 h-4 accent-brand-600" x-model="doc.fluidAuto"> Auto-calculate</label>
+          </div>
+          <input x-show="!doc.fluidAuto" x-cloak class="field mt-2" x-model="doc.fluidManual" placeholder="e.g. 1800 ml (1350 ml from feeds + 450 ml for flushing)">
+        </div>
+        <div class="col-span-12"><label class="lbl">Footer notes (one per line)</label><textarea rows="2" class="field" x-model="doc.notes"></textarea></div>
+      </div>
+
+      <!-- nutrients -->
+      <div class="mt-5 pt-4 border-t border-slate-100">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <h3 class="text-sm font-semibold text-slate-900">Nutrient composition</h3>
+          <span class="text-xs text-slate-500" x-text="shownNutrients().length + ' shown in document'"></span>
+          <select class="field !w-auto !py-1.5 !text-xs ml-auto" x-model="doc.nutrientLayout" aria-label="Nutrient layout">
+            <option value="list">One per line (as reference)</option>
+            <option value="grid">Compact grid</option>
+          </select>
+        </div>
+        <p class="text-xs text-slate-500 mb-3">Optional. Values left empty or 0 are not included in the document.</p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          <template x-for="(n, ni) in doc.nutrients" :key="n.key">
+            <div class="relative">
+              <label class="lbl truncate" :class="+n.value > 0 ? '!text-brand-700' : ''">
+                <template x-if="!n.custom"><span x-text="n.label"></span></template>
+                <template x-if="n.custom"><input class="w-[70%] bg-transparent border-b border-dashed border-slate-300 focus:outline-none uppercase" x-model="n.label" placeholder="NAME"></template>
+              </label>
+              <div class="flex rounded-[.6rem] border bg-white focus-within:border-brand-500 focus-within:ring-[3px] focus-within:ring-brand-500/20" :class="+n.value > 0 ? 'border-brand-300' : 'border-[#d6dde3]'">
+                <input type="number" min="0" step="any" inputmode="decimal" class="w-full min-w-0 px-3 py-2 text-sm rounded-l-[.6rem] focus:outline-none" x-model="n.value" placeholder="0">
+                <template x-if="!n.custom"><span class="px-2.5 grid place-items-center text-xs text-slate-600 bg-slate-50 border-l border-slate-200 rounded-r-[.6rem]" x-text="n.unit"></span></template>
+                <template x-if="n.custom"><input class="w-14 px-2 text-xs text-slate-600 bg-slate-50 border-l border-slate-200 rounded-r-[.6rem] focus:outline-none" x-model="n.unit" placeholder="unit"></template>
+              </div>
+              <button x-show="n.custom" @click="doc.nutrients.splice(ni,1)" class="absolute top-0 right-0 text-rose-500 text-xs px-1" aria-label="Remove nutrient">✕</button>
+            </div>
+          </template>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-3">
+          <button @click="addNutrient()" class="text-xs font-semibold text-brand-700 hover:underline">+ Add other nutrient</button>
+          <button @click="doc.nutrients.forEach(n => n.value = '')" class="text-xs font-medium text-slate-500 hover:underline">Clear all values</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document style -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+      <h2 class="font-semibold text-slate-900 mb-3 flex items-center gap-2"><span class="w-6 h-6 rounded-md bg-brand-100 text-brand-700 grid place-items-center text-xs font-bold">5</span>Document font</h2>
+      <div class="gt-own-grid grid grid-cols-12 gap-3">
+        <div class="col-span-12 sm:col-span-7">
+          <label class="lbl" for="st-font">Font</label>
+          <select id="st-font" class="field" x-model="doc.style.font">
+            <template x-for="f in Object.keys(DOC_FONTS)"><option :value="f" x-text="f" :style="'font-family:' + DOC_FONTS[f].css"></option></template>
+          </select>
+        </div>
+        <div class="col-span-12 sm:col-span-5">
+          <label class="lbl" for="st-size">Size (pt)</label>
+          <select id="st-size" class="field" x-model.number="doc.style.size">
+            <template x-for="s in [9,10,10.5,11,12,13,14]"><option :value="s" x-text="s + ' pt'" :selected="s===doc.style.size"></option></template>
+          </select>
+        </div>
+      </div>
+      <p class="text-xs text-slate-500 mt-3">Bold and italic follow the reference sheet: patient name, room and schedule title in bold, preparation and conditions in bold italic, notes in bold. In the text boxes you can also type <code class="bg-slate-100 text-slate-700 px-1 rounded">***bold italic***</code> or <code class="bg-slate-100 text-slate-700 px-1 rounded">__underline__</code>.</p>
+    </div>
+
+    <!-- Author -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+      <h2 class="font-semibold text-slate-900 mb-3 flex items-center gap-2"><span class="w-6 h-6 rounded-md bg-brand-100 text-brand-700 grid place-items-center text-xs font-bold">6</span>Prepared by</h2>
+      <div class="gt-own-grid grid grid-cols-12 gap-3">
+        <div class="col-span-12 sm:col-span-5"><label class="lbl">Name</label><input id="fsb-author-name" class="field" x-model="doc.author.name"></div>
+        <div class="col-span-12 sm:col-span-7"><label class="lbl">Designation &amp; registration</label><input id="fsb-author-cred" class="field" x-model="doc.author.cred"></div>
+      </div>
+      <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+        <label class="inline-flex items-center gap-2 text-sm"><input type="checkbox" class="w-4 h-4 accent-brand-600" x-model="doc.signBlock"> Signature space (instead of one-line “By …”)</label>
+        <button @click="doc.author = defaultAuthor()" class="text-xs font-medium text-brand-700 hover:underline">Reset to default</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PREVIEW ================= -->
+  <section :class="tab==='preview' ? '' : 'hidden lg:block'" class="min-w-0">
+    <div class="lg:sticky lg:top-24">
+      <div class="flex items-center justify-between mb-2 px-1">
+        <h2 class="text-sm font-semibold text-slate-600 whitespace-nowrap">Document preview <span class="font-normal text-slate-600">· A4</span></h2>
+        <span class="hidden sm:block text-xs text-slate-600 truncate ml-2" x-text="fileBase()"></span>
+      </div>
+      <div class="lg:max-h-[calc(100vh-8.5rem)] overflow-auto scroll-thin rounded-2xl">
+        <article class="paper gt-paper bg-white shadow-md ring-1 ring-slate-200 rounded-md mx-auto w-full max-w-[794px] px-4 py-5 sm:px-10 sm:py-10" :style="{ fontFamily: DOC_FONTS[doc.style.font]?.css, '--doc-fs': (doc.style.size * 4 / 3) + 'px' }">
+          <!-- header lines -->
+          <template x-for="(line, i) in model().header" :key="'h'+i">
+            <div class="flex flex-wrap justify-between gap-x-6 gap-y-0.5 mb-1">
+              <div x-html="runsHtml(line.left)"></div>
+              <div x-show="line.right.length" x-html="runsHtml(line.right)"></div>
+            </div>
+          </template>
+          <div class="mt-3 mb-3" x-html="runsHtml(model().title)"></div>
+          <div class="overflow-x-auto">
+            <table class="table-fixed">
+              <colgroup><col class="w-[19%] sm:w-[15%]"><col><col class="w-[19%] sm:w-[15%]"></colgroup>
+              <thead><tr><th>Time</th><th>Description</th><th>Quantity</th></tr></thead>
+              <tbody>
+                <tr x-show="model().note"><td></td><td x-html="model().note ? runsHtml(model().note) : ''"></td><td></td></tr>
+                <template x-for="r in model().rows" :key="r.id">
+                  <tr>
+                    <td class="whitespace-nowrap" x-html="runsHtml(r.time)"></td>
+                    <td><template x-for="(p,pi) in r.paras" :key="pi"><div :class="pi>0 ? 'mt-1' : ''" x-html="runsHtml(p)"></div></template></td>
+                    <td class="text-center" x-html="runsHtml(r.qty)"></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4 space-y-1">
+            <template x-for="(blk, i) in model().after" :key="'a'+i">
+              <div>
+                <template x-if="blk.kind==='line'">
+                  <div class="flex flex-wrap justify-between gap-x-6">
+                    <div x-html="runsHtml(blk.left)"></div>
+                    <div x-show="blk.right.length" x-html="runsHtml(blk.right)"></div>
+                  </div>
+                </template>
+                <template x-if="blk.kind==='grid'">
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1 py-0.5">
+                    <template x-for="(it, k) in blk.items" :key="k"><div x-html="runsHtml(it)"></div></template>
+                  </div>
+                </template>
+              </div>
+            </template>
+          </div>
+          <template x-if="doc.signBlock">
+            <div class="mt-8 flex justify-end">
+              <div class="text-right">
+                <div class="text-slate-500 tracking-widest">..................................</div>
+                <div class="font-bold mt-1" x-text="doc.author.name"></div>
+                <div x-text="doc.author.cred"></div>
+              </div>
+            </div>
+          </template>
+          <template x-if="!doc.signBlock">
+            <div class="mt-5" x-html="runsHtml(model().signLine)"></div>
+          </template>
+        </article>
+        </article>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- mobile export bar -->
+<div class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur border-t border-slate-200 px-3 pt-2 pb-safe">
+  <div class="grid grid-cols-2 gap-2">
+    <button @click="exportDocx()" :disabled="busy" class="py-3 rounded-xl text-sm font-semibold bg-blue-600 text-white active:bg-blue-700 disabled:opacity-50">Export Word</button>
+    <button @click="exportPdf()" :disabled="busy" class="py-3 rounded-xl text-sm font-semibold bg-rose-600 text-white active:bg-rose-700 disabled:opacity-50">Export PDF</button>
+  </div>
+</div>
+
+<!-- Library drawer -->
+<div x-cloak x-show="libraryOpen" class="fixed inset-0 z-40" @keydown.escape.window="libraryOpen=false">
+  <div class="absolute inset-0 bg-slate-900/40" @click="libraryOpen=false" x-transition.opacity></div>
+  <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl flex flex-col" x-transition:enter="transition duration-200" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0">
+    <div class="p-4 border-b border-slate-200 flex items-center">
+      <h3 class="font-semibold">Saved schedules</h3>
+      <button @click="libraryOpen=false" class="ml-auto p-2 rounded-lg hover:bg-slate-100" aria-label="Close"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="p-4">
+      <input class="field" placeholder="Search by name, BHT, room…" x-model="libQuery">
+    </div>
+    <div class="flex-1 overflow-auto px-4 pb-4 space-y-2 scroll-thin">
+      <template x-if="filteredLibrary().length===0"><p class="text-sm text-slate-500 text-center py-10">No saved schedules yet. Use <b>Save</b> to keep one in this browser.</p></template>
+      <template x-for="item in filteredLibrary()" :key="item.key">
+        <div class="rounded-xl border border-slate-200 p-3 flex items-start gap-3">
+          <div class="min-w-0 flex-1">
+            <div class="font-semibold text-sm truncate" x-text="(item.doc.patient.title+' '+item.doc.patient.name).trim() || 'Untitled'"></div>
+            <div class="text-xs text-slate-500" x-text="'BHT ' + (item.doc.patient.bht||'—') + ' · Room ' + (item.doc.patient.room||'—') + ' · ' + fmtDate(item.doc.patient.date)"></div>
+            <div class="text-[11px] text-slate-400 mt-0.5" x-text="'Saved ' + new Date(item.savedAt).toLocaleString()"></div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <button @click="loadFromLibrary(item)" class="text-xs px-2.5 py-1.5 rounded-lg bg-brand-600 text-white font-semibold">Open</button>
+            <button @click="askConfirm('Delete this saved schedule?', ()=>deleteFromLibrary(item.key))" class="text-xs px-2.5 py-1.5 rounded-lg text-rose-600 hover:bg-rose-50">Delete</button>
+          </div>
+        </div>
+      </template>
+    </div>
+    <p class="text-[11px] text-slate-400 px-4 pb-4">Saved only in this browser on this device. Use “Backup (.json)” to move schedules between devices.</p>
+  </div>
+</div>
+
+<!-- confirm dialog -->
+<div x-cloak x-show="confirmBox.open" class="fixed inset-0 z-50 grid place-items-center p-4">
+  <div class="absolute inset-0 bg-slate-900/40" @click="confirmBox.open=false"></div>
+  <div class="relative bg-white rounded-2xl shadow-xl max-w-sm w-full p-5" x-transition>
+    <p class="text-sm text-slate-700" x-text="confirmBox.msg"></p>
+    <div class="mt-5 flex justify-end gap-2">
+      <button @click="confirmBox.open=false" class="px-4 py-2 rounded-lg text-sm hover:bg-slate-100">Cancel</button>
+      <button @click="confirmBox.open=false; confirmBox.fn && confirmBox.fn()" class="px-4 py-2 rounded-lg text-sm font-semibold bg-brand-600 text-white hover:bg-brand-700">Continue</button>
+    </div>
+  </div>
+</div>
+
+<!-- toast -->
+<div class="fixed z-50 left-1/2 -translate-x-1/2 bottom-24 md:bottom-6 space-y-2 w-[92%] max-w-sm pointer-events-none">
+  <template x-for="t in toasts" :key="t.id">
+    <div x-transition class="rounded-xl px-4 py-3 text-sm shadow-lg text-white" :class="t.type==='err' ? 'bg-rose-600' : 'bg-slate-900'" x-text="t.msg"></div>
+  </template>
+</div>
+
+<!-- busy overlay -->
+<div x-cloak x-show="busy" class="fixed inset-0 z-50 bg-white/60 grid place-items-center">
+  <div class="flex items-center gap-3 bg-white rounded-xl shadow px-4 py-3 text-sm font-medium"><svg class="w-5 h-5 animate-spin text-brand-600" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity=".25"/><path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3"/></svg>Preparing document…</div>
+</div>
+
+
+<script>
+/*
+ * The document faces, fetched when something actually needs them.
+ *
+ * doc-fonts.js is half a megabyte of base64 TTF. It used to sit inline in this
+ * page, so every visit parsed it and built sixteen @font-face rules out of
+ * data: URLs before the clinician could type a thing — on a throttled phone
+ * that was the whole of the page's load. Nothing on the editing screen is set
+ * in these faces. The preview wants them for fidelity and the PDF has to embed
+ * them, so they are fetched on the first of those and cached by the browser
+ * from then on; every caller awaits the same promise.
+ *
+ * The preview reads correctly without them: each document font falls back to
+ * the real face where the reader has it, then to a stock sans or serif.
+ */
+window.GTDocFonts = (function () {
+  var promise = null;
+
+  function inject(d) {
+    if (document.getElementById('gt-doc-faces')) return;
+    var w = { Regular: [400, 'normal'], Bold: [700, 'normal'], Italic: [400, 'italic'], BoldItalic: [700, 'italic'] };
+    var css = '';
+    for (var k in d) {
+      var parts = k.split('-'), fam = parts[0], suf = parts[1];
+      var wt = (w[suf] || [400, 'normal'])[0], st = (w[suf] || [400, 'normal'])[1];
+      css += "@font-face{font-family:'Doc " + fam + "';src:url(data:font/ttf;base64," + d[k] +
+             ") format('truetype');font-weight:" + wt + ";font-style:" + st + ";font-display:swap}";
+    }
+    var el = document.createElement('style');
+    el.id = 'gt-doc-faces';
+    el.textContent = css;
+    document.head.appendChild(el);
+  }
+
+  function load() {
+    if (promise) return promise;
+    promise = new Promise(function (resolve) {
+      if (window.DOC_FONT_DATA) { inject(window.DOC_FONT_DATA); resolve(window.DOC_FONT_DATA); return; }
+      var s = document.createElement('script');
+      s.src = 'doc-fonts.js';
+      s.onload = function () {
+        var d = window.DOC_FONT_DATA || {};
+        inject(d);
+        resolve(d);
+      };
+      /* A failed fetch is not a failed page: the preview keeps its fallback
+         faces and the PDF falls back to pdfmake's own Roboto. */
+      s.onerror = function () { resolve({}); };
+      document.head.appendChild(s);
+    });
+    return promise;
+  }
+
+  /* Warm them once the page is idle, so the first Preview or Export usually
+     finds them already there without any of this being on the critical path. */
+  function warm() {
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(load, { timeout: 4000 });
+    else setTimeout(load, 1500);
+  }
+  if (document.readyState === 'complete') warm();
+  else window.addEventListener('load', warm);
+
+  return { load: load, ready: function () { return !!window.DOC_FONT_DATA; } };
+})();
+</script>
+<script>
+/* ===================== Data ===================== */
+const STORE_DRAFT = 'fsb.draft.v1';
+const STORE_LIB = 'fsb.library.v1';
+const PREP_STD = 'Blended - (cooked, blended and creamy texture)';
+const uid = () => Math.random().toString(36).slice(2, 10);
+/* The registration that has to travel with the practitioner's name lives in
+   assets/gt-export-light.js, so every tool in the portal states it the same
+   way. Both fields stay editable: a locum's name keeps their own credentials. */
+const PRACTITIONER = 'Gayathri Dissanayaka';
+const defaultAuthor = () => ({
+  name: PRACTITIONER,
+  cred: (window.GTExportLight && window.GTExportLight.credentials(PRACTITIONER)) ||
+        'Dietitian & Nutritionist (SLMC Reg No. 148 & 375)'
+});
+
+/* How the finished schedule names whoever signed it. */
+function authorByline(a) {
+  var name = (a && a.name) || '', cred = (a && a.cred) || '';
+  if (window.GTExportLight) return window.GTExportLight.byline(name, cred);
+  return cred ? name + ' | ' + cred : name;
+}
+
+/* Fonts: Word name -> metric-compatible open font embedded for preview & PDF */
+const DOC_FONTS = {
+  'Calibri':         { pdf: 'Carlito',         css: "Calibri, 'Doc Carlito', Carlito, sans-serif" },
+  'Times New Roman': { pdf: 'LiberationSerif', css: "'Times New Roman', 'Doc LiberationSerif', Tinos, serif" },
+  'Arial':           { pdf: 'LiberationSans',  css: "Arial, 'Doc LiberationSans', Arimo, sans-serif" },
+  'Cambria':         { pdf: 'Caladea',         css: "Cambria, 'Doc Caladea', Caladea, serif" },
+};
+
+/* Nutrients: shown in the document only when value > 0 */
+const NUTRIENTS = [
+  ['energy', 'Energy', 'kcal'], ['protein', 'Protein', 'g'], ['cho', 'Carbohydrate', 'g'], ['fat', 'Fat', 'g'],
+  ['potassium', 'Potassium', 'mg'], ['sodium', 'Sodium', 'mg'], ['phosphorus', 'Phosphorus', 'mg'],
+  ['calcium', 'Calcium', 'mg'], ['magnesium', 'Magnesium', 'mg'], ['iron', 'Iron', 'mg'],
+];
+function mkNutrients(vals = {}) { return NUTRIENTS.map(([key, label, unit]) => ({ key, label, unit, value: vals[key] ?? '' })); }
+
+function mkRow(o = {}) {
+  return Object.assign({ id: uid(), time: '', prep: PREP_STD, items: '', cond: '', salt: true, alt: false, altPrep: '', altItems: '', altCond: '', qty: '01 cup' }, o);
+}
+
+function sampleDoc() {
+  return {
+    patient: { title: 'Mr.', name: 'N. Samarathunge', bht: 'AHL0385106', uhid: '110315904', age: '87', ageUnit: 'y', date: '2026-11-03', room: '203', ward: '2A' },
+    schedule: { feedType: 'SEMISOLID/Blended', source: 'kitchen feeds', number: 'I', condition: 'Diabetic' },
+    topNote: 'Salt sachets to be sent separately. Salt (per medical advice) to be added at the bedside just prior to feeding.',
+    saltOn: true, saltText: 'salt as per medical advice',
+    rows: [
+      mkRow({ time: '6 am',  items: '(5 tbsp red raw rice + 1/3 cup vegetables)' }),
+      mkRow({ time: '8 am',  items: '(5 tbsp red raw rice + 1/3 cup vegetables) + **01 egg**' }),
+      mkRow({ time: '10 am', prep: 'Blended - fruits (creamy texture)', items: '*Eg: Banana / Papaya* without sugar', cond: '(If potassium level is low or within range)',
+              alt: true, altPrep: '', altItems: '*Rice conjee (blended and strained / creamy texture)*', altCond: '(If potassium level is high only)' }),
+      mkRow({ time: '12 pm', items: '(5 tbsp red raw rice + 1/3 cup vegetables + 30 g chicken or **01 egg**)' }),
+      mkRow({ time: '2 pm',  items: '(5 tbsp red raw rice + 1/3 cup vegetables + *01 tsp coconut oil / olive oil / canola margarine*)' }),
+      mkRow({ time: '4 pm',  items: '(5 tbsp raw rice + 1/3 cup vegetables + **01 egg**)' }),
+      mkRow({ time: '6 pm',  items: '(5 tbsp red raw rice + 1/3 cup vegetables + 30 g fish)' }),
+      mkRow({ time: '8 pm',  items: '(5 tbsp red raw rice + 1/3 cup vegetables + 30 g fish)' }),
+      mkRow({ time: '10 pm', items: '(5 tbsp red raw rice + 1/3 cup vegetables)' }),
+    ],
+    feedMl: 150, flushMl: 50,
+    flushText: 'After each feed flush with {flush} ml boiled & cooled water',
+    nutrients: mkNutrients({ energy: '1135', protein: '55', cho: '213', fat: '14' }),
+    nutrientLayout: 'list',
+    fluidAuto: true, fluidManual: '',
+    notes: 'Note: Salt to be added according to medical advice.\n***(Send salt sachets separately)***',
+    style: { font: 'Calibri', size: 11 },
+    signBlock: false,
+    author: defaultAuthor(),
+  };
+}
+
+function blankDoc() {
+  const d = sampleDoc();
+  d.patient = { title: 'Mr.', name: '', bht: '', uhid: '', age: '', ageUnit: 'y', date: new Date().toISOString().slice(0, 10), room: '', ward: '' };
+  d.rows = ['6 am','8 am','10 am','12 pm','2 pm','4 pm','6 pm','8 pm','10 pm'].map(t => mkRow({ time: t }));
+  d.nutrients = mkNutrients();
+  return d;
+}
+
+/* ===================== Rich-text helpers ===================== */
+// ***bold italic***, **bold**, *italic*, __underline__
+function parseInline(s, base = {}) {
+  const out = []; if (!s) return out;
+  const re = /(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|\*[^*]+\*|__[^_]+__)/g; let last = 0, m;
+  while ((m = re.exec(s))) {
+    if (m.index > last) out.push({ ...base, t: s.slice(last, m.index) });
+    const tok = m[0];
+    if (tok.startsWith('***')) out.push({ ...base, t: tok.slice(3, -3), b: true, i: true });
+    else if (tok.startsWith('**')) out.push({ ...base, t: tok.slice(2, -2), b: true });
+    else if (tok.startsWith('__')) out.push({ ...base, t: tok.slice(2, -2), u: true });
+    else out.push({ ...base, t: tok.slice(1, -1), i: true });
+    last = m.index + tok.length;
+  }
+  if (last < s.length) out.push({ ...base, t: s.slice(last) });
+  return out;
+}
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function fmtDate(iso) { if (!iso) return ''; const [y, m, d] = iso.split('-'); return d && m && y ? `${d}-${m}-${y}` : iso; }
+
+/* ===================== Download helper ===================== */
+async function saveFile(filename, blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = filename; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  return 'saved';
+}
+
+/* ===================== Alpine app ===================== */
+function app() {
+  return {
+    doc: sampleDoc(),
+    tab: 'edit', menuOpen: false, libraryOpen: false, libQuery: '', timeToolOpen: false,
+    timeTool: { start: '06:00', every: 2 },
+    openId: null, busy: false, toasts: [], library: [], draftStatus: '',
+    confirmBox: { open: false, msg: '', fn: null },
+    defaultAuthor,
+
+    init() {
+      try {
+        const raw = localStorage.getItem(STORE_DRAFT);
+        if (raw) { const d = JSON.parse(raw); if (d && Array.isArray(d.rows)) this.doc = this.normalize(d); }
+        const lib = JSON.parse(localStorage.getItem(STORE_LIB) || '[]'); if (Array.isArray(lib)) this.library = lib;
+      } catch (e) { /* storage unavailable */ }
+      let t; this.$watch('doc', () => { clearTimeout(t); t = setTimeout(() => this.persist(), 400); });
+    },
+    normalize(d) {
+      const base = sampleDoc();
+      const out = Object.assign(base, d);
+      out.patient = Object.assign(sampleDoc().patient, d.patient || {});
+      out.schedule = Object.assign(sampleDoc().schedule, d.schedule || {});
+      out.author = Object.assign(defaultAuthor(), d.author || {});
+      out.rows = (d.rows || []).map(r => mkRow({ ...r, id: r.id || uid() }));
+      out.style = Object.assign({ font: 'Calibri', size: 11 }, d.style || {});
+      if (!DOC_FONTS[out.style.font]) out.style.font = 'Calibri';
+      if (Array.isArray(d.nutrients)) {
+        // keep standard order/units, then any custom nutrients
+        out.nutrients = [...mkNutrients(Object.fromEntries(d.nutrients.map(n => [n.key, n.value]))),
+          ...d.nutrients.filter(n => n.custom).map(n => ({ key: n.key || uid(), label: n.label || '', unit: n.unit || '', value: n.value ?? '', custom: true }))];
+      } else {
+        // older drafts: energy / protein fields and "(c-213, 14)" = carbohydrate, fat
+        const v = { energy: d.energy || '', protein: d.protein || '' };
+        const cf = /c\s*-?\s*l?\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)/i.exec(d.refCode || '');
+        if (cf) { v.cho = cf[1]; v.fat = cf[2]; }
+        out.nutrients = mkNutrients(v);
+      }
+      delete out.energy; delete out.protein; delete out.refCode;
+      return out;
+    },
+    addNutrient() { this.doc.nutrients.push({ key: 'x' + uid(), label: '', unit: 'mg', value: '', custom: true }); },
+    shownNutrients() { return (this.doc.nutrients || []).filter(n => Number(n.value) > 0 && (n.label || '').trim()); },
+    DOC_FONTS,
+    persist() {
+      try { localStorage.setItem(STORE_DRAFT, JSON.stringify(this.doc)); this.draftStatus = 'Draft auto-saved ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+      catch (e) { this.draftStatus = ''; }
+    },
+    toast(msg, type = 'ok') { const id = uid(); this.toasts.push({ id, msg, type }); setTimeout(() => this.toasts = this.toasts.filter(x => x.id !== id), 3200); },
+    askConfirm(msg, fn) { this.confirmBox = { open: true, msg, fn }; },
+
+    /* ---- rows ---- */
+    addRow() { const r = mkRow(); this.doc.rows.push(r); this.openId = r.id; },
+    duplicateRow(i) { const r = mkRow({ ...JSON.parse(JSON.stringify(this.doc.rows[i])), id: uid() }); this.doc.rows.splice(i + 1, 0, r); this.openId = r.id; },
+    removeRow(i) { const r = this.doc.rows[i]; this.doc.rows.splice(i, 1); this.toast('Feed at ' + (r.time || 'row') + ' removed'); },
+    moveRow(i, dir) { const j = i + dir; if (j < 0 || j >= this.doc.rows.length) return; const a = this.doc.rows; [a[i], a[j]] = [a[j], a[i]]; this.doc.rows = [...a]; },
+    rowSummary(r) { return [r.prep, r.items].filter(Boolean).join(' · ').replace(/\*/g, '') || 'Tap to edit'; },
+    applyTimes() {
+      const [h, m] = (this.timeTool.start || '06:00').split(':').map(Number); let mins = h * 60 + (m || 0); const step = Math.max(0.25, +this.timeTool.every || 2) * 60;
+      this.doc.rows.forEach(r => {
+        const hh = Math.floor(mins / 60) % 24, mm = Math.round(mins % 60), ap = hh < 12 ? 'am' : 'pm', h12 = (hh % 12) || 12;
+        r.time = mm ? `${h12}.${String(mm).padStart(2, '0')} ${ap}` : `${h12} ${ap}`; mins += step;
+      });
+      this.toast('Times updated'); this.timeToolOpen = false;
+    },
+
+    /* ---- templates & library ---- */
+    loadSample() { this.doc = sampleDoc(); this.toast('Sample schedule loaded'); },
+    newBlank() { this.doc = blankDoc(); this.openId = null; this.toast('New blank schedule'); },
+    libKey(d) { return [d.patient.bht || d.patient.name || 'untitled', d.patient.date, d.schedule.number].join('|'); },
+    saveToLibrary() {
+      const key = this.libKey(this.doc);
+      const item = { key, savedAt: Date.now(), doc: JSON.parse(JSON.stringify(this.doc)) };
+      this.library = [item, ...this.library.filter(x => x.key !== key)];
+      try { localStorage.setItem(STORE_LIB, JSON.stringify(this.library)); this.toast('Saved to this browser'); }
+      catch (e) { this.toast('Could not save here — use Backup (.json)', 'err'); }
+    },
+    loadFromLibrary(item) { this.doc = this.normalize(JSON.parse(JSON.stringify(item.doc))); this.libraryOpen = false; this.tab = 'edit'; this.toast('Schedule opened'); },
+    deleteFromLibrary(key) { this.library = this.library.filter(x => x.key !== key); try { localStorage.setItem(STORE_LIB, JSON.stringify(this.library)); } catch (e) {} },
+    filteredLibrary() {
+      const q = this.libQuery.trim().toLowerCase(); if (!q) return this.library;
+      return this.library.filter(x => JSON.stringify([x.doc.patient]).toLowerCase().includes(q));
+    },
+
+    /* ---- computed text ---- */
+    fmtDate,
+    fluidLine() {
+      if (!this.doc.fluidAuto) return this.doc.fluidManual || '—';
+      const n = this.doc.rows.length, f = n * (+this.doc.feedMl || 0), fl = n * (+this.doc.flushMl || 0);
+      return `${f + fl} ml (${f} ml from feeds + ${fl} ml for flushing)`;
+    },
+    fileBase() {
+      const p = this.doc.patient;
+      const parts = ['Feeding-Schedule', p.name, p.room && ('Room-' + p.room), fmtDate(p.date)].filter(Boolean).join('_');
+      return parts.replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '-').replace(/\.+/g, '').slice(0, 120);
+    },
+
+    /* ---- document model shared by preview / docx / pdf ---- */
+    model() {
+      const d = this.doc, p = d.patient, s = d.schedule;
+      const B = t => ({ t, b: true }), N = t => ({ t });
+      const fullName = [p.title, p.name].filter(Boolean).join(' ');
+      // ---- header (styling follows the reference sheet) ----
+      const idRight = [];
+      if (p.bht) idRight.push(N('BHT: ' + p.bht));
+      if (p.uhid) idRight.push(N((p.bht ? '      ' : '') + 'UHID: ' + p.uhid));
+      const header = [
+        { left: [B('Name of the Patient: '), B(fullName)], right: idRight },
+        { left: p.age ? [N(`Age: ${p.age} ${p.ageUnit}`)] : [], right: p.date ? [N('Revised Date: ' + fmtDate(p.date))] : [] },
+        { left: (p.room || p.ward) ? [N('Room No: '), B([p.room, p.ward && `(${p.ward})`].filter(Boolean).join(' '))] : [], right: [] },
+      ].filter(l => l.left.length || l.right.length);
+
+      const title = [];
+      if (s.feedType) title.push(B(`${s.feedType} Schedule`));
+      const tail = [s.source && ` (${s.source})`, s.number && ` - ${s.number}`, s.condition && ` (${s.condition})`].filter(Boolean).join('');
+      if (tail) title.push(N(tail));
+
+      const note = d.topNote ? [B('Note: '), ...parseInline(d.topNote, { b: true })] : null;
+
+      // ---- feed rows ----
+      const rows = d.rows.map(r => {
+        const p1 = [];
+        if (r.prep) p1.push({ t: r.prep, b: true, i: true });
+        if (r.items) { if (p1.length) p1.push(N('  ')); p1.push(...parseInline(r.items)); }
+        if (d.saltOn && r.salt && d.saltText) p1.push(N(' + ' + d.saltText));
+        if (r.cond) p1.push({ t: ' ' + r.cond, b: true, i: true });
+        const paras = [p1];
+        if (r.alt) {
+          paras.push([B('OR')]);
+          const p2 = [];
+          if (r.altPrep) p2.push({ t: r.altPrep, b: true, i: true });
+          if (r.altItems) { if (p2.length) p2.push(N('  ')); p2.push(...parseInline(r.altItems)); }
+          if (r.altCond) p2.push({ t: ' ' + r.altCond, i: true });
+          paras.push(p2);
+        }
+        return { id: r.id, time: parseInline(r.time || ''), qty: parseInline(r.qty || ''), paras };
+      });
+
+      // ---- below the table ----
+      const after = [];
+      const L = (left, right = []) => after.push({ kind: 'line', left, right });
+      if (d.flushText) L([{ t: d.flushText.replace(/\{flush\}/g, d.flushMl), b: true, i: true }]);
+      const nut = this.shownNutrients().map(n => [B(`${n.label.trim()} ~ ${+n.value} ${n.unit || ''}`.trim())]);
+      if (nut.length) {
+        if (d.nutrientLayout === 'grid') after.push({ kind: 'grid', items: nut });
+        else nut.forEach(x => L(x));
+      }
+      L([N('Fluid intake: ' + this.fluidLine())]);
+      (d.notes || '').split('\n').map(x => x.trim()).filter(Boolean).forEach(n => L(parseInline(n, { b: true })));
+
+      const a = d.author;
+      const signLine = [N('By ' + authorByline(a))];
+      return { header, title, note, rows, after, signLine };
+    },
+    runsHtml(runs) {
+      return (runs || []).map(r => {
+        let h = esc(r.t).replace(/ {2}/g, ' &nbsp;');
+        if (r.u) h = `<u>${h}</u>`; if (r.i) h = `<i>${h}</i>`; if (r.b) h = `<b>${h}</b>`; return h;
+      }).join('');
+    },
+    docTitle() { return `Feeding schedule – ${[this.doc.patient.title, this.doc.patient.name].filter(Boolean).join(' ')}`; },
+
+    /* ---- exports ---- */
+    async finish(res, label) {
+      if (res === 'declined') this.toast('Download cancelled');
+      else if (res === 'busy') this.toast('Another download is pending — try again', 'err');
+      else this.toast(label + ' ready');
+    },
+
+    async exportDocx() {
+      if (!window.docx) return this.toast('Word export library failed to load', 'err');
+      this.busy = true;
+      try {
+        const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, TabStopType, BorderStyle, ShadingType, Tab } = window.docx;
+        const m = this.model(), a = this.doc.author;
+        const FONT = this.doc.style.font, SZ = Math.round(this.doc.style.size * 2);
+        const CW = 9906; // content width (twips) for A4 with 1000 margins
+        const tr = (r, extra = {}) => new TextRun({ text: r.t, bold: !!r.b, italics: !!r.i, underline: r.u ? {} : undefined, font: FONT, size: SZ, ...extra });
+        const line = (l, spacing = 80) => new Paragraph({
+          spacing: { after: spacing },
+          tabStops: [{ type: TabStopType.RIGHT, position: CW }],
+          children: [...l.left.map(r => tr(r)), ...(l.right.length ? [new TextRun({ children: [new Tab()] }), ...l.right.map(r => tr(r))] : [])],
+        });
+        const border = { style: BorderStyle.SINGLE, size: 6, color: '333333' };
+        const borders = { top: border, bottom: border, left: border, right: border };
+        const none = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+        const noBorders = { top: none, bottom: none, left: none, right: none };
+        const W = [1450, 7006, 1450];
+        const cell = (paras, w, opts = {}) => new TableCell({
+          width: { size: w, type: WidthType.DXA }, borders,
+          margins: { top: 70, bottom: 70, left: 100, right: 100 },
+          shading: opts.shade ? { type: ShadingType.CLEAR, color: 'auto', fill: 'E9EEF2' } : undefined,
+          children: paras.length ? paras.map((p, i) => new Paragraph({ alignment: opts.align, spacing: { after: 0, before: i ? 60 : 0 }, children: p.map(r => tr(r)) })) : [new Paragraph('')],
+        });
+        const rows = [
+          new TableRow({ tableHeader: true, children: ['Time', 'Description', 'Quantity'].map((h, i) => cell([[{ t: h, b: true }]], W[i], { shade: true, align: AlignmentType.CENTER })) }),
+        ];
+        if (m.note) rows.push(new TableRow({ children: [cell([], W[0]), cell([m.note], W[1]), cell([], W[2])] }));
+        m.rows.forEach(r => rows.push(new TableRow({ cantSplit: true, children: [
+          cell([r.time], W[0]),
+          cell(r.paras, W[1]),
+          cell([r.qty], W[2], { align: AlignmentType.CENTER }),
+        ] })));
+
+        const afterBlocks = m.after.flatMap(b => {
+          if (b.kind === 'line') return [line(b, 100)];
+          const cw = Math.floor(CW / 3), chunks = [];
+          for (let i = 0; i < b.items.length; i += 3) chunks.push(b.items.slice(i, i + 3));
+          return [new Table({
+            width: { size: CW, type: WidthType.DXA }, columnWidths: [cw, cw, cw],
+            borders: { ...noBorders, insideHorizontal: none, insideVertical: none },
+            rows: chunks.map(ch => new TableRow({ children: [0, 1, 2].map(k => new TableCell({
+              width: { size: cw, type: WidthType.DXA }, borders: noBorders, margins: { top: 10, bottom: 30, left: 0, right: 0 },
+              children: [new Paragraph({ children: (ch[k] || []).map(r => tr(r)) })],
+            })) })),
+          }), new Paragraph({ spacing: { after: 60 }, children: [] })];
+        });
+
+        const sign = this.doc.signBlock ? [
+          new Paragraph({ spacing: { before: 600 }, alignment: AlignmentType.RIGHT, children: [new TextRun({ text: '..................................', font: FONT, size: SZ, color: '666666' })] }),
+          new Paragraph({ alignment: AlignmentType.RIGHT, children: [tr({ t: a.name, b: true })] }),
+          new Paragraph({ alignment: AlignmentType.RIGHT, children: [tr({ t: a.cred })] }),
+        ] : [new Paragraph({ spacing: { before: 280 }, children: m.signLine.map(r => tr(r)) })];
+
+        const children = [
+          ...m.header.map(l => line(l)),
+          new Paragraph({ spacing: { before: 160, after: 160 }, children: m.title.map(r => tr(r)) }),
+          new Table({ width: { size: CW, type: WidthType.DXA }, columnWidths: W, rows }),
+          new Paragraph({ spacing: { after: 120 }, children: [] }),
+          ...afterBlocks,
+          ...sign,
+        ];
+        const file = new Document({
+          creator: a.name, lastModifiedBy: a.name, title: this.docTitle(),
+          description: `Prepared by ${a.name} (${a.cred})`, subject: 'Feeding schedule',
+          styles: { default: { document: { run: { font: FONT, size: SZ } } } },
+          sections: [{ properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1000, right: 1000, bottom: 1000, left: 1000 } } }, children }],
+        });
+        const blob = await Packer.toBlob(file);
+        this.finish(await saveFile(this.fileBase() + '.docx', blob), 'Word document');
+      } catch (e) { console.error(e); this.toast('Word export failed: ' + (e.message || e), 'err'); }
+      finally { this.busy = false; }
+    },
+
+    pdfFonts() {
+      const fonts = { Roboto: { normal: 'Roboto-Regular.ttf', bold: 'Roboto-Medium.ttf', italics: 'Roboto-Italic.ttf', bolditalics: 'Roboto-MediumItalic.ttf' } };
+      const vfs = Object.assign({}, pdfMake.vfs || {});
+      const data = window.DOC_FONT_DATA || {};
+      Object.values(DOC_FONTS).forEach(({ pdf }) => {
+        const v = { normal: 'Regular', bold: 'Bold', italics: 'Italic', bolditalics: 'BoldItalic' };
+        if (!data[`${pdf}-Regular`]) return;
+        fonts[pdf] = {};
+        for (const [k, suf] of Object.entries(v)) { vfs[`${pdf}-${suf}.ttf`] = data[`${pdf}-${suf}`]; fonts[pdf][k] = `${pdf}-${suf}.ttf`; }
+      });
+      return { fonts, vfs };
+    },
+
+    async exportPdf() {
+      if (!window.pdfMake) return this.toast('PDF export library failed to load', 'err');
+      this.busy = true;
+      try {
+        /* The faces are embedded in the file, so they have to be here before
+           the document is built; usually the idle warm-up has them already. */
+        await window.GTDocFonts.load();
+        const m = this.model(), a = this.doc.author;
+        const { fonts, vfs } = this.pdfFonts();
+        const pdfFont = fonts[DOC_FONTS[this.doc.style.font].pdf] ? DOC_FONTS[this.doc.style.font].pdf : 'Roboto';
+        const FS = this.doc.style.size;
+        const pr = runs => (runs || []).map(r => ({ text: r.t, bold: !!r.b, italics: !!r.i, decoration: r.u ? 'underline' : undefined }));
+        const line = (l, mb = 4) => ({ columns: [{ width: '*', text: pr(l.left) }, ...(l.right.length ? [{ width: 'auto', text: pr(l.right), alignment: 'right' }] : [])], columnGap: 12, margin: [0, 0, 0, mb] });
+        const body = [[{ text: 'Time', style: 'th' }, { text: 'Description', style: 'th' }, { text: 'Quantity', style: 'th' }]];
+        if (m.note) body.push(['', { text: pr(m.note) }, '']);
+        m.rows.forEach(r => body.push([
+          { text: pr(r.time) },
+          { stack: r.paras.map((p, i) => ({ text: pr(p), margin: [0, i ? 3 : 0, 0, 0] })) },
+          { text: pr(r.qty), alignment: 'center' },
+        ]));
+        const afterBlocks = m.after.map(b => {
+          if (b.kind === 'line') return line(b, 5);
+          const rowsOf3 = [];
+          for (let i = 0; i < b.items.length; i += 3) rowsOf3.push({ columns: [0, 1, 2].map(k => ({ width: '*', text: pr(b.items[i + k] || []) })), columnGap: 12, margin: [0, 0, 0, 4] });
+          return { stack: rowsOf3, margin: [0, 1, 0, 3] };
+        });
+        const sign = this.doc.signBlock
+          ? { stack: [{ text: '..................................', color: '#666' }, { text: a.name, bold: true, margin: [0, 3, 0, 0] }, { text: a.cred }], alignment: 'right', margin: [0, 28, 0, 0], unbreakable: true }
+          : { text: pr(m.signLine), margin: [0, 14, 0, 0] };
+        const dd = {
+          pageSize: 'A4', pageMargins: [40, 38, 40, 38],
+          info: { title: this.docTitle(), author: a.name, subject: 'Feeding schedule', creator: a.name, keywords: 'feeding schedule, dietetics' },
+          defaultStyle: { font: pdfFont, fontSize: FS, lineHeight: pdfFont === 'Carlito' ? 1.0 : 1.08 },
+          styles: { th: { bold: true, alignment: 'center', fillColor: '#E9EEF2' } },
+          content: [
+            ...m.header.map(l => line(l)),
+            { text: pr(m.title), margin: [0, 8, 0, 8] },
+            { table: { headerRows: 1, dontBreakRows: true, widths: [62, '*', 62], body },
+              layout: { hLineWidth: () => 0.7, vLineWidth: () => 0.7, hLineColor: () => '#333', vLineColor: () => '#333', paddingLeft: () => 6, paddingRight: () => 6, paddingTop: () => 3.5, paddingBottom: () => 3.5 } },
+            { text: '', margin: [0, 6, 0, 0] },
+            ...afterBlocks,
+            sign,
+          ],
+        };
+        const blob = await new Promise((res, rej) => { try { pdfMake.createPdf(dd, null, fonts, vfs).getBlob(res); } catch (e) { rej(e); } });
+        this.finish(await saveFile(this.fileBase() + '.pdf', blob), 'PDF');
+      } catch (e) { console.error(e); this.toast('PDF export failed: ' + (e.message || e), 'err'); }
+      finally { this.busy = false; }
+    },
+    async exportJson() {
+      const blob = new Blob([JSON.stringify({ app: 'feeding-schedule-builder', version: 1, doc: this.doc }, null, 2)], { type: 'application/json' });
+      this.finish(await saveFile(this.fileBase() + '.json', blob), 'Backup');
+    },
+    importJson(ev) {
+      const f = ev.target.files && ev.target.files[0]; if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => {
+        try { const j = JSON.parse(rd.result); const d = j.doc || j; if (!Array.isArray(d.rows)) throw new Error('not a schedule file'); this.doc = this.normalize(d); this.toast('Schedule imported'); }
+        catch (e) { this.toast('Could not read that file: ' + e.message, 'err'); }
+        ev.target.value = '';
+      };
+      rd.readAsText(f);
+    },
+  };
+}
+</script>
+<script src="../../assets/gt-chrome.js" defer></script>
+<script src="../../assets/gt-switcher.js" defer></script>
+</body>
+</html>
