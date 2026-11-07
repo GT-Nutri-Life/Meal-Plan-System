@@ -1861,6 +1861,13 @@ window.tailwind = window.tailwind || { config: {} };</script>
             });
         }
 
+        /* How this portal names the practitioner on anything that leaves it. */
+        function gtPractitioner() {
+            var name = 'Gayathri Dissanayaka';
+            return window.GTExportLight ? window.GTExportLight.byline(name)
+                 : name + ' | Dietitian & Nutritionist (SLMC Reg No. 148 & 375)';
+        }
+
         function updatePreview() {
             const data = collectFormData();
             const preview = document.getElementById('preview-content');
@@ -1930,7 +1937,17 @@ window.tailwind = window.tailwind || { config: {} };</script>
                     </div>
                 </div>
             `;
-            
+
+            /* The plan is a handout, and it left this page naming nobody. The
+               practitioner's line comes from assets/gt-export-light.js, so it
+               reads exactly as it does on every other document the portal
+               produces, registration included. */
+            html += `
+                <div style="margin-top:28px;padding-top:12px;border-top:1px solid #d1d5db;text-align:center">
+                    <div style="font-weight:600;color:#374151;font-size:13px">${gtPractitioner()}</div>
+                </div>
+            `;
+
             preview.innerHTML = html;
         }
 

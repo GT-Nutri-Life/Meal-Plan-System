@@ -967,8 +967,20 @@ window.tailwind = window.tailwind || { config: {} };</script>
                 html += `</div>`;
             });
 
+            /* The menu is a handout, and it left this page naming nobody. */
+            html += `
+                <div style="margin-top:28px;padding-top:12px;border-top:1px solid #d1d5db;text-align:center">
+                    <div style="font-weight:600;color:#374151;font-size:13px">${gtPractitioner()}</div>
+                </div>`;
             html += `</div>`;
             return html;
+        }
+
+        /* How this portal names the practitioner on anything that leaves it. */
+        function gtPractitioner() {
+            var name = 'Gayathri Dissanayaka';
+            return window.GTExportLight ? window.GTExportLight.byline(name)
+                 : name + ' | Dietitian & Nutritionist (SLMC Reg No. 148 & 375)';
         }
 
         // Save Plan

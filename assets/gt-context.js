@@ -449,7 +449,7 @@
       read: function () {
         var out = {};
         var map = {
-          'patientName': 'patient.name', 'patientAge': 'patient.age',
+          'patientName': 'patient.name', 'patientRegNo': 'patient.id', 'patientAge': 'patient.age',
           'patientPhone': 'patient.phone', 'patientEmail': 'patient.email',
           'patientAddress': 'patient.address',
           'patientHeight': 'measure.heightCm', 'patientWeight': 'measure.weightKg',
@@ -504,6 +504,7 @@
         if (wr($('calorieTarget'), round(kcal, 0))) n++;
 
         if (wr($('planDate'), get(rec, 'plan.startDate'))) n++;
+        if (wr($('patientRegNo'),     get(rec, 'patient.id')))            n++;
         if (wr($('nutritionistName'),  get(rec, 'dietitian.name')))        n++;
         if (wr($('credentials'),       get(rec, 'dietitian.credentials'))) n++;
         if (wr($('nutritionistPhone'), get(rec, 'dietitian.phone')))       n++;

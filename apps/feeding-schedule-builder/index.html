@@ -482,6 +482,14 @@ window.tailwind = window.tailwind || { config: {} };</script>
   </template>
 </div>
 
+<!-- page footer -->
+<footer class="mt-10 border-t border-slate-200 bg-white">
+  <div class="max-w-7xl mx-auto px-3 sm:px-5 py-6 text-center">
+    <p class="text-sm font-semibold text-slate-700" x-text="authorByline(doc.author)"></p>
+    <p class="text-xs text-slate-500 mt-1">Feeding Schedule Builder &middot; semisolid and blended kitchen feeds</p>
+  </div>
+</footer>
+
 <!-- busy overlay -->
 <div x-cloak x-show="busy" class="fixed inset-0 z-50 bg-white/60 grid place-items-center">
   <div class="flex items-center gap-3 bg-white rounded-xl shadow px-4 py-3 text-sm font-medium"><svg class="w-5 h-5 animate-spin text-brand-600" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity=".25"/><path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3"/></svg>Preparing document…</div>
@@ -773,6 +781,10 @@ function app() {
         { left: [B('Name of the Patient: '), B(fullName)], right: idRight },
         { left: p.age ? [N(`Age: ${p.age} ${p.ageUnit}`)] : [], right: p.date ? [N('Revised Date: ' + fmtDate(p.date))] : [] },
         { left: (p.room || p.ward) ? [N('Room No: '), B([p.room, p.ward && `(${p.ward})`].filter(Boolean).join(' '))] : [], right: [] },
+        /* Who prescribed it, at the top as well as over the signature: a ward
+           reading the chart off a clipboard should not have to reach the foot
+           of the page to find the dietitian and her registration. */
+        { left: authorByline(d.author) ? [B('Dietitian: '), N(authorByline(d.author))] : [], right: [] },
       ].filter(l => l.left.length || l.right.length);
 
       const title = [];
