@@ -156,6 +156,46 @@ module.exports = async function run({ context, B, reporter }) {
     await p.close();
   }
 
+  /* ---- the patient's registration number ----------------------------- *
+   * The meal plan generator had no field for it at all, so a client's clinic
+   * number could not travel with them. It is the same record field the ward
+   * tools already trade (patient.id), which is what makes it arrive here
+   * from the dietary assessment and leave for the feed chart.
+   * -------------------------------------------------------------------- */
+  for (const [name, url] of [['mpg', '/apps/meal-plan-generator/index.html'],
+                             ['mpg-main', '/apps/meal-plan-generator/main.html']]) {
+    const p = await context.newPage();
+    await p.goto(B + url, { waitUntil: 'load' });
+    await p.waitForTimeout(1200);
+
+    const got = await p.evaluate((rec) => {
+      localStorage.setItem('gt-clinical-record', JSON.stringify(rec));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'gt-clinical-record' }));
+      window.GTContext.apply('meal-plan-generator');
+      const el = document.getElementById('patientRegNo');
+      return { present: !!el, value: el ? el.value : null };
+    }, RECORD);
+
+    ok(got.present, `${name}: the plan has a patient registration field`);
+    ok(got.value === 'PT-2026-118',
+      `${name}: and it fills from the record (${got.value})`);
+
+    /* ...and the plan it builds carries it. */
+    const inDoc = await p.evaluate(() => {
+      const el = document.getElementById('patientRegNo');
+      el.value = 'REG-77'; el.dispatchEvent(new Event('input', { bubbles: true }));
+      const fd = collectFormData();
+      return fd.patient.regNo;
+    });
+    ok(inDoc === 'REG-77', `${name}: and reaches the document the exporter builds (${inDoc})`);
+
+    const read = await p.evaluate(() =>
+      window.GTContext.adapters['meal-plan-generator'].read());
+    ok(read.patient && read.patient.id === 'REG-77',
+      `${name}: and goes back into the record for the next tool`);
+    await p.close();
+  }
+
   /* ---- Feeding Schedule Builder ------------------------------------- *
    * An Alpine page, so the prefill has a second thing to prove: that the
    * value reached Alpine's own state and not just the DOM node. Writing to

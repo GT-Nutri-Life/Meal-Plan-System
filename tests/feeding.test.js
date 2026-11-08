@@ -55,6 +55,23 @@ module.exports = async function run({ newIsolated, B, reporter }) {
   ok(doc.rows >= 9, `every feed in the schedule reaches the table (${doc.rows} rows)`);
   ok(/Name of the Patient/i.test(doc.text), 'with the patient block the ward reads first');
 
+  /* The prescriber belongs at the top of the chart as well as over the
+     signature: a ward reading it off a clipboard should not have to reach
+     the foot of the page to find out whose chart it is. */
+  const LINE = 'Gayathri Dissanayaka | Dietitian & Nutritionist (SLMC Reg No. 148 & 375)';
+  const head = doc.text.slice(0, doc.text.indexOf('Time'));
+  ok(head.includes('Dietitian: ' + LINE),
+    'the chart names the dietitian in its header, above the table');
+  ok(doc.text.includes('By ' + LINE),
+    'and signs it with the same line at the foot');
+
+  /* The app itself credits her too, as every other tool in the portal does. */
+  const pageFoot = await page.evaluate(() => {
+    const f = document.querySelector('body > footer');
+    return f ? f.textContent.replace(/\s+/g, ' ').trim() : '';
+  });
+  ok(pageFoot.includes(LINE), `the page has a footer crediting her (${pageFoot.slice(0, 60)})`);
+
   /* ---- typing reaches the document ---- */
   const typed = await page.evaluate(async () => {
     const el = document.getElementById('pt-name');

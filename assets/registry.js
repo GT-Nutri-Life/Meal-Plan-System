@@ -234,11 +234,11 @@
                  'macros.choPct', 'macros.proPct', 'macros.fatPct', 'dietitian.name']
     },
     'meal-plan-generator': {
-      consumes: ['patient.name', 'patient.age', 'patient.sex', 'patient.phone', 'patient.email',
+      consumes: ['patient.name', 'patient.id', 'patient.age', 'patient.sex', 'patient.phone', 'patient.email',
                  'patient.address', 'measure.heightCm', 'measure.weightKg', 'measure.targetWeightKg',
                  'energy.target', 'energy.tdee', 'plan.calorieTarget', 'plan.startDate',
                  'dietitian.name', 'dietitian.credentials', 'dietitian.phone', 'dietitian.email'],
-      produces: ['patient.name', 'patient.age', 'patient.sex', 'patient.phone', 'patient.email',
+      produces: ['patient.name', 'patient.id', 'patient.age', 'patient.sex', 'patient.phone', 'patient.email',
                  'patient.address', 'measure.heightCm', 'measure.weightKg', 'measure.targetWeightKg',
                  'measure.bmi', 'plan.calorieTarget', 'plan.startDate',
                  'dietitian.name', 'dietitian.credentials', 'dietitian.phone', 'dietitian.email']

@@ -531,8 +531,14 @@
 
   /* Print */
   .print-section { display: none; }
+  /* Only on the sheet: on screen the practitioner is already in the shared
+     header, and the buttons that would otherwise say who this came from are
+     the first thing print hides. */
+  .print-credit { display: none; }
   @media print {
     .header, .steps-nav, .btn-row, .hero { display: none !important; }
+    .print-credit { display: block; margin-top: 14px; padding-top: 8px;
+      border-top: 1px solid #999; font-size: 0.8rem; font-weight: 600; color: #1a1a1a; }
     .section-panel { display: block !important; }
     .print-section { display: block; }
     body { background: var(--gt-card,#FFFFFF); color: #1a1a1a; }
@@ -988,6 +994,8 @@
       <strong>⚕️ Medical Disclaimer:</strong> This tool is for clinical decision support only and does not replace professional medical judgment. All nutrition plans must be reviewed and approved by a qualified dietitian or physician. Calculations are based on ASPEN (2022), ESPEN (2023), and NKF KDOQI (2020) guidelines. Individual patient requirements may vary based on CKD stage, dialysis modality, and clinical status. Monitor patients closely for feeding tolerance, metabolic response, electrolyte balance, and adjust plans accordingly. Not intended for pediatric or neonatal use.
     </div>
 
+    <div class="print-credit" id="printCredit" aria-hidden="true"></div>
+
     <div class="btn-row">
       <button class="btn btn-secondary" onclick="goToStep(3)">← Back</button>
       <button class="btn btn-secondary" onclick="exportReport()">📄 Export Report</button>
@@ -1001,6 +1009,20 @@
 // =============================================
 // EXPORT REPORT
 // =============================================
+/* How this portal names the practitioner on anything that leaves it. */
+function gtPractitioner() {
+  var name = 'Gayathri Dissanayaka';
+  return window.GTExportLight ? window.GTExportLight.byline(name)
+       : name + ' | Dietitian & Nutritionist (SLMC Reg No. 148 & 375)';
+}
+
+/* The credit line is written in rather than hard-coded in the markup, so it
+   stays the one the shared layer produces. */
+document.addEventListener('DOMContentLoaded', function () {
+  var el = document.getElementById('printCredit');
+  if (el) el.textContent = 'Prepared by: ' + gtPractitioner();
+});
+
 function exportReport() {
   const patId = document.getElementById('patientId').value || 'Unknown';
   const now = new Date().toLocaleString();
@@ -1048,6 +1070,8 @@ ${ckdStage !== 'none' ? '• NKF KDOQI 2020 Clinical Practice Guideline for Nutr
 DISCLAIMER: This report is for clinical decision support only and does not
 replace professional medical judgment. All plans must be reviewed and approved
 by a qualified dietitian or physician.
+
+Prepared by: ${gtPractitioner()}
   `.trim();
 
   const blob = new Blob([report], {type: 'text/plain'});

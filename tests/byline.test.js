@@ -260,6 +260,35 @@ module.exports = async function run({ newIsolated, B, reporter }) {
       'feeding: a locum signs with their own credentials and no registration');
   }
 
+  /* ── the documents that used to name nobody at all ── */
+  {
+    const cases = [
+      ['dpcg', '/apps/diet-plan-calendar-generator/index.html',
+        () => { updatePreview(); return document.getElementById('preview-content').textContent; }],
+      ['dpcg-7day', '/apps/diet-plan-calendar-generator/7day-diet-menu.html',
+        () => { const d = document.createElement('div');
+                d.innerHTML = generatePreviewHTML(collectFormData()); return d.textContent; }],
+      ['icu', '/apps/meal-plan-generator/icu.html',
+        () => (document.getElementById('printCredit') || {}).textContent || '']
+    ];
+    for (const [name, url, read] of cases) {
+      await page.goto(B + url, { waitUntil: 'load' });
+      await page.waitForTimeout(800);
+      const text = await page.evaluate(`(${read.toString()})()`);
+      ok(text.includes(HERS), `${name}: the document it produces names her in full`);
+    }
+  }
+
+  /* ── and the profile page states the registration in its own right ── */
+  {
+    await page.goto(B + '/apps/about-dietitian/index.html', { waitUntil: 'load' });
+    await page.waitForTimeout(500);
+    const hero = await page.evaluate(() =>
+      (document.querySelector('.hreg') || {}).textContent || '');
+    ok(/SLMC Reg No\. 148 & 375/.test(hero),
+      `about: the hero states her registration (${hero})`);
+  }
+
   /* One spelling ships. The helper still matches the other, because a record
      saved before this could carry it, but no page writes it any more. */
   {
